@@ -1,0 +1,37 @@
+TODO
+
+
+* ability for experimenter to move people on...
+* tests for manual start
+* way to pass messages back to user. (DONE: check() throws an
+  error which is passed to the user via an error_message variable
+  defined for main())
+* how to allow some users to skip? (like Participate=0)
+
+* how handle the idea that stages might have different states for 
+  different groups? Could just be "provide a parameter called group" -
+  all we need is a link to the people you are waiting for
+* how to specify who to wait for at start and end of a stage?
+* use addTaskCallback and friends to print something out at end of repl loops?
+
+* minimize statefulness, record requests sent to handle_request
+  Then set up replay()
+  And autocreate fake participants using request records
+* More generally, framework for faking participants
+
+* RookServer should include ability to serve static files (perhaps via separate App?)
+
+* Environment for stage functions
+* Does pass_request pass a participant? Or just a client ID?
+* How to easily identify computers in lab (if not by IP address)?
+  - create a useful identify_computers() function 
+  - serves a simple web app
+  - which makes a list of IP address-> computer number
+  - and/or sets a cookie on the client browsers and makes a list of cookie -> computer #
+
+LATER
+* Mturk et al payment integration?
+* Command line interface and tools
+* Documentation
+* JSON server + HTML page
+
