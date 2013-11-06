@@ -1,0 +1,10 @@
+Package: betr
+Type: Package
+Title: betr: Behavioral Experiments Toolkit in R
+Version: 0.1
+Date: 2013-11-05
+Author: David Hugh-Jones
+Maintainer: David Hugh-Jones <davidhughjones@gmail.com>
+Description: A toolkit to run web-based multi-participant experiments
+License: GPL2.0
+LazyLoad: yes
