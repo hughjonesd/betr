@@ -8,3 +8,4 @@ Maintainer: David Hugh-Jones <davidhughjones@gmail.com>
 Description: A toolkit to run web-based multi-participant experiments
 License: GPL2.0
 LazyLoad: yes
+Depends: svSocket, testthat, Rook
