@@ -9,6 +9,9 @@ Stage <- setRefClass("Stage",
 
 stage <- function (...) stage$new(...)
 
+NEXT <- -1
+WAIT <- -2
+
 Experiment <- setRefClass("Experiment",
   fields=list(
     stages="ANY",
@@ -156,18 +159,15 @@ Experiment <- setRefClass("Experiment",
         Started = {
           stage <- stages[[subject$period]]
           result <- stage$handle_request(subject$id, subject$period, params)
-          switch(result,
-            NEXT = {
-              next_period(subject)
-              .handle_request(subject, params)
-            },
-            WAIT = {
-              subjects$status[subjects$id==subject$id] <<- "Waiting"
-              waiting_page("Waiting for experiment to continue")
-            },
-            if (is.character(result)) result else 
-              stop("Unrecognized stage result:", result)
-          )
+          if (result==NEXT) {
+            next_period(subject)
+            return(.handle_request(subjects[subjects$id==subject$id,], params))
+          } else if (result==WAIT) {
+            subjects$status[subjects$id==subject$id] <<- "Waiting"
+            return(waiting_page("Waiting for experiment to continue"))
+          } else {
+            return(result)
+          }
         },
         stop("Unrecognized experiment status:", status)
       )
