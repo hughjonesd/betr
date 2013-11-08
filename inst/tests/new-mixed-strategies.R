@@ -66,10 +66,11 @@ s1 <- function(id, period, params) {
       "<p>You are the ", rc.name, " player.</p>
       <p>Payoffs for this game are:", 
     print(xtable(payoff_matrix), print.results=FALSE, type="html"),
-    "<form action='' method='POST'>Choose an action:<br>
-      <input type='submit' name='action' value='", rc.actions[[myrc]][1], "'>
-      <input type='submit' name='action' value='", rc.actions[[myrc]][2], "'> 
-      </form></body></html>"))
+    "<form action='", self_url() ,"' method='POST'>Choose an action:<br>
+      <button type='submit' name='action' value='", rc.actions[[myrc]][1], "'>",
+      rc.actions[[myrc]][1],"</button>
+      <button type='submit' name='action' value='", rc.actions[[myrc]][2], "'>", 
+      rc.actions[[myrc]][2], "</button></form></body></html>"))
 }
 
 s2 <- function(id, period, params) {
@@ -108,7 +109,7 @@ s2 <- function(id, period, params) {
         "% played U, ", 100-rpctU, "% played D</p>")
   html <- paste0(html, "<br><br><p>Column players: ", cpctL, 
         "% played L,", 100-cpctL, "% played R</p>")
-  html <- paste0(html, "<form action='' method='post'>
+  html <- paste0(html, "<form action='", self_url() ,"' method='post'>
           <input type='submit' name='moveon' value='Next game'></form>
           </body></html>")
   return(html)

@@ -1,9 +1,17 @@
 Stage <- setRefClass("Stage", 
   fields=list(
-    handle_request = "function"
+    .handle_request = "function"
   ),
   methods=list(
-    initialize = function(...) callSuper(handle_request=..1)
+    initialize = function(...) callSuper(.handle_request=..1),
+    
+    handle_request = function(id, period, params) {
+      .handle_request(id, period, params)
+    },
+    
+    .set_handler_env = function(env) {
+      environment(.handle_request) <<- env
+    }
   )
 )
 
@@ -32,7 +40,8 @@ Experiment <- setRefClass("Experiment",
     subjects="data.frame",
     requests="list",
     commands="list",
-    start_time="POSIXct"
+    start_time="POSIXct",
+    client_param="character"
   ),
   methods=list(
     initialize = function(..., auth=TRUE, port, autostart=FALSE, 
@@ -59,9 +68,14 @@ Experiment <- setRefClass("Experiment",
       }
       requests <<- commands <<- list()
       .command_names <<- c("ready", "start", "pause", "restart", "next_period")
-      callSuper(..., auth=auth, autostart=autostart, 
+      callSuper(..., auth=auth, autostart=autostart, client_param=client_param,
         allow_latecomers=allow_latecomers, N=N, client_refresh=client_refresh)
       if (is.infinite(N)) warning("No maximum N set for experiment")
+    },
+    
+    finalize = function(...) {
+      server <<- NULL
+      callSuper(...)
     },
     
     add_stage = function(..., times, each, after) {
@@ -101,11 +115,12 @@ Experiment <- setRefClass("Experiment",
       )
       if (! ok) stop("Client unauthorized")
       id <- if(nrow(subjects)) max(subjects$id)+1 else 1
-      subjects <<- rbind(subjects, data.frame(id=id, period=0,
-        client=client, status=factor("Running", levels=c("Running", "Waiting", "Finished")), stringsAsFactors=FALSE))
+      subjects <<- rbind(subjects, data.frame(id=id, period=0, client=client, 
+            status=factor("Running", levels=c("Running", "Waiting", "Finished")), 
+            stringsAsFactors=FALSE))
       if (status=="Started") next_period(subjects[subjects$client==client,])
       # if we reach N, trigger a change of state
-      if (length(subjects)==N && autostart) {
+      if (nrow(subjects)==N && autostart) {
         start() # not via handle_command; will be autotriggered on replay
       }
       return(subjects[subjects$client==client,])
@@ -156,10 +171,10 @@ Experiment <- setRefClass("Experiment",
       if (inherits(subject, "error")) {
         return(special_page(conditionMessage(subject)))
       }
-      return(.handle_request(subject, params))
+      return(.handle_request(subject, params, client))
     },
     
-    .handle_request = function(subject, params) {
+    .handle_request = function(subject, params, client) {
       switch(status, 
         Stopped = stop("Got handle_request but experiment is stopped"),
         Paused  = waiting_page("Experiment paused"),
@@ -167,6 +182,10 @@ Experiment <- setRefClass("Experiment",
         Started = {
           if (subject$status=="Finished") return(special_page("Experiment finished"))
           stage <- stages[[subject$period]]
+          self_url <- if (nchar(client_param)>0)
+                function() {paste0("betr?", client_param, "=", client)} else 
+                function() "betr"
+          stage$.set_handler_env(environment())
           result <- stage$handle_request(subject$id, subject$period, params)
           if (result==NEXT) {
             next_period(subject)

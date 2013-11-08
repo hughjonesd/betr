@@ -7,10 +7,6 @@ Server <- setRefClass("Server",
     pass_request="function"
   ),
   methods=list(
-# broke WRT inheritancw...    
-#    finalize = function() {
-#      .self$halt()
-#    },
     start = function() stop("start() called on abstract class Server"),
     halt = function() stop("halt() called on abstract class Server"),
     .pass_request = function(name, params) pass_request(name, params)
@@ -26,6 +22,7 @@ CommandLineServer <- setRefClass("CommandLineServer",
     initialize = function(port=35538, pass_request=NULL, ...) {
       callSuper(port=port, pass_request=pass_request, ...)
     },
+    finalize = function() halt(),
     start = function() {
       startSocketServer(port=port, procfun=.self$.process_socket)
     },
@@ -73,6 +70,7 @@ RookServer <- setRefClass("RookServer", contains="Server",
       callSuper(port=port, pass_request=pass_request, client_param=client_param,
             ...)
     },
+    finalize = function() halt(),
     call = function (env) {
       req <- Rook::Request$new(env)
       res <- Rook::Response$new()
