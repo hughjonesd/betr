@@ -69,7 +69,7 @@ Experiment <- setRefClass("Experiment",
         warning("Adding stage to server while status is", status, "... this is unwise.")
       stgs <- list()
       for (st in list(...)) stgs <- append(stgs, 
-        if (is.function(st)) Stage$new(st) else st)
+            if (is.function(st)) Stage$new(st) else st)
       if (! missing(times)) stgs <- rep(stgs, times=times)
       if (! missing(each)) stgs <- rep(stgs, each=each)
       if (missing(after)) after <- length(stgs)
