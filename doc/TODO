@@ -1,6 +1,8 @@
 BUGS
 * RookServer not respecting port
 * Needs this_url()
+* Last period info of guessing-game is lost
+* Autostart not working
 
 TODO
 
