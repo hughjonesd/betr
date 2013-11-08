@@ -22,7 +22,7 @@ s1 <- function(id, period, params) {
     <input type='submit' value='Submit'></form</body></html>",
     last_guess,
     paste("<option value='", 1:10,"'>", 1:10, "</option>", sep="", collapse=""
-  ))
+  )))
 }
 add_stage(expt, s1, times=5)
 ready(expt)
