@@ -45,7 +45,7 @@ s1 <- function(id, period, params) {
   }
   me_now <- mydf$id==id & mydf$period==period
   
-  if ("action" %in% names(params)) {
+  if (! missing(params) && "action" %in% names(params)) {
     if (params$action %in% rc.actions[[ mydf$rc[me_now] ]]) {
       mydf$action[me_now] <<- if (params$action %in% c("U", "L")) 1 else 2 
       return(NEXT)
@@ -65,10 +65,10 @@ s1 <- function(id, period, params) {
       if (nchar(message)>0) paste0("<p style='color:red'>", message, "</p>"),
       "<p>You are the ", rc.name, " player.</p>
       <p>Payoffs for this game are:", 
-    print(xtable(payoff_matrix), print.results=FALSE, type="html"),
-    "<form action='", self_url() ,"' method='POST'>Choose an action:<br>
+      print(xtable(payoff_matrix), print.results=FALSE, type="html"),
+      "<form enctype='multipart/form-data' action='", self_url() ,
+      "' method='POST'>Choose an action:<br>
       <button type='submit' name='action' value='", rc.actions[[myrc]][1], "'>",
-      rc.actions[[myrc]][1],"</button>
       <button type='submit' name='action' value='", rc.actions[[myrc]][2], "'>", 
       rc.actions[[myrc]][2], "</button></form></body></html>"))
 }
@@ -76,7 +76,7 @@ s1 <- function(id, period, params) {
 s2 <- function(id, period, params) {
   mysubj <- mydf[mydf$period == period - 1,]
   if (any(is.na(mysubj$action))) return(WAIT)
-  if ('moveon' %in% names(params)) return(NEXT)
+  if (! missing(params) && 'moveon' %in% names(params)) return(NEXT)
   
   mysubj <- mysubj[order(sample(nrow(mysubj))),]
   rs <- mysubj$rc == 1
@@ -117,5 +117,5 @@ s2 <- function(id, period, params) {
 
 expt <- experiment(auth=TRUE, server="RookServer", N=2, autostart=TRUE,
       client_param="client")
-add_stage(expt, s1, s2, times=2) # each would be s1 x 10, s2 x 10, s3 x 10
+add_stage(expt, s1, s2, times=4) # each would be s1 x 10, s2 x 10, s3 x 10
 ready(expt)

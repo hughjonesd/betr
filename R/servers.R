@@ -58,7 +58,7 @@ clclient <- function(port=35538) {
 
 RookServer <- setRefClass("RookServer", contains="Server",
   fields=list(
-    rhttpd = "FixedRhttpd",
+    rhttpd = "Rhttpd",
     unique_id = "character",
     port = "numeric",
     client_param = "character"
@@ -74,6 +74,7 @@ RookServer <- setRefClass("RookServer", contains="Server",
     call = function (env) {
       req <- Rook::Request$new(env)
       res <- Rook::Response$new()
+      
       if (unique_id %in% names(req$cookies())) {
         client <- req$cookies()[[unique_id]]
       } else {
@@ -100,9 +101,9 @@ RookServer <- setRefClass("RookServer", contains="Server",
 #           options(help.ports=port)
 #           #startDynamicHelp(TRUE)
 #         }, silent=TRUE)
-        rhttpd <<- FixedRhttpd$new()
+        rhttpd <<- Rhttpd$new()
       }
-      rhttpd$add(.self, name="betr") # dupes ignored
+      rhttpd$add(app=.self, name="betr") # dupes ignored
       rhttpd$start(port=port)
     },
     halt = function () {
