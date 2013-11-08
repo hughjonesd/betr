@@ -170,7 +170,8 @@ Experiment <- setRefClass("Experiment",
           result <- stage$handle_request(subject$id, subject$period, params)
           if (result==NEXT) {
             next_period(subject)
-            return(.handle_request(subjects[subjects$id==subject$id,], params))
+            # NB we clean the params when the subject moves on. Is this OK?
+            return(.handle_request(subjects[subjects$id==subject$id,]))
           } else if (result==WAIT) {
             subjects$status[subjects$id==subject$id] <<- "Waiting"
             return(waiting_page("Waiting for experiment to continue"))
