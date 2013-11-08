@@ -183,7 +183,7 @@ Experiment <- setRefClass("Experiment",
       )
     },
         
-    info = function(subj=FALSE, map=FALSE) {
+    info = function(subj=TRUE, map=TRUE) {
       cat(sprintf("Session: %s\t\tStatus: %s\t\tClients: %d/%0.0f\t\tStages: %d\n", 
             session_name, status, nrow(subjects), N, length(stages)))
       if (status != "Stopped") server$info()
@@ -246,7 +246,9 @@ Experiment <- setRefClass("Experiment",
   )
 )
 
-print.Experiment <- function(x, ...) x$info() # TODO not working... ;-)
+setGeneric("print") # do I need this?
+setMethod("print", "Experiment", function(x, ...) x$info(FALSE, FALSE))
+setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
 experiment <- function (...) Experiment$new(...)
 add_stage <- function (expt, ...) expt$add_stage(...)
 start <- function(expt) expt$handle_command("start")
