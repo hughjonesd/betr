@@ -49,12 +49,14 @@ Experiment <- setRefClass("Experiment",
       client_refresh=10, client_param="") {
       stages <<- list()
       subjects <<- data.frame(client=character(0), id=numeric(0), 
-        period=numeric(0), status=factor(, levels=c("Running", "Waiting", 
-          "Finished")), stringsAsFactors=FALSE)
+            period=numeric(0), status=factor(, levels=c("Running", "Waiting", 
+            "Finished")), stringsAsFactors=FALSE)
       status <<- "Stopped"
       start_time <<- Sys.time()
       session_name <<- paste(name, format(start_time, 
         "%Y-%m-%d-%H%M%S"), sep="-")
+      dir.create(fp <- file.path(session_name, "record"), recursive=TRUE)
+      if (file.access(fp, 2) != 0) stop("Could not write into ", fp)
       # server can be a class name, a class object (refObjectGenerator), 
       # or an actual Server object
       if (! inherits(server, "Server")) {
@@ -145,6 +147,11 @@ Experiment <- setRefClass("Experiment",
         time=Sys.time() - start_time)
       commands <<- append(commands, command)
       # TODO: print to file
+      tmp <- file(file.path(session_name, "record", paste0("command-", 
+            as.character(command$time))), open="w")
+      cat(command$command, "\n", paste(mapply(paste, names(params), params, 
+            MoreArgs=list(sep=":")), collapse="\n"), file=tmp)
+      close(tmp)
     },
     
     record_request = function(client, params) {
@@ -152,6 +159,11 @@ Experiment <- setRefClass("Experiment",
         time=Sys.time() - start_time)
       requests <<- append(requests, request)
       # TODO: print to file
+      tmp <- file(file.path(session_name, "record", 
+            paste0("request-", as.character(request$time))), open="w")
+      cat(client, "\n", paste(mapply(paste, names(params), params,
+            MoreArgs=list(sep=":")), collapse="\n"), file=tmp)
+      close(tmp)
     },
     
     handle_command = function(command, params) {      
