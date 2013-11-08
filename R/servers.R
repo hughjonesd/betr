@@ -39,7 +39,8 @@ CommandLineServer <- setRefClass("CommandLineServer",
       params <- sub("[^:]*:(.*)", "\\1", fields[-1])
       names(params) <- pnames
       return(.pass_request(name, params))     
-    }
+    },
+    info = function() cat("Listening on port ", port, "\n")
   )
 )
 
@@ -62,13 +63,15 @@ RookServer <- setRefClass("RookServer", contains="Server",
   fields=list(
     rhttpd = "Rhttpd",
     unique_id = "character",
-    port = "numeric"
+    port = "numeric",
+    client_param = "character"
   ),
   methods=list(
-    initialize = function(port=35538, pass_request=NULL, ...) {
+    initialize = function(port=35538, pass_request=NULL, client_param="",...) {
       unique_id <<- paste0("betr-rook-", format(Sys.time(), 
             "%Y-%m-%d_%H%M%S"))
-      callSuper(port=port, pass_request=pass_request, ...)
+      callSuper(port=port, pass_request=pass_request, client_param=client_param,
+            ...)
     },
     call = function (env) {
       req <- Rook::Request$new(env)
@@ -81,7 +84,12 @@ RookServer <- setRefClass("RookServer", contains="Server",
         client <- paste0(ip, "-", do.call(paste0, as.list(
               sample(LETTERS, 10))))
       }
+      
       params <- req$params()
+      if (nchar(client_param)>0 && client_param %in% names(req$params())) {
+        client <- params[[client_param]]
+        params[[client_param]] <- NULL
+      }
       html <- .pass_request(client, params)
       res$set_cookie(unique_id, client)
       res$write(html)
@@ -102,6 +110,7 @@ RookServer <- setRefClass("RookServer", contains="Server",
     halt = function () {
       # rhttpd$remove("betr") # needed?
       try(rhttpd$stop(), silent=TRUE) # error from startDynamicHelp  
-    }
+    },
+    info = function() cat("Serving at", rhttpd$full_url(1), "\n")
   )
 )

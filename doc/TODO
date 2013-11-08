@@ -5,13 +5,17 @@ BUGS
 TODO
 
 * ability for experimenter to move people on...
+
 * how to allow for different possible Ns, and general framework for when to start
-* elegant, easy-to-use assignment to subjects table
+
+* elegant, easy-to-use assignment to subjects
   - do we merge expt$subjects and experiment's actual data?
   - probably if it is easy...
   - subjects(id) and subjects(id)<- methods?
 * in general what if we pass lots of stuff in to user-defined functions
   which just take (...)?
+
+* easy interface to brew
 
 * use addTaskCallback and friends to print something out at end of repl loops?
 
@@ -31,6 +35,8 @@ TODO
   - in development mode, set client_id as a param of the URL 
   - or even like /experiment/client_id ?
 
+* More sophisticated stages.
+  - stages with a run and check phase (and maybe setup and teardown)
 LATER
 * Mturk et al payment integration?
 * Command line interface and tools

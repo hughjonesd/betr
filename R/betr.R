@@ -37,19 +37,20 @@ Experiment <- setRefClass("Experiment",
   methods=list(
     initialize = function(..., auth=TRUE, port, autostart=FALSE, 
       allow_latecomers=FALSE, N=Inf, server="RookServer", name="betr", 
-      client_refresh=10) {
+      client_refresh=10, client_param="") {
       stages <<- list()
       subjects <<- data.frame(client=character(0), id=numeric(0), 
-        period=numeric(0), status=factor(, levels=c("Ready", "Started", 
+        period=numeric(0), status=factor(, levels=c("Running", "Waiting", 
           "Finished")), stringsAsFactors=FALSE)
       status <<- "Stopped"
       start_time <<- Sys.time()
       session_name <<- paste0(name, "-", format(start_time, 
-        "%Y-%m-%d_%H%M%S"))
+        "%Y-%m-%d-%H%M%S"))
       # server can be a class name, a class object (refObjectGenerator), 
       # or an actual Server object
       if (! inherits(server, "Server")) {
-        server_args <- list(pass_request=.self$handle_request)
+        server_args <- list(pass_request=.self$handle_request, 
+              client_param=client_param)
         sclass <- if (is.character(server)) get(server) else server
         if (missing(port) && sclass$className %in% 
             c("RookServer", "CommandLineServer"))
@@ -57,7 +58,7 @@ Experiment <- setRefClass("Experiment",
         server <<- do.call(sclass$new, server_args)
       }
       requests <<- commands <<- list()
-      .command_names <<- c("ready", "start", "pause", "restart")
+      .command_names <<- c("ready", "start", "pause", "restart", "next_period")
       callSuper(..., auth=auth, autostart=autostart, 
         allow_latecomers=allow_latecomers, N=N, client_refresh=client_refresh)
       if (is.infinite(N)) warning("No maximum N set for experiment")
@@ -65,7 +66,7 @@ Experiment <- setRefClass("Experiment",
     
     add_stage = function(..., times, each, after) {
       if (status != "Stopped") 
-        warning("Adding stage to server while status is", status)
+        warning("Adding stage to server while status is", status, "... this is unwise.")
       stgs <- list()
       for (st in list(...)) stgs <- append(stgs, 
         if (is.function(st)) Stage(st) else st)
@@ -101,7 +102,7 @@ Experiment <- setRefClass("Experiment",
       if (! ok) stop("Client unauthorized")
       id <- if(nrow(subjects)) max(subjects$id)+1 else 1
       subjects <<- rbind(subjects, data.frame(id=id, period=0,
-        client=client, status=factor("Ready"), stringsAsFactors=FALSE))
+        client=client, status=factor("Running", levels=c("Running", "Waiting", "Finished")), stringsAsFactors=FALSE))
       if (status=="Started") next_period(subjects[subjects$client==client,])
       # if we reach N, trigger a change of state
       if (length(subjects)==N && autostart) {
@@ -111,9 +112,16 @@ Experiment <- setRefClass("Experiment",
     },
     
     next_period = function(subj) {
-      srows <- subjects$id %in% subj$id
+      if (status != "Started") {
+        warning("Experiment status is not 'Running', cannot move subjects on")
+        return()
+      }
+      if (is.numeric(subj)) subj <- subjects[subjects$id==subj,]
+      srows <- subjects$id %in% subj$id & subjects$period < length(stages)
       subjects$period[srows] <<- subjects$period[srows] + 1
-      subjects$status[srows] <<- "Ready" # do I need this?
+      subjects$status[srows] <<- "Running" # do I need this?
+      done <- subjects$id %in% subj$id & subjects$period == length(stages)
+      subjects$status[done] <<- "Finished"
     },
     
     record_command = function(command, params) {
@@ -157,6 +165,7 @@ Experiment <- setRefClass("Experiment",
         Paused  = waiting_page("Experiment paused"),
         Waiting = waiting_page("Waiting to start"),
         Started = {
+          if (subject$status=="Finished") return(special_page("Experiment finished"))
           stage <- stages[[subject$period]]
           result <- stage$handle_request(subject$id, subject$period, params)
           if (result==NEXT) {
@@ -172,19 +181,27 @@ Experiment <- setRefClass("Experiment",
         stop("Unrecognized experiment status:", status)
       )
     },
-    
-    print = function() print(info()),
-    
-    info = function() {
-      # status
-      # N total subjects, and number of active subjects
-      # number of stages
-      # when started
-      # what stage subjects are at 
-      # delegate some to server?
-      # web address  
+        
+    info = function(subj=FALSE, map=FALSE) {
+      cat(sprintf("Session: %s\t\tStatus: %s\t\tClients: %d/%0.0f\t\tStages: %d\n", 
+            session_name, status, nrow(subjects), N, length(stages)))
+      if (status != "Stopped") server$info()
+      if (subj && nrow(subjects) > 0) {
+        cat("Subjects:\n")
+        print(subjects)
+      }
+      if (map) .self$map()
     },
     
+    map = function() {
+      tbl <- table(subjects$period)
+      cat("Stage progression:\n")
+      for (i in as.character(1:length(stages))) {
+        cat(i,":", if (i %in% names(tbl)) paste(rep("*", tbl[[i]]), "[", tbl[[i]], "]", 
+              collapse=""), "\n")
+      }
+    },
+
     ready = function() {
       if (status != "Stopped") {
         warning("Called ready() on an experiment with status ", status)
@@ -197,14 +214,16 @@ Experiment <- setRefClass("Experiment",
     },
     
     start = function() {
-      if (status != "Waiting") warning("Experiment status is '", status, 
-        "' - call ready() first")
+      if (status != "Waiting") {
+        warning("Experiment status is '", status, "' - call ready() first")
+        return()
+      }
+      status <<- "Started"
       if (length(subjects) > 0) {
         next_period(subjects)
       } else {
         warning("Experiment started with no participants")
       }
-      status <<- "Started"
     },
     
     pause = function() {
@@ -226,8 +245,16 @@ Experiment <- setRefClass("Experiment",
   )
 )
 
+print.Experiment <- function(x, ...) x$info() # TODO not working... ;-)
 experiment <- function (...) Experiment$new(...)
 add_stage <- function (expt, ...) expt$add_stage(...)
 start <- function(expt) expt$handle_command("start")
 ready <- function(expt) expt$handle_command("ready")
 pause <- function(expt) expt$handle_command("pause")
+next_period <- function(expt, subjid) {
+  warning("Moving subject on manually, this may do bad things to your data")
+  expt$handle_command("next_period", list(subjid))
+}
+info <- function(expt, ...) expt$info(...)
+map <- function(expt) expt$map()
+

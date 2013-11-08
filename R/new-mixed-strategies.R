@@ -39,7 +39,7 @@ s1 <- function(id, period, params) {
   id <- id
   message <- ""
   
-  if (nrow(subset(mydf, period==period & id==id)) == 0) {
+  if (nrow(mydf[mydf$period==period & mydf$id==id,]) == 0) {
     mydf <<- rbind(mydf, data.frame(id=id, period=period, rc=NA, 
           action=NA, matchid=NA, payoff=NA))
   }
@@ -51,9 +51,6 @@ s1 <- function(id, period, params) {
       return(NEXT)
     } else {
       message <- "Please choose one of the two actions!"
-      warning("Got action not in 1 or 2 from id ", mydf$id[me_now], 
-            "; action was: ", params$action, " rc.actions[[me$rc]] was: ", 
-            rc.actions[[ mydf$rc[me_now] ]])
     }
   }
   
@@ -78,6 +75,7 @@ s1 <- function(id, period, params) {
 s2 <- function(id, period, params) {
   mysubj <- mydf[mydf$period == period - 1,]
   if (any(is.na(mysubj$action))) return(WAIT)
+  if ('moveon' %in% names(params)) return(NEXT)
   
   mysubj <- mysubj[order(sample(nrow(mysubj))),]
   rs <- mysubj$rc == 1
@@ -107,15 +105,16 @@ s2 <- function(id, period, params) {
   rpctU <- 100 * sum(mysubj$rc==1 & mysubj$action=="U")/sum(mysubj$rc==1)
   cpctL <- 100 * sum(mysubj$rc==2 & mysubj$action=="L")/sum(mysubj$rc==2)
   html <- paste0(html, "<br><br><p>Row players: ", rpctU, 
-        "% played U, the rest played D</p>")
+        "% played U, ", 100-rpctU, "% played D</p>")
   html <- paste0(html, "<br><br><p>Column players: ", cpctL, 
-        "played L, the rest played R</p>")
-  html <- paste0(html, "<form action=''>
-          <input type='submit' value='Next game'></form>
+        "% played L,", 100-cpctL, "% played R</p>")
+  html <- paste0(html, "<form action='' method='post'>
+          <input type='submit' name='moveon' value='Next game'></form>
           </body></html>")
   return(html)
 }
 
-expt <- experiment(auth=TRUE, server="RookServer", N=2, autostart=TRUE)
+expt <- experiment(auth=TRUE, server="RookServer", N=2, autostart=TRUE,
+      client_param="client")
 add_stage(expt, s1, s2, times=2) # each would be s1 x 10, s2 x 10, s3 x 10
 ready(expt)
