@@ -2,6 +2,8 @@
 library(svSocket)
 library(Rook)
 
+if (getRversion() < "2.15.0") paste0 <- function(...) paste(..., sep="")
+
 Server <- setRefClass("Server",
   fields=list(
     pass_request="function"

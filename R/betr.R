@@ -44,8 +44,8 @@ Experiment <- setRefClass("Experiment",
           "Finished")), stringsAsFactors=FALSE)
       status <<- "Stopped"
       start_time <<- Sys.time()
-      session_name <<- paste0(name, "-", format(start_time, 
-        "%Y-%m-%d-%H%M%S"))
+      session_name <<- paste(name, format(start_time, 
+        "%Y-%m-%d-%H%M%S"), sep="-")
       # server can be a class name, a class object (refObjectGenerator), 
       # or an actual Server object
       if (! inherits(server, "Server")) {
