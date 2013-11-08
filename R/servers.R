@@ -63,7 +63,7 @@ clclient <- function(port=35538) {
 
 RookServer <- setRefClass("RookServer", contains="Server",
   fields=list(
-    rhttpd = "Rhttpd",
+    rhttpd = "FixedRhttpd",
     unique_id = "character",
     port = "numeric",
     client_param = "character"
@@ -99,15 +99,15 @@ RookServer <- setRefClass("RookServer", contains="Server",
     },
     start = function () {
       if (is.null(rhttpd)) {
-        try({
-          startDynamicHelp(FALSE) # RStudio hack
-          options(help.ports=port)
-          startDynamicHelp(TRUE)
-        }, silent=TRUE)
-        rhttpd <<- Rhttpd$new()
+#         try({
+#           startDynamicHelp(FALSE) # RStudio hack
+#           options(help.ports=port)
+#           #startDynamicHelp(TRUE)
+#         }, silent=TRUE)
+        rhttpd <<- FixedRhttpd$new()
       }
       rhttpd$add(.self, name="betr") # dupes ignored
-      rhttpd$start()
+      rhttpd$start(port=port)
     },
     halt = function () {
       # rhttpd$remove("betr") # needed?
