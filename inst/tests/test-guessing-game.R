@@ -12,8 +12,8 @@ s1 <- function(id, period, params) {
   }
   last_guess <- ''
   me_before <- mydf$id==id & mydf$period == period -1
-  if (period > 1) last_guess <- paste0('You guessed ', mydf$guess[me_before], 
-        '... you were ', if(mydf$correct[me_before]>0) 'right!' else 'wrong!')
+  if (period > 1) last_guess <- paste('You guessed ', mydf$guess[me_before], 
+        '... you were ', if(mydf$correct[me_before]>0) 'right!' else 'wrong!', sep='')
   return(sprintf(
     "<html><body>
     <p color='red'>%s</p>
@@ -21,7 +21,7 @@ s1 <- function(id, period, params) {
     <form action='' method='post'><select name='guess'>%s</select>
     <input type='submit' value='Submit'></form</body></html>",
     last_guess,
-    paste0("<option value='", 1:10,"'>", 1:10, "</option>", collapse="")
+    paste("<option value='", 1:10,"'>", 1:10, "</option>", sep="", collapse=""
   ))
 }
 add_stage(expt, s1, times=5)
