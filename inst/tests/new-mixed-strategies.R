@@ -69,6 +69,7 @@ s1 <- function(id, period, params) {
       "<form enctype='multipart/form-data' action='", self_url() ,
       "' method='POST'>Choose an action:<br>
       <button type='submit' name='action' value='", rc.actions[[myrc]][1], "'>",
+      rc.actions[[myrc]][1], "</button>
       <button type='submit' name='action' value='", rc.actions[[myrc]][2], "'>", 
       rc.actions[[myrc]][2], "</button></form></body></html>"))
 }
