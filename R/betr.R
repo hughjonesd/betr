@@ -149,7 +149,7 @@ Experiment <- setRefClass("Experiment",
       # TODO: print to file
       tmp <- file(file.path(session_name, "record", paste0("command-", 
             as.character(command$time))), open="w")
-      cat(command$command, "\n", paste(mapply(paste, names(params), params, 
+      cat(command$name, "\n", paste(mapply(paste, names(params), params, 
             MoreArgs=list(sep=":")), collapse="\n"), file=tmp)
       close(tmp)
     },
