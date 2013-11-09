@@ -6,7 +6,7 @@ Behavioral Experiments Toolkit in R
 
 In your source file:
 
-```R
+```{r}
 
 mydf <<- data.frame(id=1, period=1:5, guess=NA, correct=NA)
 expt <- experiment(N=1, autostart=TRUE)
@@ -39,20 +39,20 @@ ready(expt)
 
 On the command line:
 
-```R
+```{r}
 > source("my-experiment.R")
 > ready(expt)
 ```
 
 To see experiment info:
 
-```R
+```{r}
 > info(expt)
 ```
 
 ... and when your participants are at their computers:
 
-```R
+```{r}
 > start(expt)
 ```
 
