@@ -1,11 +1,11 @@
 BUGS
 ----
 
-* [] RookServer not respecting port (workaround; needs actual fix)
-* [x] Needs this_url()
-* [] Last period info of guessing-game is lost
-* [] Autostart not working
-* [] Server doesn't stop after rm(expt)
+- [] RookServer not respecting port (workaround; needs actual fix)
+- [x] Needs this_url()
+- [] Last period info of guessing-game is lost
+- [] Autostart not working
+- [] Server doesn't stop after rm(expt)
 
 TODO
 ----
