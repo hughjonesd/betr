@@ -1,5 +1,18 @@
-# not yet complete
-
-import(Rook, testthat, svSocket)
-export(experiment, stage, add_stage, NEXT, WAIT, start, ready, pause, 
-      next_period, info, map)
+export(add_stage)
+export(clclient)
+export(CommandLineServer)
+export(experiment)
+export(info)
+export(map)
+export(next_period)
+export(NEXT)
+export(pause)
+export(ready)
+export(restart)
+export(RookServer)
+export(Server)
+export(stage)
+export(start)
+export(WAIT)
+import(Rook)
+import(svSocket)

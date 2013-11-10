@@ -1,7 +1,10 @@
+#' @import Rook
+#' @import svSocket
 
 
 if (getRversion() < "2.15.0") paste0 <- function(...) paste(..., sep="")
 
+#' @export
 Server <- setRefClass("Server",
   fields=list(
     pass_request="function"
@@ -13,6 +16,7 @@ Server <- setRefClass("Server",
   )
 )
 
+#' @export
 CommandLineServer <- setRefClass("CommandLineServer", 
   contains="Server",
   fields=list(
@@ -42,6 +46,13 @@ CommandLineServer <- setRefClass("CommandLineServer",
 )
 
 
+#' Starts a client to connect to the command line server
+#' 
+#' Requests can be sent as 
+#' "client param:value param:value param:"quoted value"...
+#' 
+#' @param port port to connect on
+#' @export
 clclient <- function(port=35538) {
   cat("Enter arguments as 'name param:value param:\"quoted value\"...'\n")
   cat("Enter a period (.) to cancel\n")
@@ -56,6 +67,7 @@ clclient <- function(port=35538) {
   close(sc)
 }
 
+#' @export
 RookServer <- setRefClass("RookServer", contains="Server",
   fields=list(
     rhttpd = "Rhttpd",

@@ -1,3 +1,5 @@
+#' @include servers.R
+
 Stage <- setRefClass("Stage", 
   fields=list(
     .handle_request = "function"
@@ -15,9 +17,27 @@ Stage <- setRefClass("Stage",
   )
 )
 
+#' Create a stage for an experiment
+#' 
+#' Stages are the building blocks of experiments. A single stage can
+#' result in one or more HTML pages shown to participants.
+#' @param ... A function which returns either a character string 
+#'     containing HTML, or the constant WAIT, or the constant NEXT.
+#' @return a Stage object suitable for adding to an experiment.
+#' @examples
+#' stg <- stage(function(id, period, params) {
+#'  if(params$done=="OK") return(NEXT)
+#'  paste0("<html><body><p>Your ID is ", id, " and the period is", period,
+#'        "</p><form action='", self_url, "' method=POST>
+#'        <input type='Submit' name='done' value='OK'></form>")
+#' })
+#' @export
 stage <- function (...) stage$new(...)
 
+#' @export
 NEXT <- -1
+
+#' @export
 WAIT <- -2
 
 Experiment <- setRefClass("Experiment",
@@ -131,7 +151,7 @@ Experiment <- setRefClass("Experiment",
     next_period = function(subj) {
       if (status != "Started") {
         warning("Experiment status is not 'Running', cannot move subjects on")
-        return()
+        return(invisible(FALSE))
       }
       if (is.numeric(subj)) subj <- subjects[subjects$id==subj,]
       srows <- subjects$id %in% subj$id & subjects$period < length(stages)
@@ -139,6 +159,7 @@ Experiment <- setRefClass("Experiment",
       subjects$status[srows] <<- "Running" # do I need this?
       done <- subjects$id %in% subj$id & subjects$period == length(stages)
       subjects$status[done] <<- "Finished"
+      return(invisible(TRUE))
     },
     
     record_command = function(command, params) {
@@ -170,7 +191,7 @@ Experiment <- setRefClass("Experiment",
       if (command %in% .command_names) {
         record_command(command, params) 
         command <- do.call(`$`, list(.self, command)) 
-        if (missing(params)) command() else command(params)
+        if (missing(params)) command() else do.call(command, params)
       } else {
         warning("Got unrecognized command: ", command)
       }
@@ -246,32 +267,42 @@ Experiment <- setRefClass("Experiment",
       return(invisible(TRUE))
     },
     
-    start = function() {
+    start = function(force=FALSE) {
       if (status != "Waiting") {
         warning("Experiment status is '", status, "' - call ready() first")
-        return()
+        return(invisible(FALSE))
+      }
+      if (nrow(subjects) < N && ! force) {
+        warning("Number of subjects ", nrow(subjects), " < N = ", N, 
+              " - not starting. Use force=TRUE to override")
+        return(invisible(FALSE))
       }
       status <<- "Started"
-      if (length(subjects) > 0) {
+      if (nrow(subjects) > 0) {
         next_period(subjects)
       } else {
         warning("Experiment started with no participants")
       }
+      return(invisible(TRUE))
     },
     
     pause = function() {
       if (status != "Running") {
         warning("Experiment not running, cannot pause")
+        return(invisible(FALSE))
       } else {
         status <<- "Paused"
+        return(invisible(TRUE))
       }
     },
     
     restart = function() {
       if (status != "Paused") {
         warning("Experiment not paused, cannot restart")
+        return(invisible(FALSE))
       } else {
         status <<- "Running"
+        return(invisible(TRUE))
       }
     }
     
@@ -279,17 +310,150 @@ Experiment <- setRefClass("Experiment",
 )
 
 setGeneric("print") # do I need this?
+
+#' @rdname info
+#' @aliases print,Experiment,ANY-method
+#' @aliases show,Experiment,ANY-method
+#' @usage experiment
 setMethod("print", "Experiment", function(x, ...) x$info(FALSE, FALSE))
 setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
+
+#' Create an experiment.
+#' 
+#' In betr, an experiment consists of one or more stages, as well
+#' as global options defined when the experiment is created.
+#' 
+#' @param auth may be TRUE, FALSE, a character vector of regular expressions,
+#'        or a function taking two arguments, client and params.
+#' @param port what port to listen on
+#' @param autostart logical. Start the experiment automatically when N 
+#'        participants have joined?
+#' @param allow_latecomers logical. Allow participants to join after the
+#'        experiment has started?
+#' @param N a numeric giving how many participants are required
+#' @param server a class name (quoted or unquoted) of a betr::Server 
+#'        subclass, or an instance object. Typical: "RookServer"
+#' @param name the character name of the experiment, used in creating
+#'        folders.
+#' @param client_refresh numeric. How often should waiting clients refresh
+#'        thier pages?
+#' @param client_param character. Allows specifying client names by 
+#'        HTML parameters, e.g. expt?client=1
+#' @return an object of class Experiment.
+#' @examples
+#' expt <- experiment(name='testing', port=12345, N=4)
+#' add_stage(expt, function(...)"<html><body>Hello world!</body><html>")
+#' ready(expt)
+#' 
+#' @export
 experiment <- function (...) Experiment$new(...)
-add_stage <- function (expt, ...) expt$add_stage(...)
-start <- function(expt) expt$handle_command("start")
-ready <- function(expt) expt$handle_command("ready")
-pause <- function(expt) expt$handle_command("pause")
-next_period <- function(expt, subjid) {
+
+#' Add a stage to an experiment
+#' 
+#' @param experiment an Experiment object 
+#' @param ... one or more Stage objects
+#' @param times how many times to repeat the sequence of stages in \code{...}.
+#'        All stages are repeated if this is a single number; if it is a
+#'        vector it gives how many times to repeat each stage.
+#' @param each how many times to repeat each individual stage
+#' @param after Add stages after what period
+#' @usage add_stage(experiment, ..., times, each, after)
+#' @examples
+#' expt <- experiment(N=1, autostart=TRUE)
+#' add_stage(expt, s1, s2, times=2) # s1 s2 s1 s2
+#' add_stage(expt, s1, s2, times=1:2) # s1 s2 s2
+#' add_stage(expt, s1, s2, each=2) # s1 s1 s2 s2
+#' @export
+add_stage <- function (experiment, ...) 
+      experiment$add_stage(...)
+
+#' Start the experiment running.
+#' 
+#' Experiments can be in status Stopped, Waiting, Started, or Paused.
+#' \code{start} moves the experiment from Waiting to Started.
+#' If the experiment has autostart set, this will happen automatically
+#' when N subjects have connected. 
+#' When the experiment starts, all subjects are moved to the first stage.
+#' @param experiment Object of class Experiment
+#' @param force Start the experiment even if there are fewer than N participants
+#' @return TRUE or FALSE, invisibly
+#' @family command line functions
+#' @export
+start <- function(experiment, force=FALSE) experiment$handle_command("start",
+      list(force=force))
+
+
+#' Set the experiment up to receive participants.
+#' 
+#' Experiments can be in status Stopped, Waiting, Started, or Paused.
+#' \code{ready(experiment)} moves the experiment from Stopped to Waiting.
+#' Clients can now connect and will be shown a waiting page.
+#' 
+#' @param experiment Object of class Experiment
+#' @return TRUE or FALSE, invisibly
+#' @family command line functions
+#' @export
+ready <- function(experiment) experiment$handle_command("ready")
+
+
+#' Pause the experiment.
+#' 
+#' Experiments can be in status Stopped, Waiting, Started, or Paused.
+#' \code{pause(experiment)} moves the experiment from Started to Paused.
+#' Clients will be shown a waiting page until the experiment is continued.
+#' 
+#' @param experiment Object of class Experiment
+#' @return TRUE or FALSE, invisibly
+#' @family command line functions
+#' @export
+pause <- function(experiment) experiment$handle_command("pause")
+
+#' Restart the experiment after pausing
+#' 
+#' Experiments can be in status Stopped, Waiting, Started, or Paused.
+#' \code{restart(experiment)} moves the experiment from Paused back to Started.
+#' 
+#' @param experiment Object of class Experiment
+#' @return TRUE or FALSE, invisibly
+#' @family command line functions
+#' @export
+restart <- function(experiment) experiment$handle_command("restart")
+
+#' Move some clients forward one period
+#' 
+#' Manually moves one or more clients forward. This may break your experimental
+#' design so use in emergencies only!
+#' 
+#' @param experiment Object of class Experiment
+#' @param subjid numeric vector of subject id(s) to move forward
+#' @return TRUE or FALSE, invisibly
+#' @family command line functions
+#' @export
+next_period <- function(experiment, subjid) {
   warning("Moving subject on manually, this may do bad things to your data")
   expt$handle_command("next_period", list(subjid))
 }
-info <- function(expt, ...) expt$info(...)
-map <- function(expt) expt$map()
+
+#' Show basic info about an experiment
+#' 
+#' \code{info} prints information about the status, including session name,
+#' number of stages, number of clients connected and total N, 
+#' status (Stopped, Waiting, Started or Paused)
+#' and the URL where the experiment is serving.
+#' \code{map} shows a map of how subjects are progressing through the stages.
+#' 
+#' @param subj if TRUE, print the subjects table
+#' @param map if TRUE, also calls \code{map}
+#' 
+#' @examples
+#' expt <- experiment(N=2, port=12345)
+#' expt # on the command line, calls info() 
+#' 
+#' @family command line functions
+#' @export
+info <- function(experiment, subj=TRUE, map=TRUE) experiment$info(subj, map)
+
+#' @rdname info
+#' @export
+map <- function(experiment) experiment$map()
 

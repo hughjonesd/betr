@@ -9,5 +9,11 @@ Description: A toolkit to run web-based multi-participant experiments
 License: GPL2.0
 LazyLoad: yes
 NeedsCompilation: no
-Depends: svSocket, testthat, Rook
-Collate: FixedRhttpd.R servers.R betr.R
+Depends:
+    svSocket,
+    testthat,
+    Rook
+Collate:
+    'FixedRhttpd.R'
+    'servers.R'
+    'betr.R'
