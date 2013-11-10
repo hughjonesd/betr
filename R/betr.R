@@ -351,20 +351,25 @@ experiment <- function (...) Experiment$new(...)
 #' Add a stage to an experiment
 #' 
 #' @param experiment an Experiment object 
-#' @param ... one or more Stage objects
+#' @param ... one or more Stage objects, or functions
 #' @param times how many times to repeat the sequence of stages in \code{...}.
 #'        All stages are repeated if this is a single number; if it is a
 #'        vector it gives how many times to repeat each stage.
 #' @param each how many times to repeat each individual stage
 #' @param after Add stages after what period
 #' @usage add_stage(experiment, ..., times, each, after)
+#' @details
+#' If functions are passed in to \code{add_stage}, Stage objects will 
+#' automatically be created from them. 
 #' @examples
 #' expt <- experiment(N=1, autostart=TRUE)
 #' s1 <- stage(function(id, period, params) return("Got to s1!"))
-#' s2 <- stage(function(id, period, params) return("Got to s2!"))
+#' # Or just define the function directly:
+#' s2 <- function(id, period, params) return("Got to s2!") 
 #' add_stage(expt, s1, s2, times=2) # s1 s2 s1 s2
 #' add_stage(expt, s1, s2, times=1:2) # s1 s2 s2
 #' add_stage(expt, s1, s2, each=2) # s1 s1 s2 s2
+#' info(expt)
 #' @export
 add_stage <- function (experiment, ...) 
       experiment$add_stage(...)
