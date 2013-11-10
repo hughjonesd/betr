@@ -73,6 +73,7 @@ Experiment <- setRefClass("Experiment",
       if (! missing(times)) stgs <- rep(stgs, times=times)
       if (! missing(each)) stgs <- rep(stgs, each=each)
       if (missing(after)) after <- length(stages)
+      stgs <- sapply(stgs, function (x) x$copy())
       stages <<- append(stages, stgs, after=after)
     }, 
     

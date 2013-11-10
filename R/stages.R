@@ -17,8 +17,9 @@ Stage <- setRefClass("Stage", contains="AbstractStage",
     .handle_request = "function"
   ),
   methods=list(
-    initialize = function(handler) {
-      callSuper(.handle_request=handler)
+    initialize = function(handler, ...) {
+      .handle_request <<- handler
+      callSuper(...)
     },
     
     handle_request = function(id, period, params) {
@@ -46,7 +47,7 @@ Stage <- setRefClass("Stage", contains="AbstractStage",
 #'        <input type='Submit' name='done' value='OK'></form>")
 #' })
 #' @export
-stage <- function (handler) Stage$new(handler=handler)
+stage <- function (handler) Stage$new(handler)
 
 TextStage <- setRefClass("TextStage", contains="AbstractStage",
   fields=list(
