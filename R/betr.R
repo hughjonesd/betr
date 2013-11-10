@@ -1,44 +1,5 @@
 #' @include servers.R
-
-Stage <- setRefClass("Stage", 
-  fields=list(
-    .handle_request = "function"
-  ),
-  methods=list(
-    initialize = function(hr) callSuper(.handle_request=hr),
-    
-    handle_request = function(id, period, params) {
-      .handle_request(id, period, params)
-    },
-    
-    .set_handler_env = function(env) {
-      environment(.handle_request) <<- env
-    }
-  )
-)
-
-#' Create a stage for an experiment
-#' 
-#' Stages are the building blocks of experiments. A single stage can
-#' result in one or more HTML pages shown to participants.
-#' @param ... A function which returns either a character string 
-#'     containing HTML, or the constant WAIT, or the constant NEXT.
-#' @return a Stage object suitable for adding to an experiment.
-#' @examples
-#' stg <- stage(function(id, period, params) {
-#'  if(params$done=="OK") return(NEXT)
-#'  paste0("<html><body><p>Your ID is ", id, " and the period is", period,
-#'        "</p><form action='", self_url, "' method=POST>
-#'        <input type='Submit' name='done' value='OK'></form>")
-#' })
-#' @export
-stage <- function (...) Stage$new(...)
-
-#' @export
-NEXT <- -1
-
-#' @export
-WAIT <- -2
+#' @include stages.R
 
 Experiment <- setRefClass("Experiment",
   fields=list(
@@ -105,12 +66,13 @@ Experiment <- setRefClass("Experiment",
       if (status != "Stopped") 
         warning("Adding stage to server while status is ", status, 
               "... this is risky!")
-      stgs <- list()
-      for (st in list(...)) stgs <- append(stgs, 
-            if (is.function(st)) Stage$new(st) else st)
+      stgs <- list(...)
+      for (i in 1:length(stgs)) {
+        if (is.function(stgs[[i]])) stgs[[i]] <- Stage$new(handler=stgs[[i]])
+      }
       if (! missing(times)) stgs <- rep(stgs, times=times)
       if (! missing(each)) stgs <- rep(stgs, each=each)
-      if (missing(after)) after <- length(stgs)
+      if (missing(after)) after <- length(stages)
       stages <<- append(stages, stgs, after=after)
     }, 
     

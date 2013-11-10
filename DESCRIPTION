@@ -16,4 +16,5 @@ Depends:
 Collate:
     'FixedRhttpd.R'
     'servers.R'
+    'stages.R'
     'betr.R'

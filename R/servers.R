@@ -7,9 +7,15 @@ if (getRversion() < "2.15.0") paste0 <- function(...) paste(..., sep="")
 #' @export
 Server <- setRefClass("Server",
   fields=list(
-    pass_request="function"
+    pass_request="function",
+    clients_in_url="logical",
+    name="character",
+    session_name = "character"
   ),
   methods=list(
+    initialize = function(clients_in_url=FALSE, ...) {
+      callSuper(clients_in_url=clients_in_url, ...)
+    },
     start = function() stop("start() called on abstract class Server"),
     halt = function() stop("halt() called on abstract class Server"),
     .pass_request = function(name, params) pass_request(name, params)
@@ -35,11 +41,11 @@ CommandLineServer <- setRefClass("CommandLineServer",
     },
     .process_socket = function(msg, socket, server_port, ...) {
       fields <- strsplit(msg, " ", fixed=TRUE)[[1]]
-      name <- fields[1]
+      client <- fields[1]
       pnames <- sub("([^:]*):.*", "\\1", fields[-1])
       params <- sub("[^:]*:(.*)", "\\1", fields[-1])
       names(params) <- pnames
-      return(.pass_request(name, params))     
+      return(.pass_request(client, params))     
     },
     info = function() cat("Listening on port ", port, "\n")
   )
@@ -71,10 +77,7 @@ clclient <- function(port=35538) {
 RookServer <- setRefClass("RookServer", contains="Server",
   fields=list(
     rhttpd = "Rhttpd",
-    name = "character",
-    session_name = "character",
-    port = "numeric",
-    clients_in_url = "logical"
+    port = "numeric"
   ),
   methods=list(
     initialize = function(port=35538, pass_request=NULL, ...) {

@@ -2,12 +2,12 @@
 \alias{stage}
 \title{Create a stage for an experiment}
 \usage{
-  stage(...)
+  stage(handler)
 }
 \arguments{
-  \item{...}{A function which returns either a character
-  string containing HTML, or the constant WAIT, or the
-  constant NEXT.}
+  \item{handler}{A function which returns either a
+  character string containing HTML, or the constant WAIT,
+  or the constant NEXT.}
 }
 \value{
   a Stage object suitable for adding to an experiment.
