@@ -1,13 +1,16 @@
 BUGS
-* RookServer not respecting port (workaround; needs actual fix)
-* Needs this_url()
-* Last period info of guessing-game is lost
-* Autostart not working
+----
+
+* [] RookServer not respecting port (workaround; needs actual fix)
+* [x] Needs this_url()
+* [] Last period info of guessing-game is lost
+* [] Autostart not working
+* [] Server doesn't stop after rm(expt)
 
 TODO
+----
 
 * how to allow for different possible Ns, and general framework for when to start
-
 * elegant, easy-to-use assignment to subjects
   - do we merge expt$subjects and experiment's actual data?
   - probably if it is easy...
@@ -67,9 +70,12 @@ TODO
 
 * More sophisticated stages.
   - stages with a run and check phase (and maybe setup and teardown)
+
 LATER
+-----
+
 * Mturk et al payment integration?
 * Command line interface and tools
 * Documentation
-* JSON server + HTML page
+* JSON server + HTML page... probably using shinyServer
 
