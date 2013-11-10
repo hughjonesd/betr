@@ -97,12 +97,12 @@ Experiment <- setRefClass("Experiment",
     
     finalize = function(...) {
       server <<- NULL
-      callSuper(...)
     },
     
     add_stage = function(..., times, each, after) {
       if (status != "Stopped") 
-        warning("Adding stage to server while status is", status, "... this is unwise.")
+        warning("Adding stage to server while status is ", status, 
+              "... this is risky!")
       stgs <- list()
       for (st in list(...)) stgs <- append(stgs, 
             if (is.function(st)) Stage$new(st) else st)
@@ -154,11 +154,11 @@ Experiment <- setRefClass("Experiment",
         return(invisible(FALSE))
       }
       if (is.numeric(subj)) subj <- subjects[subjects$id==subj,]
+      done <- subjects$id %in% subj$id & subjects$period == length(stages)
+      subjects$status[done] <<- "Finished"
       srows <- subjects$id %in% subj$id & subjects$period < length(stages)
       subjects$period[srows] <<- subjects$period[srows] + 1
       subjects$status[srows] <<- "Running" # do I need this?
-      done <- subjects$id %in% subj$id & subjects$period == length(stages)
-      subjects$status[done] <<- "Finished"
       return(invisible(TRUE))
     },
     
