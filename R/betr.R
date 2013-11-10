@@ -5,7 +5,7 @@ Stage <- setRefClass("Stage",
     .handle_request = "function"
   ),
   methods=list(
-    initialize = function(...) callSuper(.handle_request=..1),
+    initialize = function(hr) callSuper(.handle_request=hr),
     
     handle_request = function(id, period, params) {
       .handle_request(id, period, params)
@@ -32,7 +32,7 @@ Stage <- setRefClass("Stage",
 #'        <input type='Submit' name='done' value='OK'></form>")
 #' })
 #' @export
-stage <- function (...) stage$new(...)
+stage <- function (...) Stage$new(...)
 
 #' @export
 NEXT <- -1
@@ -360,8 +360,8 @@ experiment <- function (...) Experiment$new(...)
 #' @usage add_stage(experiment, ..., times, each, after)
 #' @examples
 #' expt <- experiment(N=1, autostart=TRUE)
-#' s1 <- stage(function(id, period, params) return("Got to s1!)
-#' s2 <- stage(function(id, period, params) return("Got to s2!)
+#' s1 <- stage(function(id, period, params) return("Got to s1!"))
+#' s2 <- stage(function(id, period, params) return("Got to s2!"))
 #' add_stage(expt, s1, s2, times=2) # s1 s2 s1 s2
 #' add_stage(expt, s1, s2, times=1:2) # s1 s2 s2
 #' add_stage(expt, s1, s2, each=2) # s1 s1 s2 s2
