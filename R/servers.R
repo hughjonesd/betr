@@ -95,7 +95,7 @@ RookServer <- setRefClass("RookServer", contains="Server",
       }
       if (clients_in_url) {
         # always overrides cookie
-        poss_client <- sub(paste0(".*", session_name, "/(.*)"), "\\1", req$path())
+        poss_client <- sub(paste0(".*", name, "/(.*)"), "\\1", req$path())
         if (nchar(poss_client)>0) client <- poss_client
       }    
       params <- req$params()
