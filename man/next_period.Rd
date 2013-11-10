@@ -8,7 +8,7 @@
   \item{experiment}{Object of class Experiment}
 
   \item{subjid}{numeric vector of subject id(s) to move
-  forward}
+  forward, or data frame from subjects table}
 }
 \value{
   TRUE or FALSE, invisibly

@@ -360,6 +360,8 @@ experiment <- function (...) Experiment$new(...)
 #' @usage add_stage(experiment, ..., times, each, after)
 #' @examples
 #' expt <- experiment(N=1, autostart=TRUE)
+#' s1 <- stage(function(id, period, params) return("Got to s1!)
+#' s2 <- stage(function(id, period, params) return("Got to s2!)
 #' add_stage(expt, s1, s2, times=2) # s1 s2 s1 s2
 #' add_stage(expt, s1, s2, times=1:2) # s1 s2 s2
 #' add_stage(expt, s1, s2, each=2) # s1 s1 s2 s2
@@ -425,13 +427,14 @@ restart <- function(experiment) experiment$handle_command("restart")
 #' design so use in emergencies only!
 #' 
 #' @param experiment Object of class Experiment
-#' @param subjid numeric vector of subject id(s) to move forward
+#' @param subjid numeric vector of subject id(s) to move forward, or data 
+#'        frame from subjects table
 #' @return TRUE or FALSE, invisibly
 #' @family command line functions
 #' @export
 next_period <- function(experiment, subjid) {
   warning("Moving subject on manually, this may do bad things to your data")
-  expt$handle_command("next_period", list(subjid))
+  experiment$handle_command("next_period", list(subj=subjid))
 }
 
 #' Show basic info about an experiment
