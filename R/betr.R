@@ -44,6 +44,7 @@ Experiment <- setRefClass("Experiment",
   fields=list(
     stages="ANY",
     N="numeric",
+    name="character",
     session_name="character",
     client_refresh="numeric",
     status=function(x) {
@@ -61,12 +62,12 @@ Experiment <- setRefClass("Experiment",
     requests="list",
     commands="list",
     start_time="POSIXct",
-    client_param="character"
+    clients_in_url="logical"
   ),
   methods=list(
     initialize = function(..., auth=TRUE, port, autostart=FALSE, 
       allow_latecomers=FALSE, N=Inf, server="RookServer", name="betr", 
-      client_refresh=10, client_param="") {
+      client_refresh=10, clients_in_url=FALSE) {
       stages <<- list()
       subjects <<- data.frame(client=character(0), id=numeric(0), 
             period=numeric(0), status=factor(, levels=c("Running", "Waiting", 
@@ -81,7 +82,7 @@ Experiment <- setRefClass("Experiment",
       # or an actual Server object
       if (! inherits(server, "Server")) {
         server_args <- list(pass_request=.self$handle_request, 
-              client_param=client_param)
+              clients_in_url=clients_in_url, name=name, session_name=session_name)
         sclass <- if (is.character(server)) get(server) else server
         if (missing(port) && sclass$className %in% 
             c("RookServer", "CommandLineServer"))
@@ -90,8 +91,9 @@ Experiment <- setRefClass("Experiment",
       }
       requests <<- commands <<- list()
       .command_names <<- c("ready", "start", "pause", "restart", "next_period")
-      callSuper(..., auth=auth, autostart=autostart, client_param=client_param,
-        allow_latecomers=allow_latecomers, N=N, client_refresh=client_refresh)
+      callSuper(..., auth=auth, autostart=autostart, clients_in_url=clients_in_url,
+            allow_latecomers=allow_latecomers, N=N, client_refresh=client_refresh,
+            name=name)
       if (is.infinite(N)) warning("No maximum N set for experiment")
     },
     
@@ -216,10 +218,8 @@ Experiment <- setRefClass("Experiment",
           if (subject$status=="Finished") return(special_page("Experiment finished"))
           stage <- stages[[subject$period]]
           client <- client
-          self_url <- if (nchar(client_param)>0)
-                function() {paste0("betr?", client_param, "=", client)} else 
-                function() "betr"
-          stage$.set_handler_env(environment())
+          # self_url <- function() ""
+          # stage$.set_handler_env(environment())
           result <- stage$handle_request(subject$id, subject$period, params)
           if (result==NEXT) {
             next_period(subject)
@@ -337,8 +337,9 @@ setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
 #'        folders.
 #' @param client_refresh numeric. How often should waiting clients refresh
 #'        thier pages?
-#' @param client_param character. Allows specifying client names by 
-#'        HTML parameters, e.g. expt?client=1
+#' @param clients_in_url logical. If \code{TRUE}, client names can be specified 
+#'        in the URL as e.g. experiment/client_name. Useful for testing, should
+#'        be turned off in production!
 #' @return an object of class Experiment.
 #' @examples
 #' expt <- experiment(name='testing', port=12345, N=4)

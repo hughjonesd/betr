@@ -30,8 +30,10 @@
   \item{client_refresh}{numeric. How often should waiting
   clients refresh thier pages?}
 
-  \item{client_param}{character. Allows specifying client
-  names by HTML parameters, e.g. expt?client=1}
+  \item{clients_in_url}{logical. If \code{TRUE}, client
+  names can be specified in the URL as e.g.
+  experiment/client_name. Useful for testing, should be
+  turned off in production!}
 }
 \value{
   an object of class Experiment.

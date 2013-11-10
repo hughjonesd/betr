@@ -71,38 +71,37 @@ clclient <- function(port=35538) {
 RookServer <- setRefClass("RookServer", contains="Server",
   fields=list(
     rhttpd = "Rhttpd",
-    unique_id = "character",
+    name = "character",
+    session_name = "character",
     port = "numeric",
-    client_param = "character"
+    clients_in_url = "logical"
   ),
   methods=list(
-    initialize = function(port=35538, pass_request=NULL, client_param="",...) {
-      unique_id <<- paste0("betr-rook-", format(Sys.time(), 
-            "%Y-%m-%d_%H%M%S"))
-      callSuper(port=port, pass_request=pass_request, client_param=client_param,
-            ...)
+    initialize = function(port=35538, pass_request=NULL, ...) {
+      callSuper(port=port, pass_request=pass_request, ...)
     },
     finalize = function() halt(),
     call = function (env) {
       req <- Rook::Request$new(env)
       res <- Rook::Response$new()
       
-      if (unique_id %in% names(req$cookies())) {
-        client <- req$cookies()[[unique_id]]
+      if (session_name %in% names(req$cookies())) {
+        client <- req$cookies()[[session_name]]
       } else {
         ip <- req$ip()
         if (length(ip)==0) ip <- "127.0.0.1" # work around Rook bug
         client <- paste0(ip, "-", do.call(paste0, as.list(
               sample(LETTERS, 10))))
       }
-      
+      if (clients_in_url) {
+        # always overrides cookie
+        poss_client <- sub(paste0(".*", session_name, "/(.*)"), "\\1", req$path())
+        if (nchar(poss_client)>0) client <- poss_client
+      }    
       params <- req$params()
-      if (nchar(client_param)>0 && client_param %in% names(req$params())) {
-        client <- params[[client_param]]
-        params[[client_param]] <- NULL
-      }
+      
       html <- .pass_request(client, params)
-      res$set_cookie(unique_id, client)
+      res$set_cookie(session_name, client)
       res$write(html)
       res$finish()
     },
@@ -115,7 +114,7 @@ RookServer <- setRefClass("RookServer", contains="Server",
 #         }, silent=TRUE)
         rhttpd <<- Rhttpd$new()
       }
-      rhttpd$add(app=.self, name="betr") # dupes ignored
+      rhttpd$add(app=.self, name=name) # dupes ignored
       rhttpd$start(port=port)
     },
     halt = function () {

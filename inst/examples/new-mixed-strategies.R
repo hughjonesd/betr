@@ -15,21 +15,10 @@ xtable.PayoffMatrix <- function(pm) {
   xtable(tbl)
 }
 
-pm1 <- p_m(2,0,0,1,0,3,4,0)
+pm1 <- p_m(1,0,0,1,0,1,1,0)
 pm2 <- p_m(3,1,0,2,0,1,1,0)
-pms <- list(
-  period1 = pm1,
-  period2 = pm1,
-  period3 = pm1,
-  period4 = pm1,
-  period5 = pm1,
-  period6 = pm2,
-  period7 = pm2,
-  period8 = pm2,
-  period9 = pm2,
-  period10 = pm2
-  
-)
+pms <- rep(list(pm1, pm2), each=10)
+
 hta <- "style='font-size:14pt; margin: 5px; border: 1px solid black; border-collapse: collapse'"
 htmlhead <- "<head><style type='text/css'>
       td {border: 1px solid black; padding: 15px; font-size: 16pt}
@@ -76,8 +65,8 @@ s1 <- function(id, period, params) {
       <p>Payoffs for this game are:", 
       print(xtable(payoff_matrix), print.results=FALSE, type="html", 
           html.table.attributes=hta),
-      "<form enctype='multipart/form-data' action='", self_url() ,
-      "' method='POST'>Choose an action:<br>
+      "<form enctype='multipart/form-data' action='' method='POST'>
+      Choose an action:<br>
       <button type='submit' name='action' value='", rc.actions[[myrc]][1], "'>",
       rc.actions[[myrc]][1], "</button>
       <button type='submit' name='action' value='", rc.actions[[myrc]][2], "'>", 
@@ -130,13 +119,13 @@ s2 <- function(id, period, params) {
         "% played U, ", 100-rpctU, "% played D</p>")
   html <- paste0(html, "<br><br><p>Column players: ", cpctL, 
         "% played L, ", 100-cpctL, "% played R</p>")
-  html <- paste0(html, "<form action='", self_url() ,"' method='post'>
+  html <- paste0(html, "<form action='' method='post'>
           <input type='submit' name='moveon' value='Next game'></form>
           </body></html>")
   return(html)
 }
 
 expt <- experiment(auth=TRUE, server="RookServer", N=N, autostart=TRUE,
-      client_param="client")
+      clients_in_url=TRUE, name="mix")
 add_stage(expt, s1, s2, times=5) 
 ready(expt)
