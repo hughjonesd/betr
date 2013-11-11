@@ -85,3 +85,20 @@ test_that("Rook server works with experiment", {
   s1 <- stage(handler=function(...) "Got to stage s1")
   add_stage(expt, s1)
 })
+
+test_that("TextStages work", {
+  s1 <- text_stage(text="Foo")
+  expect_that(s1$handle_request(1,1, list()), equals("Foo"))
+  expect_that(s1$handle_request(2,1, list()), equals("Foo"))
+  expect_that(s1$handle_request(2,1, list()), equals(NEXT))
+  t1 <- tempfile("text_stage_test", fileext=".html")
+  cat("foo\n", file=t1)
+  s2 <- text_stage(file=t1)
+  expect_that(s2$handle_request(1,1, list()), equals("foo"))
+  t2 <- tempfile("text_stage_test", fileext=".brew")
+  cat("foo<%= bar %>\n", file=t2)
+  bar <<- "boing"
+  s3 <- text_stage(file=t2)
+  expect_that(s3$handle_request(1,1, list()), equals("fooboing"))
+  expect_that(text_stage(file="whatever", text="foo"), throws_error())
+})
