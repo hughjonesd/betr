@@ -8,7 +8,7 @@ AbstractStage <- setRefClass("AbstractStage",
     initialize = function(...) callSuper(...),
     
     handle_request = function(id, period, params) stop(
-          "handle_request called on object of class AbstractStage")
+          "handle_request called on object of class AbstractStage"),
     
     environment = function() env,
     
@@ -28,9 +28,9 @@ Stage <- setRefClass("Stage", contains="AbstractStage",
     },
     
     handle_request = function(id, period, params) {
-      environment(.handle_request) <- env
+      environment(.handle_request) <<- env
       .handle_request(id, period, params)
-    },
+    }
   )
 )
 
@@ -149,7 +149,7 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
     handle_request = function (id, period, params) {
       if (id %in% finished) return(NEXT)
       if (! id %in% started) {
-        output <- ffbc(form, id, period, params, env=env))
+        output <- ffbc(form, id, period, params, env=env)
         if (output == NEXT || output == WAIT) return(output) 
         rr <- rookify(output)
         if (! is.null(timeout)) {
@@ -162,22 +162,23 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
       if (! is.null(timeout) && Sys.time() > timestamps[[id]] + timeout) {
         maybe <- NULL
         if(is.function(on_timeout)) {
-          environment(on_timeout) <- env
+          environment(on_timeout) <<- env
           maybe <- on_timeout(id, period)
         } 
         if (is.list(maybe)) params <- maybe
       } else {
         if (is.function(process)) {
-          enviroment(process) <- env
+          enviroment(process) <<- env
           chk <- tryCatch(process(id, period, params), error= function(e) e)
-          if (inherits(chk, "error")) return(form(id, period, params))
+          if (inherits(chk, "error")) return(ffbc(form, id, period, params, 
+            chk$message, env=env))
         }
       }
       ready <<- c(ready, id)
       if (is.null(wait_for)) {
         do_result <- TRUE
       } else if (is.function(wait_for)) {
-        environment(wait_for) <- env
+        environment(wait_for) <<- env
         do_result <- wait_for(id, period, params) 
       } else {
         ids <- unlist(wait_for[sapply(wait_for, '%in%', x=id)])
