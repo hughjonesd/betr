@@ -24,7 +24,11 @@
 }
 \details{
   If functions are passed in to \code{add_stage}, Stage
-  objects will automatically be created from them.
+  objects will automatically be created from them. Stage
+  objects are \link[=ReferenceClasses]{reference classes}.
+  However, when added to the experiment, they are copied.
+  So, changing the Stage after adding it to the experiment
+  will not work.
 }
 \examples{
 expt <- experiment(N=1, autostart=TRUE)

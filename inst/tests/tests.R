@@ -14,8 +14,7 @@ test_that("Command line server works remotely", {
 })
 
 test_that("RookServer works", {
-  rs <- RookServer$new(name="jim", session_name="jim-at-midnight",
-        clients_in_url=FALSE,
+  rs <- RookServer$new(name="jim", clients_in_url=FALSE,
         pass_request = function(name, params) return(params["foo"]))
   rs$start()
   fake_env <- new.env()
@@ -85,12 +84,21 @@ test_that("Command line server & client work", {
 
 Sys.sleep(1) # new session name
 test_that("Rook server works with experiment", {
-  expt <- experiment(N=1, server=RookServer, autostart=TRUE)
+  expt <- experiment(N=1, server="RookServer", autostart=TRUE)
   s1 <- stage(handler=function(...) "Got to stage s1")
   add_stage(expt, s1)
   ready(expt)
-  expt$handle_request("jim", list())
+  expect_that(show(expt), matches("Waiting"))
+  expect_that(expt$handle_request("jim", list()), equals("Got to stage s1"))
   start(expt)
+  
+  expt <- experiment(N=1, server="RookServer", autostart=FALSE)
+  add_stage(expt, s1)
+  ready(expt)
+  expect_that(expt$handle_request("jim", list()), 
+        equals(expt$waiting_page("Waiting to start")))
+  start(expt)
+  expect_that(expt$handle_request("jim", list()), equals("Got to stage s1"))
   expt$handle_request("jim", list())
 })
 
@@ -129,3 +137,4 @@ test_that("Experiment environments work", {
   expect_that(exists("foo"), is_false())
   expect_that(get("foo", envir=environment(expt)), equals("baz"))
 })
+unlink(dir(pattern="betr-201.*"), recursive=TRUE)

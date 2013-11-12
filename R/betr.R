@@ -318,9 +318,9 @@ setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
 #' you source this file. Call \code{\link[=ready]{ready(experiment)}} when you
 #' want subjects to be able to connect to the server. They will see a waiting
 #' page which refreshes regularly. To see your experiment's status, call
-#' \code{\link[=info{info(experiment)}} or simply type \code{experiment} on the
+#' \code{\link[=info]{info(experiment)}} or simply type \code{experiment} on the
 #' command line. When you want the experiment to start, call 
-#' \code{\link[=start{start(experiment)}}.
+#' \code{\link[=start]{start(experiment)}}.
 #' 
 #' An experiment has its own empty environment. Functions and brew files
 #' passed into stages will be evaluated in this environment. When the experiment
@@ -462,7 +462,7 @@ map <- function(experiment) experiment$map()
 setGeneric("environment")
 #' Return an experiment's environment
 #' 
-#' @example
+#' @examples
 #' expt <- experiment(N=1)
 #' with(environment(expt),
 #'     mydf <- data.frame(id=numeric(0), profit=numeric(0))

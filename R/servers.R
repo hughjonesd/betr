@@ -117,6 +117,7 @@ RookServer <- setRefClass("RookServer", contains="Server",
       }
     },
     start = function (session_name=paste0(name, Sys.time())) {
+      session_name <<- session_name
       if (is.null(rhttpd)) {
 #         try({
 #           startDynamicHelp(FALSE) # RStudio hack

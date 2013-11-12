@@ -108,12 +108,11 @@ text_stage <- function (...) TextStage$new(...)
 
 file_or_brew <- function(fb, env=parent.frame()) {
   # WTF does brew() not just return a string?
-  if (grepl("\\.brew$", fb)) capture.output(brew::brew(fb, env)) else 
+  if (grepl("\\.brew$", fb)) capture.output(brew(fb, envir=env)) else 
         readLines(fb)
 }
 
 ffbc <- function(thing, ..., env=parent.frame()) {
-  ...
   if (is.function(thing)) {
     environment(thing) <- env
     return(thing(...))
@@ -133,12 +132,12 @@ rookify <- function (thing) {
 #' @export
 StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
   fields = list(
-    form        = "function",
+    form        = "ANY",
     timeout     = "ANY",
     on_timeout  = "ANY",
     process     = "ANY",
     wait_for    = "ANY",
-    result      = "function",
+    result      = "ANY",
     started     = "numeric",
     ready       = "numeric",
     finished    = "numeric",

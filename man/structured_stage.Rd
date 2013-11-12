@@ -41,23 +41,23 @@
   An object of class StructuredStage.
 }
 \description{
-  Structured stages use the following flowchart.
-  \preformatted{1. Has the participant finished the stage?
-  Yes => return \code{NEXT} No => continue: 2. Has the
-  participant seen the stage already in this period? No =>
-  call the stage's \code{form} function, which returns some
-  HTML, and start counting \code{timeout} from now. Yes =>
-  continue: 3. Did the participant respond within
-  \code{timeout} seconds? No => call the stage's
-  \code{on_timeout} function, then continue to step 5. Yes
-  => continue: 4. Call the \code{process} function. If this
-  \code{stop}s => call \code{form} again, passing the error
-  message.  The timeout is \emph{not} reset. Otherwise =>
-  continue: 5. Are all participants in \code{wait_for}
-  ready? No => return \code{WAIT}. Yes => continue: 6. Call
-  the \code{results} function, which returns some HTML or
+  Structured stages use the following flowchart. 1. Has the
+  participant finished the stage? Yes => return \code{NEXT}
+  No => continue: 2. Has the participant seen the stage
+  already in this period? No => call the stage's
+  \code{form} function, which returns some HTML, and start
+  counting \code{timeout} from now. Yes => continue: 3. Did
+  the participant respond within \code{timeout} seconds? No
+  => call the stage's \code{on_timeout} function, then
+  continue to step 5. Yes => continue: 4. Call the
+  \code{process} function. If this \code{stop}s => call
+  \code{form} again, passing the error message.  The
+  timeout is \emph{not} reset. Otherwise => continue: 5.
+  Are all participants in \code{wait_for} ready? No =>
+  return \code{WAIT}. Yes => continue: 6. Call the
+  \code{results} function, which returns some HTML or
   \code{NEXT}. Mark the participant as having finished the
-  stage.}
+  stage.
 }
 \details{
   If \code{wait_for} is a function like \code{function(id,

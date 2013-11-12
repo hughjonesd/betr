@@ -1,15 +1,14 @@
 
 library(betr)
 
+N <- 4
+gsample <- matrix(sample(1:N), nrow=4)
+groups <- lapply(1:ncol(gsample), function(x) gsample[,x])  
+brewdir <- file.path(find.package("betr"), "examples")
 expt <- experiment(N=N, clients_in_url=TRUE, name="public-goods")
 with(environment(expt), {
-  brewdir <- file.path(find.package("betr"), "examples")
-  
-  N <- 16
   mydf <- data.frame(id=numeric(0), group=numeric(0), contrib=numeric(0), 
     timed_out=logical(0))
-  gsample <- matrix(sample(1:N), nrow=4)
-  groups <- lapply(1:ncol(gsample), function(x) gsample[,x])  
 })
 
 s1 <- structured_stage(
