@@ -3,14 +3,15 @@ BUGS
 
 - [] RookServer not respecting port (workaround; needs actual fix)
 - [x] Needs this_url()
-- [] Last period info of guessing-game is lost
-- [] Autostart not working
+- [x] Last period info of guessing-game is lost
+- [x] Autostart not working
 - [] Server doesn't stop after rm(expt)
 
 TODO
 ----
 
 * how to allow for different possible Ns, and general framework for when to start
+* consider putting WAIT and waiting_page in Stage not Experiment
 * elegant, easy-to-use assignment to subjects
   - do we merge expt$subjects and experiment's actual data?
   - probably if it is easy...

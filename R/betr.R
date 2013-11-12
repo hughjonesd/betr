@@ -34,16 +34,12 @@ Experiment <- setRefClass("Experiment",
             period=numeric(0), status=factor(, levels=c("Running", "Waiting", 
             "Finished")), stringsAsFactors=FALSE)
       status <<- "Stopped"
-      start_time <<- Sys.time()
-      session_name <<- paste(name, format(start_time, 
-        "%Y-%m-%d-%H%M%S"), sep="-")
-      dir.create(fp <- file.path(session_name, "record"), recursive=TRUE)
-      if (file.access(fp, 2) != 0) stop("Could not write into ", fp)
+      
       # server can be a class name, a class object (refObjectGenerator), 
       # or an actual Server object
       if (! inherits(server, "Server")) {
         server_args <- list(pass_request=.self$handle_request, 
-              clients_in_url=clients_in_url, name=name, session_name=session_name)
+              clients_in_url=clients_in_url, name=name)
         sclass <- if (is.character(server)) get(server) else server
         if (missing(port) && sclass$className %in% 
             c("RookServer", "CommandLineServer"))
@@ -51,7 +47,7 @@ Experiment <- setRefClass("Experiment",
         server <<- do.call(sclass$new, server_args)
       }
       requests <<- commands <<- list()
-      .command_names <<- c("ready", "start", "pause", "restart", "next_period")
+      .command_names <<- c("start", "pause", "restart", "next_period")
       callSuper(..., auth=auth, autostart=autostart, clients_in_url=clients_in_url,
             allow_latecomers=allow_latecomers, N=N, client_refresh=client_refresh,
             name=name)
@@ -59,7 +55,7 @@ Experiment <- setRefClass("Experiment",
     },
     
     finalize = function(...) {
-      server <<- NULL
+      if (inherits(server, "Server")) server$halt()
     },
     
     add_stage = function(..., times, each, after) {
@@ -200,8 +196,9 @@ Experiment <- setRefClass("Experiment",
     },
         
     info = function(subj=TRUE, map=TRUE) {
-      cat(sprintf("Session: %s\t\tStatus: %s\t\tClients: %d/%0.0f\t\tStages: %d\n", 
-            session_name, status, nrow(subjects), N, length(stages)))
+      cat(sprintf("%s\tStatus: %s\tClients: %d/%0.0f\tStages: %d\n", 
+            ifelse(status=="Stopped", paste("Name:", name), paste("Session:",
+            session_name)), status, nrow(subjects), N, length(stages)))
       if (status != "Stopped") server$info()
       if (subj && nrow(subjects) > 0) {
         cat("Subjects:\n")
@@ -214,8 +211,8 @@ Experiment <- setRefClass("Experiment",
       tbl <- table(subjects$period)
       cat("Stage progression:\n")
       for (i in as.character(1:length(stages))) {
-        if (any(i + -1:1 %in% names(tbl))) cat(i,":", rep("*", tbl[[i]]), "[", 
-              tbl[[i]], "]\n", sep="")
+        if (i %in% names(tbl)) cat(i,":", rep("*", tbl[[i]]), "[", tbl[[i]], "]\n",
+              sep="")
       }
     },
 
@@ -224,8 +221,13 @@ Experiment <- setRefClass("Experiment",
         warning("Called ready() on an experiment with status ", status)
         return(invisible(FALSE))
       }
+      start_time <<- Sys.time()
+      session_name <<- paste(name, format(start_time, 
+        "%Y-%m-%d-%H%M%S"), sep="-")
+      dir.create(fp <- file.path(session_name, "record"), recursive=TRUE)
+      if (file.access(fp, 2) != 0) stop("Could not write into ", fp)
       ## run server
-      server$start()
+      server$start(session_name=session_name)
       status <<- "Waiting"
       return(invisible(TRUE))
     },
@@ -364,7 +366,7 @@ start <- function(experiment, force=FALSE) experiment$handle_command("start",
 #' @return TRUE or FALSE, invisibly
 #' @family command line functions
 #' @export
-ready <- function(experiment) experiment$handle_command("ready")
+ready <- function(experiment) experiment$ready()
 
 
 #' Pause the experiment.

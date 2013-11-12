@@ -1,5 +1,5 @@
 
-
+#' @export
 AbstractStage <- setRefClass("AbstractStage",
   fields=list(),
   methods=list(
@@ -10,6 +10,7 @@ AbstractStage <- setRefClass("AbstractStage",
   )
 )
 
+#' @export
 Stage <- setRefClass("Stage", contains="AbstractStage",
   fields=list(
     .handle_request = "function"
@@ -58,6 +59,7 @@ stage <- function (handler) Stage$new(handler)
   if (grepl("\\.brew$", fb)) capture.output(brew(fb)) else readLines(fb)
 }
 
+#' @export
 TextStage <- setRefClass("TextStage", contains="AbstractStage",
   fields=list(
     text="character",
@@ -101,7 +103,7 @@ TextStage <- setRefClass("TextStage", contains="AbstractStage",
 #' @export
 text_stage <- function (...) TextStage$new(...)
 
-
+#' @export
 StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
   fields = list(
     form        = "function",

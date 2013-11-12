@@ -33,7 +33,7 @@ CommandLineServer <- setRefClass("CommandLineServer",
       callSuper(port=port, pass_request=pass_request, ...)
     },
     finalize = function() halt(),
-    start = function() {
+    start = function(session_name=paste0("betr", Sys.time())) {
       startSocketServer(port=port, procfun=.self$.process_socket)
     },
     halt = function() {
@@ -83,10 +83,11 @@ RookServer <- setRefClass("RookServer", contains="Server",
     initialize = function(port=35538, pass_request=NULL, ...) {
       callSuper(port=port, pass_request=pass_request, ...)
     },
+    
     finalize = function() halt(),
+    
     call = function (env) {
       req <- Rook::Request$new(env)
-      res <- Rook::Response$new()
       
       if (session_name %in% names(req$cookies())) {
         client <- req$cookies()[[session_name]]
@@ -103,12 +104,19 @@ RookServer <- setRefClass("RookServer", contains="Server",
       }    
       params <- req$params()
       
-      html <- .pass_request(client, params)
-      res$set_cookie(session_name, client)
-      res$write(html)
-      res$finish()
+      result <- .pass_request(client, params)
+      if (inherits(result, "Response")) {
+        result$set_cookie(session_name, client)
+        result$finish()
+      }
+      else {
+        res <- Rook::Response$new()
+        res$set_cookie(session_name, client)
+        res$write(result)
+        res$finish()
+      }
     },
-    start = function () {
+    start = function (session_name=paste0(name, Sys.time())) {
       if (is.null(rhttpd)) {
 #         try({
 #           startDynamicHelp(FALSE) # RStudio hack
