@@ -214,8 +214,8 @@ Experiment <- setRefClass("Experiment",
       tbl <- table(subjects$period)
       cat("Stage progression:\n")
       for (i in as.character(1:length(stages))) {
-        cat(i,":", if (i %in% names(tbl)) paste(rep("*", tbl[[i]]), "[", tbl[[i]], "]", 
-              collapse=""), "\n")
+        if (any(i + -1:1 %in% names(tbl))) cat(i,":", rep("*", tbl[[i]]), "[", 
+              tbl[[i]], "]\n", sep="")
       }
     },
 
