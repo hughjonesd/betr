@@ -19,7 +19,7 @@
   only!
 }
 \seealso{
-  Other command.line.functions: \code{\link{info}},
+  Other command line functions: \code{\link{info}},
   \code{\link{map}}, \code{\link{pause}},
   \code{\link{print}}, \code{\link{ready}},
   \code{\link{restart}}, \code{\link{start}}

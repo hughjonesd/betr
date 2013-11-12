@@ -1,6 +1,6 @@
 \name{text_stage}
 \alias{text_stage}
-\title{Create a stage which simply shows some HTML to the user}
+\title{Create a stage which does nothing but display HTML to the subject.}
 \usage{
   text_stage(...)
 }
@@ -13,9 +13,20 @@
   \code{file} and \code{text} should be passed.}
 }
 \value{
-  an object of class TextStage.
+  An object of class TextStage. When called the first time,
+  this will display the HTML in \code{file} or \code{text}
+  to the participant.  Subsequent calls will return
+  \code{NEXT}.
 }
 \description{
-  A text stage presents some HTML once to each subject
+  A text stage presents some HTML once to each subject.
+}
+\details{
+  It is always safe to call \code{next_stage} on a
+  participant who is at a TextStage.
+}
+\seealso{
+  Other stages: \code{\link{NEXT}}, \code{\link{stage}},
+  \code{\link{structured_stage}}, \code{\link{WAIT}}
 }
 
