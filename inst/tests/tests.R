@@ -102,3 +102,7 @@ test_that("TextStages work", {
   expect_that(s3$handle_request(1,1, list()), equals("fooboing"))
   expect_that(text_stage(file="whatever", text="foo"), throws_error())
 })
+
+test_that("StructuredStages work", {
+  
+})
