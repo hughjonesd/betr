@@ -60,6 +60,8 @@ Experiment <- setRefClass("Experiment",
       if (inherits(server, "Server")) server$halt()
     },
     
+    environment = function() env,
+    
     add_stage = function(..., times, each, after) {
       if (status != "Stopped") 
         warning("Adding stage to server while status is ", status, 
@@ -350,6 +352,9 @@ experiment <- function (...) Experiment$new(...)
 #' @details
 #' If functions are passed in to \code{add_stage}, Stage objects will 
 #' automatically be created from them. 
+#' Stage objects are \link[=ReferenceClasses]{reference classes}. However,
+#' when added to the experiment, they are copied. So, changing the 
+#' Stage after adding it to the experiment will not work.
 #' @examples
 #' expt <- experiment(N=1, autostart=TRUE)
 #' s1 <- stage(function(id, period, params) return("Got to s1!"))
@@ -454,7 +459,7 @@ info <- function(experiment, subj=TRUE, map=TRUE) experiment$info(subj, map)
 #' @export
 map <- function(experiment) experiment$map()
 
-setGeneric("environment") 
+setGeneric("environment")
 #' Return an experiment's environment
 #' 
 #' @example
@@ -468,5 +473,6 @@ setGeneric("environment")
 #' in your source file before defining stages. These variables can then be
 #' accessed in your stage functions and brew files. They can be written to
 #' using \code{<<-}. Doing this helps make your experiment replay-safe.
-setMethod("environment", "Experiment", function(experiment) 
-      experiment$environment())
+#' @export
+setMethod("environment", "Experiment", function(fun) 
+      fun$environment())

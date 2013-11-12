@@ -1,3 +1,4 @@
+#' @import brew
 
 #' @export
 AbstractStage <- setRefClass("AbstractStage",
@@ -104,7 +105,8 @@ text_stage <- function (...) TextStage$new(...)
 
 file_or_brew <- function(fb, env=parent.frame()) {
   # WTF does brew() not just return a string?
-  if (grepl("\\.brew$", fb)) capture.output(brew(fb, env)) else readLines(fb)
+  if (grepl("\\.brew$", fb)) capture.output(brew::brew(fb, env)) else 
+        readLines(fb)
 }
 
 ffbc <- function(thing, ..., env=parent.frame()) {

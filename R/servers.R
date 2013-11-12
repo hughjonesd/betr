@@ -34,10 +34,10 @@ CommandLineServer <- setRefClass("CommandLineServer",
     },
     finalize = function() halt(),
     start = function(session_name=paste0("betr", Sys.time())) {
-      startSocketServer(port=port, procfun=.self$.process_socket)
+      svSocket::startSocketServer(port=port, procfun=.self$.process_socket)
     },
     halt = function() {
-      stopSocketServer(port=port)
+      svSocket::stopSocketServer(port=port)
     },
     .process_socket = function(msg, socket, server_port, ...) {
       fields <- strsplit(msg, " ", fixed=TRUE)[[1]]

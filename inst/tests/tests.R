@@ -75,15 +75,23 @@ test_that("Command line server & client work", {
   expt <- experiment(N=1, server=CommandLineServer)
   s1 <- stage(handler=function(...) "Got to stage s1")
   add_stage(expt, s1)
+  ready(expt)
+  expt$handle_request("jim", list())
+  start(expt)
+  expt$handle_request("jim", list())
   # TODO add clclient, or is this tested in servers?
 })
 
 
 Sys.sleep(1) # new session name
 test_that("Rook server works with experiment", {
-  expt <- experiment(N=1, server=RookServer)
+  expt <- experiment(N=1, server=RookServer, autostart=TRUE)
   s1 <- stage(handler=function(...) "Got to stage s1")
   add_stage(expt, s1)
+  ready(expt)
+  expt$handle_request("jim", list())
+  start(expt)
+  expt$handle_request("jim", list())
 })
 
 test_that("TextStages work", {
@@ -101,4 +109,22 @@ test_that("TextStages work", {
   s3 <- text_stage(file=t2)
   expect_that(s3$handle_request(1,1, list()), equals("fooboing"))
   expect_that(text_stage(file="whatever", text="foo"), throws_error())
+})
+
+test_that("Experiment environments work", {
+  expt <- experiment(N=1)
+  with(environment(expt), foo <- "blah")
+  expect_that(get("foo", envir=environment(expt)), equals("blah"))
+  s1 <- function (id, period, params) {
+    if ("foo" %in% names(params)) foo <<- params$foo
+    foo
+  }
+  add_stage(expt, s1, s1)
+  ready(expt)
+  expt$handle_request("jim", list())
+  start(expt)
+  expect_that(expt$handle_request("jim", list()), equals("blah"))
+  expect_that(expt$handle_request("jim", list(foo="baz")), equals("baz"))
+  expect_that(exists("foo"), is_false())
+  expect_that(get("foo", envir=environment(expt)), equals("baz"))
 })
