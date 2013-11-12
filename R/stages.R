@@ -1,12 +1,18 @@
 
 #' @export
 AbstractStage <- setRefClass("AbstractStage",
-  fields=list(),
+  fields=list(
+    env = "environment"  
+  ),
   methods=list(
-    initialize=function(...) callSuper(...),
+    initialize = function(...) callSuper(...),
     
-    handle_request=function(id, period, params) stop(
+    handle_request = function(id, period, params) stop(
           "handle_request called on object of class AbstractStage")
+    
+    environment = function() env,
+    
+    set_environment = function(env) env <<- env
   )
 )
 
@@ -22,12 +28,9 @@ Stage <- setRefClass("Stage", contains="AbstractStage",
     },
     
     handle_request = function(id, period, params) {
+      environment(.handle_request) <- env
       .handle_request(id, period, params)
     },
-    
-    .set_handler_env = function(env) {
-      environment(.handle_request) <<- env
-    }
   )
 )
 
@@ -54,10 +57,6 @@ Stage <- setRefClass("Stage", contains="AbstractStage",
 #' @export
 stage <- function (handler) Stage$new(handler)
 
-.file_or_brew <- function(fb) {
-  # WTF does brew() not just return a string?
-  if (grepl("\\.brew$", fb)) capture.output(brew(fb)) else readLines(fb)
-}
 
 #' @export
 TextStage <- setRefClass("TextStage", contains="AbstractStage",
@@ -79,8 +78,8 @@ TextStage <- setRefClass("TextStage", contains="AbstractStage",
       if (id %in% shown) return(NEXT)
       shown <<- c(shown, id)
       if (length(text)>0) return(text)
-      # don't crash if a file is missing
-      tryCatch(html <- .file_or_brew(file), error= function(e) warning(e))
+      # don't crash if a file is missing?
+      tryCatch(html <- file_or_brew(file, env), error= function(e) warning(e))
       return(html)
     }
   )
@@ -102,6 +101,29 @@ TextStage <- setRefClass("TextStage", contains="AbstractStage",
 #' @family stages  
 #' @export
 text_stage <- function (...) TextStage$new(...)
+
+file_or_brew <- function(fb, env=parent.frame()) {
+  # WTF does brew() not just return a string?
+  if (grepl("\\.brew$", fb)) capture.output(brew(fb, env)) else readLines(fb)
+}
+
+ffbc <- function(thing, ..., env=parent.frame()) {
+  ...
+  if (is.function(thing)) {
+    environment(thing) <- env
+    return(thing(...))
+  }
+  if (is.file(thing)) return(file_or_brew(thing, env))
+  if (is.character(thing)) return(thing)
+  stop("Unrecognized object of class ", class(thing), "passed to fff")
+}
+
+rookify <- function (thing) {
+  if (inherits(thing, "Response")) return(thing)
+  rr <- Rook::Response$new()
+  rr$write(thing)
+  return(rr)
+}
 
 #' @export
 StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
@@ -127,19 +149,26 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
     handle_request = function (id, period, params) {
       if (id %in% finished) return(NEXT)
       if (! id %in% started) {
-        html <- form(id, period, params)
-        if (! is.character(html)) return(html) # WAIT or NEXT
+        output <- ffbc(form, id, period, params, env=env))
+        if (output == NEXT || output == WAIT) return(output) 
+        rr <- rookify(output)
         if (! is.null(timeout)) {
           timestamps[[id]] <<- Sys.time()
+          rr$header("Refresh", timeout)
         }
         started <<- c(started, id)
-        return(html)
+        return(rr)
       }
-      if (! is.na(timeout) && Sys.time() > timestamps[[id]] + timeout) {
-        maybe <-  if(is.function(on_timeout)) on_timeout(id, period) else NULL
+      if (! is.null(timeout) && Sys.time() > timestamps[[id]] + timeout) {
+        maybe <- NULL
+        if(is.function(on_timeout)) {
+          environment(on_timeout) <- env
+          maybe <- on_timeout(id, period)
+        } 
         if (is.list(maybe)) params <- maybe
       } else {
         if (is.function(process)) {
+          enviroment(process) <- env
           chk <- tryCatch(process(id, period, params), error= function(e) e)
           if (inherits(chk, "error")) return(form(id, period, params))
         }
@@ -148,15 +177,16 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
       if (is.null(wait_for)) {
         do_result <- TRUE
       } else if (is.function(wait_for)) {
+        environment(wait_for) <- env
         do_result <- wait_for(id, period, params) 
       } else {
         ids <- unlist(wait_for[sapply(wait_for, '%in%', x=id)])
         do_result <- all(ids %in% ready)
       }
       if (do_result) {
-        html <- result(id, period, params)
+        output <- ffbc(result, id, period, params, env=env)
         finished <<- c(finished, id)
-        return(html)
+        return(output)
       }
     }
   )
@@ -165,7 +195,7 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
 #' Create a stage which uses a standardized question/result format.  
 #' 
 #' Structured stages use the following flowchart.
-#' \preformatted{1. Has the participant finished the stage?
+#' 1. Has the participant finished the stage?
 #' Yes => return \code{NEXT}
 #' No => continue:
 #' 2. Has the participant seen the stage already in this period?
@@ -183,7 +213,8 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
 #' No => return \code{WAIT}.
 #' Yes => continue:
 #' 6. Call the \code{results} function, which returns some HTML or \code{NEXT}.
-#' Mark the participant as having finished the stage.}
+#' Mark the participant as having finished the stage.
+#' 
 #' @param form A function taking four arguments, like 
 #'        \code{function(id, period, params, error)}. 
 #'        \code{params} and \code{error} may both be missing. The function

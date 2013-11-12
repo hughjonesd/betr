@@ -23,13 +23,15 @@ Experiment <- setRefClass("Experiment",
     requests="list",
     commands="list",
     start_time="POSIXct",
-    clients_in_url="logical"
+    clients_in_url="logical",
+    env="environment"
   ),
   methods=list(
     initialize = function(..., auth=TRUE, port, autostart=FALSE, 
       allow_latecomers=FALSE, N=Inf, server="RookServer", name="betr", 
       client_refresh=10, clients_in_url=FALSE) {
       stages <<- list()
+      env <<- emptyenv()
       subjects <<- data.frame(client=character(0), id=numeric(0), 
             period=numeric(0), status=factor(, levels=c("Running", "Waiting", 
             "Finished")), stringsAsFactors=FALSE)
@@ -70,6 +72,7 @@ Experiment <- setRefClass("Experiment",
       if (! missing(each)) stgs <- rep(stgs, each=each)
       if (missing(after)) after <- length(stages)
       stgs <- sapply(stgs, function (x) x$copy())
+      sapply(stgs, function (x) x$set_environment(env))
       stages <<- append(stages, stgs, after=after)
     }, 
     
