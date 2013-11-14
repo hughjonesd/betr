@@ -26,7 +26,8 @@ s1 <- structured_stage(
   
   process = function (id, period, params) {
     me <- mydf$id==id & mydf$period==period
-    contrib <- as.numeric(params$contrib)
+    if (! "contrib" %in% names(params)) stop("Please pick a contribution")
+    contrib <- as.numeric(params$contrib)  
     if (! contrib %in% 0:10) stop("Please pick a contribution between 0 and 10")
     mydf$contrib[me] <<- contrib
     mydf$timed_out[me] <<- FALSE

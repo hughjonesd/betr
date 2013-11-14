@@ -33,11 +33,10 @@ for (subj in mygroup) {
 -%>
   <tr><td>TOTAL</td><td><%= sum(mydf$contrib[mygroup]) %>
   </table>
-<p>Your earnings from this period: kept <%= 10 - mydf$contrib[me] %> and got 
+<p>Your earnings from this period: kept <%= 10 - mydf$contrib[me] -%> and got 
 <%= sum(mydf$contrib[mygroup]) %> x <%= multiplier %> / <%= length(mygroup) %> = 
-<%= sum(mydf$contrib[mygroup])*multiplier/length(mygroup) %> from the common 
-fund. <b>Total earnings: <%= mydf$earnings[me] %></b></p>
+<%= sum(mydf$contrib[mygroup])*multiplier/length(mygroup) -%> from the common 
+fund. <b>Total earnings: <%= mydf$earnings[me] -%></b></p>
 <form action='' method=POST><input type='submit' value='Next period'></form>
 </body>
   </html>
-  
