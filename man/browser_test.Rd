@@ -1,0 +1,27 @@
+\name{browser_test}
+\alias{browser_test}
+\title{Open multiple browser windows to test an experiment}
+\usage{
+  browser_test(experiment,
+    N = ifelse(is.finite(experiment$N), experiment$N, 1),
+    clients_in_url = TRUE,
+    ids = paste("client", 1:N, sep = "-"))
+}
+\arguments{
+  \item{experiment}{an object of class Experiment}
+
+  \item{N}{how many windows to open}
+
+  \item{clients_in_url}{if \code{TRUE}, each URL will be
+  given a unique client identifier. This only works if
+  \code{experiment} has \code{clients_in_url} set to
+  \code{TRUE}}
+
+  \item{ids}{character vector of ids to supply in the URLs
+  opened}
+}
+\description{
+  NB: by default this opens one window for each participant
+  up to a total of \code{N}!
+}
+

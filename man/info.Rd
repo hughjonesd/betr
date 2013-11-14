@@ -1,4 +1,5 @@
 \name{print}
+\alias{get_url}
 \alias{info}
 \alias{map}
 \alias{print}
@@ -9,8 +10,12 @@
   info(experiment, subj = TRUE, map = TRUE)
 
   map(experiment)
+
+  get_url(experiment)
 }
 \arguments{
+  \item{exxperiment}{an object of class Experiment}
+
   \item{subj}{if TRUE, print the subjects table}
 
   \item{map}{if TRUE, also calls \code{map}}
@@ -21,7 +26,8 @@
   clients connected and total N, status (Stopped, Waiting,
   Started or Paused) and the URL where the experiment is
   serving. \code{map} shows a map of how subjects are
-  progressing through the stages.
+  progressing through the stages. \code{get_url} returns
+  the experiment url.
 }
 \examples{
 expt <- experiment(N=2, port=12345)
