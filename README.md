@@ -51,6 +51,7 @@ s1 <- function(id, period, params) {
     paste0("<option value='", 1:10,"'>", 1:10, "</option>", collapse="")
   ))
 }
+
 add_stage(expt, s1, times=5)
 
 ```

@@ -14,10 +14,13 @@ Nt <- N * periods
 expt <- experiment(N=N, clients_in_url=TRUE, name="public-goods", autostart=TRUE)
 with(environment(expt), {
   mydf <- data.frame(id=rep(1:N, periods), period=rep(1:periods, each=N), 
-        group=NA_integer_, contrib=NA_integer_, timed_out=NA)
-  for (i in 1:periods) mydf$group[mydf$period==i] <- sample(rep(1:(N/groupsize),
-        groupsize))
-  if (partner && i > 1) mydf$group[mydf$period==i] <- mydf$group[mydf$period==1]
+        group=NA_integer_, contrib=NA_integer_, timed_out=NA, earnings=NA_real_,
+        final_earnings=NA_real_)
+  for (i in 1:periods) {
+    mydf$group[mydf$period==i] <- if (i==1 || ! partner) 
+          sample(rep(1:(N/groupsize), groupsize)) else mydf$group[mydf$period==1]
+  }
+  payment_period <- NA
 })
 
 
@@ -58,7 +61,18 @@ s1 <- structured_stage(
   }
 )
 
+sfinal <- stage(function(id, period, params) {
+  if (is.na(payment_period)) {
+    payment_period <<- sample(periods, 1)
+    mydf$final_earnings[mydf$period==period] <<- mydf$earnings[
+          mdf$period==payment_period]
+  }
+  final_earnings <- mydf$final_earnings[mydf$id==id & mydf$period==period]
+  capture.output(brew(file.path(brewdir, "public-goods-final.brew")))
+})
+
 add_stage(expt, s1, times=periods)
+add_stage(expt, sfinal)
 
 cat("Call ready(expt) to begin waiting for clients.", file=stderr())
   

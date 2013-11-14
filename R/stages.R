@@ -155,8 +155,34 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
     },
     
     handle_request = function (id, period, params) {
-      tryCatch(rm("error", "ready", envir=env), error = function(e) e, warning = function(w) w) # clean the environment
+      tryCatch(rm("error", envir=env), error = function(e) e, 
+            warning = function(w) w) # clean the environment
+      
       if (id %in% finished) return(NEXT)
+      
+      if (id %in% ready) {
+        # can we move to result?
+        if (is.null(wait_for)) {
+          do_result <- TRUE
+        } else if (is.function(wait_for)) {
+          environment(wait_for) <- env
+          do_result <- wait_for(id, period, params, ready) 
+        } else {
+          ids <- unlist(wait_for[sapply(wait_for, '%in%', x=id)])
+          do_result <- all(ids %in% ready)
+        }
+        if (do_result) {
+          # if so, do it and mark id as finished
+          output <- ffbc(result, id, period, params, env=env)
+          finished <<- c(finished, id)
+          return(output)
+        } else {
+          # otherwise wait
+          return(WAIT)
+        }
+      }
+      
+      # we are not ready. 
       if (! id %in% started) {
         output <- ffbc(form, id, period, params, env=env)
         if (is.next(output) || is.wait(output)) return(output) 
@@ -167,16 +193,17 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
         }
         started <<- c(started, id)
         return(rr)
-      }
-      
-      if (! is.null(timeout) && Sys.time() > timestamps[[id]] + timeout) {
-        maybe <- NULL
-        if(is.function(on_timeout)) {
-          environment(on_timeout) <- env
-          maybe <- on_timeout(id, period)
-        } 
-        if (is.list(maybe)) params <- maybe
       } else {
+        if (! is.null(timeout) && Sys.time() > timestamps[[id]] + timeout) {
+        # if we've timed out, run on_timeout
+          maybe <- NULL
+          if(is.function(on_timeout)) {
+            environment(on_timeout) <- env
+            maybe <- on_timeout(id, period)
+          } 
+          if (is.list(maybe)) params <- maybe
+        }
+        # process the result, if needed
         if (is.function(process)) {
           environment(process) <- env
           chk <- tryCatch(process(id, period, params), error= function(e) e)
@@ -185,77 +212,84 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
             return(ffbc(form, id, period, params, chk$message, env=env))
           }
         }
-      }
-      
-      ready <<- c(ready, id)
-      if (is.null(wait_for)) {
-        do_result <- TRUE
-      } else if (is.function(wait_for)) {
-        environment(wait_for) <- env
-        assign("ready", ready, envir=env)
-        do_result <- wait_for(id, period, params) 
-      } else {
-        ids <- unlist(wait_for[sapply(wait_for, '%in%', x=id)])
-        do_result <- all(ids %in% ready)
-      }
-      
-      if (do_result) {
-        output <- ffbc(result, id, period, params, env=env)
-        finished <<- c(finished, id)
-        return(output)
-      } else {
-        return(WAIT)
+        # mark the participant as ready and call again from the top
+        ready <<- c(ready, id)
+        return(handle_request(id, period, params))
       }
     }
   )
 )
 
-#' Create a stage which uses a standardized question/result format.  
+#' Create a stage in a standardized format.  
 #' 
-#' Structured stages use the following flowchart.
-#' 1. Has the participant finished the stage?
-#' Yes => return \code{NEXT}
-#' No => continue:
-#' 2. Has the participant seen the stage already in this period?
-#' No => call the stage's \code{form} function, which returns some HTML,
-#'       and start counting \code{timeout} from now.
-#' Yes => continue: 
-#' 3. Did the participant respond within \code{timeout} seconds?
-#' No => call the stage's \code{on_timeout} function, then continue to step 5.
-#' Yes => continue:
-#' 4. Call the \code{process} function. 
-#' If this \code{stop}s => call \code{form} again, passing the error message.
-#'                         The timeout is \emph{not} reset.
-#' Otherwise => continue:
-#' 5. Are all participants in \code{wait_for} ready?
-#' No => return \code{WAIT}.
-#' Yes => continue:
-#' 6. Call the \code{results} function, which returns some HTML or \code{NEXT}.
-#' Mark the participant as having finished the stage.
+#' Structured stages contain a \code{form} (which asks some questions of the 
+#' participants), and a \code{result}, which does something with the data and optionally
+#' shows participants the results. They can also optionally process the form
+#' output and check for errors, timeout after a number of seconds, and wait for
+#' some participants to finish before proceeding. Gory details below.
 #' 
-#' @param form A function taking four arguments, like 
-#'        \code{function(id, period, params, error)}. 
-#'        \code{params} and \code{error} may both be missing. The function
-#'        should return some HTML, or \code{NEXT} if the participant should
-#'        skip this stage entirely.
-#' @param timeout A number of seconds to wait for user input from \code{form}.
+#' @usage structured_stage(form, result, timeout=NULL, on_timeout=NULL, process=NULL, 
+#'        wait_for=NULL)
+#' @param form a function, file or character vector. See below.
+#' @param result a function, file or character vector. See below.
+#' @param timeout a number of seconds to wait for user input from \code{form}.
 #'        After \code{timeout} seconds the page will be refreshed automatically
 #'        and the stage will call \code{on_timeout}. If \code{NULL} (the default),
 #'        there is no timeout.
-#' @param on_timeout A function taking two arguments, like \code{function(id, period)}.
-#'        If it returns a \code{list}, the list will be assigned as parameters 
-#'        , as if they had been come from the subject. Ignored if \code{NULL}.
-#' @param process A function taking three arguments, like 
-#'        \code{function(id, period, params)}. If it throws an error, the error
-#'        message will be passed back to \code{form}. Ignored if \code{NULL}.
-#' @param wait_for Either a function, or a list of vectors of IDs. See below. 
+#' @param on_timeout a function taking two arguments, like \code{function(id, period)}.
+#'        If this function returns a \code{list}, the list will be assigned as 
+#'        request parameters, as if they had been come from the subject. 
+#'        Ignored if \code{NULL}.
+#' @param process a function taking three arguments, like 
+#'        \code{function(id, period, params)}. If it calls \code{stop} with an 
+#'        error, the error message will be passed back to \code{form}. Ignored
+#'        if \code{NULL}.
+#' @param wait_for either a function, or a list of vectors of IDs. See below. 
 #'        If \code{NULL}, then participants move immediately to results.
-#' @param result A function taking three arguments, like 
-#'        \code{function(id, period, params)}. Should return some HTML, or 
-#'        \code{NEXT} if the participant can move directly to the next stage.
 #' 
-#' @details If \code{wait_for} is a function like 
-#'        \code{function(id, period, params)}, then the participant will
+#' @details 
+#' Structured stages use the following flowchart.\preformatted{
+#' 1. Has the participant been marked as \emph{finished}?
+#' Yes => return \code{NEXT}
+#' No => continue:
+#' 2. Has the participant been marked as \emph{ready}?
+#' Yes => go to 3.
+#' No => go to 5.
+#' 3. Are all participants in \code{wait_for} (see below) ready?
+#' No => return \code{WAIT}.
+#' Yes => continue:
+#' 4. Mark the participant as \emph{finished}. Return the \code{results} section, 
+#' which returns some HTML or \code{NEXT}.
+#' 5. Has the participant seen the stage already in this period?
+#' No => call the stage's \code{form} function, which returns some HTML,
+#'       and start counting \code{timeout} from now.
+#' Yes => continue: 
+#' 6. Did the participant respond within \code{timeout} seconds?
+#' No => call the stage's \code{on_timeout} function, then continue:
+#' Yes => continue:
+#' 7. Call the \code{process} function. 
+#' If this \code{stop}s => call \code{form} again, passing the error message.
+#'                         The timeout is \emph{not} reset.
+#' Otherwise => mark the participant as \emph{ready} and start from stage 1.
+#' }
+#' 
+#' \code{form} and \code{results} may be connections resulting from a call to 
+#' \code{\link{file()}}, character vectors, or functions which return HTML.
+#' Files will be opened and returned. If the file name ends in \code{.brew} then
+#' it will be processed by \code{\link{brew}}. Character vectors are returned 
+#' as-is.
+#' 
+#'  If \code{form} is a function, it should take four arguments, like 
+#'        \code{function(id, period, params, error)}. 
+#'        \code{params} and \code{error} may both be missing. 
+#'  
+#'  If \code{result} is a function, it should take three arguments, like 
+#'        \code{function(id, period, params)}. \code{params} may be missing.
+#'  
+#' If \code{wait_for} is a function, it should be of the form 
+#'        \code{function(id, period, params, ready)}. \code{ready} is a vector 
+#'        containing the ids of participants who have been marked as ready.
+#'         The participant will
 #'        move on to \code{results} only when the function returns \code{TRUE}. If
 #'        it is a list of vectors, then the participant will move on only when 
 #'        all participants in the same vector are ready. For example, 
@@ -264,7 +298,7 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
 #' @examples
 #' s1 <- structured_stage(
 #'   form = function(id, period, params, error) {
-#'     c("<html><body>", if(length(error)) c("<p style='color:red'>", error, 
+#'     c("<html><body>", if(nchar(error)) c("<p style='color:red'>", error, 
 #'     "</p>"), "<form action='' method=POST>Enter your name:<input type='text'
 #'     name='name'></form></body></html>")
 #'   },

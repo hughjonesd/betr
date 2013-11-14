@@ -6,13 +6,15 @@ Date: 2013-11-05
 Author: David Hugh-Jones
 Maintainer: David Hugh-Jones <davidhughjones@gmail.com>
 Description: A toolkit to run web-based multi-participant experiments
-License: GPL2.0
+License: GPL-2
 LazyLoad: yes
 NeedsCompilation: no
 Imports:
     svSocket,
     Rook,
     testthat,
+    brew,
+    tools
 Collate:
     'FixedRhttpd.R'
     'servers.R'
