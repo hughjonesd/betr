@@ -8,25 +8,35 @@
   
   <h1>Period <%= period %> result</h1>
   
-  <% if (exists("message") && nchar(message) > 0) { %>
-  <p style='color:red; font-weight: bold;'><%= message %></p>
+  <% if (exists("error") && nchar(error) > 0) { %>
+  <p style='color:red; font-weight: bold;'><%= error %></p>
   <% } %>
   
   <h2>Your group contributions</h2>
   <table>
   <tr><th>Participant</th><th>Contribution</th></tr>
 <% 
+
 i <- 0
 me <- mydf$period==period & mydf$id==id
-mygroup <- with(mydf, group==group[me]) & mydf$period==period
-for (subj in mydf[mygroup, ]) { 
-i <- i + 1
+mygroup <- which(with(mydf, group==group[me]) & mydf$period==period)
+for (subj in mygroup) {
+  subj <- mydf[subj,]
+  i <- i + 1
+
 -%>
-  <tr><td><%= i%></td> <td><%= subj$contrib </td></tr>
-<% } -%>
+  <tr><td><%= i %></td> <td><%= subj$contrib %></td></tr>
+<% 
+
+} 
+
+-%>
   <tr><td>TOTAL</td><td><%= sum(mydf$contrib[mygroup]) %>
   </table>
-<p>Your earnings from this period: <b><%= mydf$earnings[me] %></p>
+<p>Your earnings from this period: kept <%= 10 - mydf$contrib[me] %> and got 
+<%= sum(mydf$contrib[mygroup]) %> x <%= multiplier %> / <%= length(mygroup) %> = 
+<%= sum(mydf$contrib[mygroup])*multiplier/length(mygroup) %> from the common 
+fund. <b>Total earnings: <%= mydf$earnings[me] %></b></p>
 <form action='' method=POST><input type='submit' value='Next period'></form>
 </body>
   </html>

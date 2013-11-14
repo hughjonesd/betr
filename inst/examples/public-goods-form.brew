@@ -8,8 +8,8 @@
 
 <h1>Period <%= period %> choice</h1>
 
-<% if (exists("message") && nchar(message) > 0) { %>
-<p style='color:red; font-weight: bold;'><%= message %></p>
+<% if (exists("error") && nchar(error) > 0) { %>
+<p style='color:red; font-weight: bold;'><%= error %></p>
 <% } %>
 <p>Please choose how much to contribute:</p>
 <form action='' method=POST>

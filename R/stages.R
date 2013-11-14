@@ -155,6 +155,7 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
     },
     
     handle_request = function (id, period, params) {
+      tryCatch(rm("error", "ready", envir=env), error = function(e) e, warning = function(w) w) # clean the environment
       if (id %in% finished) return(NEXT)
       if (! id %in% started) {
         output <- ffbc(form, id, period, params, env=env)
@@ -167,6 +168,7 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
         started <<- c(started, id)
         return(rr)
       }
+      
       if (! is.null(timeout) && Sys.time() > timestamps[[id]] + timeout) {
         maybe <- NULL
         if(is.function(on_timeout)) {
@@ -176,27 +178,33 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
         if (is.list(maybe)) params <- maybe
       } else {
         if (is.function(process)) {
-          enviroment(process) <- env
+          environment(process) <- env
           chk <- tryCatch(process(id, period, params), error= function(e) e)
           if (inherits(chk, "error")) {
+            assign("error", chk$message, envir=env)
             return(ffbc(form, id, period, params, chk$message, env=env))
           }
         }
       }
+      
       ready <<- c(ready, id)
       if (is.null(wait_for)) {
         do_result <- TRUE
       } else if (is.function(wait_for)) {
-        environment(wait_for) <<- env
+        environment(wait_for) <- env
+        assign("ready", ready, envir=env)
         do_result <- wait_for(id, period, params) 
       } else {
         ids <- unlist(wait_for[sapply(wait_for, '%in%', x=id)])
         do_result <- all(ids %in% ready)
       }
+      
       if (do_result) {
         output <- ffbc(result, id, period, params, env=env)
         finished <<- c(finished, id)
         return(output)
+      } else {
+        return(WAIT)
       }
     }
   )
