@@ -4,6 +4,18 @@ betr
 Behavioral Experiments Toolkit in R
 -----------------------------------
 
+Installation
+------------
+
+```{r}
+install.packages("devtools") # if not installed already
+library(devtools)
+install_github("betr", "hughjonesd")
+```
+
+Writing experiments
+-------------------
+
 In your source file:
 
 ```{r}
@@ -34,8 +46,12 @@ s1 <- function(id, period, params) {
   ))
 }
 add_stage(expt, s1, times=5)
-ready(expt)
+
 ```
+
+
+Running your experiment
+-----------------------
 
 On the command line:
 
@@ -50,11 +66,34 @@ To see experiment info:
 > info(expt)
 ```
 
-... and when your participants are at their computers:
+When participants are at their computers:
 
 ```{r}
 > start(expt)
 ```
+
+Developing and testing
+----------------------
+
+Add `clients_in_url=TRUE` to your call to `experiment`. Then, on the command line:
+
+```{r}
+> source("my-experiment.R")
+> ready(expt)
+> browser_test(expt) # launches many browser windows!
+```
+
+(TODO!)
+-------
+
+After running a session, you can replay it and test just one client:
+
+```{r}
+> replay(expt, exclude=12) 
+> browser_test(expt, N=1, ids="manual")
+```
+
+
 
 
 	
