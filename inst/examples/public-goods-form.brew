@@ -1,0 +1,25 @@
+<html>
+
+<head>
+<title>Period <%= period %> choice</title>
+</head>
+
+<body>
+
+<h1>Period <%= period %> choice</h1>
+
+<% if (exists("message") && nchar(message) > 0) { %>
+<p style='color:red; font-weight: bold;'><%= message %></p>
+<% } %>
+<p>Please choose how much to contribute:</p>
+<form action='' method=POST>
+<select name='contrib'>
+<option>--</option>
+<% for (i in 0:10) { -%>
+<option value='<%= i %>'><%= i %></option>
+<% } -%>
+<input type='submit' value='Confirm'>
+</form>
+
+</body>
+</html>

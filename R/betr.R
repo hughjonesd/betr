@@ -184,12 +184,14 @@ Experiment <- setRefClass("Experiment",
           client <- client
           # self_url <- function() ""
           # stage$.set_handler_env(environment())
+          assign("period", subject$period, envir=env)
+          assign("id", subject$id, envir=env)
           result <- stage$handle_request(subject$id, subject$period, params)
-          if (result==NEXT) {
+          if (is.next(result)) {
             next_period(subject)
             # NB we clean the params when the subject moves on. Is this OK?
             return(.handle_request(subjects[subjects$id==subject$id,], client=client))
-          } else if (result==WAIT) {
+          } else if (is.wait(result)) {
             subjects$status[subjects$id==subject$id] <<- "Waiting"
             return(waiting_page("Waiting for experiment to continue"))
           } else {
@@ -199,6 +201,8 @@ Experiment <- setRefClass("Experiment",
         stop("Unrecognized experiment status:", status)
       )
     },
+    
+    get_url = function() server$get_url(),
         
     info = function(subj=TRUE, map=TRUE) {
       cat(sprintf("%s\tStatus: %s\tClients: %d/%0.0f\tStages: %d\n", 
@@ -443,7 +447,8 @@ next_period <- function(experiment, subjid) {
 #' status (Stopped, Waiting, Started or Paused)
 #' and the URL where the experiment is serving.
 #' \code{map} shows a map of how subjects are progressing through the stages.
-#' 
+#' \code{get_url} returns the experiment url.
+#' @param exxperiment an object of class Experiment
 #' @param subj if TRUE, print the subjects table
 #' @param map if TRUE, also calls \code{map}
 #' 
@@ -458,6 +463,10 @@ info <- function(experiment, subj=TRUE, map=TRUE) experiment$info(subj, map)
 #' @rdname info
 #' @export
 map <- function(experiment) experiment$map()
+
+#' @rdname info
+#' @export
+get_url <- function(experiment) experiment$get_url()
 
 setGeneric("environment")
 #' Return an experiment's environment

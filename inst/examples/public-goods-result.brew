@@ -1,0 +1,33 @@
+<html>
+  
+  <head>
+  <title>Period <%= period %> result</title>
+  </head>
+  
+  <body>
+  
+  <h1>Period <%= period %> result</h1>
+  
+  <% if (exists("message") && nchar(message) > 0) { %>
+  <p style='color:red; font-weight: bold;'><%= message %></p>
+  <% } %>
+  
+  <h2>Your group contributions</h2>
+  <table>
+  <tr><th>Participant</th><th>Contribution</th></tr>
+<% 
+i <- 0
+me <- mydf$period==period & mydf$id==id
+mygroup <- with(mydf, group==group[me]) & mydf$period==period
+for (subj in mydf[mygroup, ]) { 
+i <- i + 1
+-%>
+  <tr><td><%= i%></td> <td><%= subj$contrib </td></tr>
+<% } -%>
+  <tr><td>TOTAL</td><td><%= sum(mydf$contrib[mygroup]) %>
+  </table>
+<p>Your earnings from this period: <b><%= mydf$earnings[me] %></p>
+<form action='' method=POST><input type='submit' value='Next period'></form>
+</body>
+  </html>
+  

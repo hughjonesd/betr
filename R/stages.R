@@ -108,8 +108,12 @@ text_stage <- function (...) TextStage$new(...)
 
 file_or_brew <- function(fb, env=parent.frame()) {
   # WTF does brew() not just return a string?
-  if (grepl("\\.brew$", fb)) capture.output(brew(fb, envir=env)) else 
-        readLines(fb)
+  if (grepl("\\.brew$", summary(fb)$description)) {
+    # don't use fb directly - work around brew bug
+    capture.output(brew(summary(fb)$description, envir=env))
+  } else {
+    readLines(fb)
+  }    
 }
 
 ffbc <- function(thing, ..., env=parent.frame()) {
@@ -117,7 +121,7 @@ ffbc <- function(thing, ..., env=parent.frame()) {
     environment(thing) <- env
     return(thing(...))
   }
-  if (is.file(thing)) return(file_or_brew(thing, env))
+  if (inherits(thing, "file")) return(file_or_brew(thing, env))
   if (is.character(thing)) return(thing)
   stop("Unrecognized object of class ", class(thing), "passed to fff")
 }
@@ -154,7 +158,7 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
       if (id %in% finished) return(NEXT)
       if (! id %in% started) {
         output <- ffbc(form, id, period, params, env=env)
-        if (output == NEXT || output == WAIT) return(output) 
+        if (is.next(output) || is.wait(output)) return(output) 
         rr <- rookify(output)
         if (! is.null(timeout)) {
           timestamps[[id]] <<- Sys.time()
@@ -166,16 +170,17 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
       if (! is.null(timeout) && Sys.time() > timestamps[[id]] + timeout) {
         maybe <- NULL
         if(is.function(on_timeout)) {
-          environment(on_timeout) <<- env
+          environment(on_timeout) <- env
           maybe <- on_timeout(id, period)
         } 
         if (is.list(maybe)) params <- maybe
       } else {
         if (is.function(process)) {
-          enviroment(process) <<- env
+          enviroment(process) <- env
           chk <- tryCatch(process(id, period, params), error= function(e) e)
-          if (inherits(chk, "error")) return(ffbc(form, id, period, params, 
-            chk$message, env=env))
+          if (inherits(chk, "error")) {
+            return(ffbc(form, id, period, params, chk$message, env=env))
+          }
         }
       }
       ready <<- c(ready, id)
@@ -278,7 +283,12 @@ structured_stage <- function (...) StructuredStage$new(...)
 #' @rdname stage
 #' @export
 NEXT <- -1
-
+class(NEXT) <- "NEXT"
 #' @rdname stage
 #' @export
 WAIT <- -2
+class(WAIT) <- "WAIT"
+
+is.next <- function(x) inherits(x, "NEXT")
+is.wait <- function(x) inherits(x, "WAIT")
+

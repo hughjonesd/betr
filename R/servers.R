@@ -16,8 +16,13 @@ Server <- setRefClass("Server",
     initialize = function(clients_in_url=FALSE, ...) {
       callSuper(clients_in_url=clients_in_url, ...)
     },
+    
     start = function() stop("start() called on abstract class Server"),
+    
     halt = function() stop("halt() called on abstract class Server"),
+    
+    get_url = function() stop("get_url() called on abstract class Server"),
+    
     .pass_request = function(name, params) pass_request(name, params)
   )
 )
@@ -32,13 +37,16 @@ CommandLineServer <- setRefClass("CommandLineServer",
     initialize = function(port=35538, pass_request=NULL, ...) {
       callSuper(port=port, pass_request=pass_request, ...)
     },
+    
     finalize = function() halt(),
     start = function(session_name=paste0("betr", Sys.time())) {
       svSocket::startSocketServer(port=port, procfun=.self$.process_socket)
     },
+    
     halt = function() {
       svSocket::stopSocketServer(port=port)
     },
+    
     .process_socket = function(msg, socket, server_port, ...) {
       fields <- strsplit(msg, " ", fixed=TRUE)[[1]]
       client <- fields[1]
@@ -47,7 +55,13 @@ CommandLineServer <- setRefClass("CommandLineServer",
       names(params) <- pnames
       return(.pass_request(client, params))     
     },
-    info = function() cat("Listening on port ", port, "\n")
+    
+    info = function() cat("Listening on port ", port, "\n"),
+  
+    get_url = function() {
+      warning("No URL defined for command line server!")
+      return(character(0))
+    }
   )
 )
 
@@ -129,10 +143,14 @@ RookServer <- setRefClass("RookServer", contains="Server",
       rhttpd$add(app=.self, name=name) # dupes ignored
       rhttpd$start(port=port)
     },
+    
     halt = function () {
       # rhttpd$remove("betr") # needed?
       try(rhttpd$stop(), silent=TRUE) # error from startDynamicHelp  
     },
-    info = function() cat("Serving at", rhttpd$full_url(1), "\n")
+    
+    info = function() cat("Serving at", rhttpd$full_url(1), "\n"),
+    
+    get_url = function() return(rhttpd$full_url(1))
   )
 )

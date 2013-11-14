@@ -4,8 +4,8 @@ library(betr)
 N <- 4
 gsample <- matrix(sample(1:N), nrow=4)
 groups <- lapply(1:ncol(gsample), function(x) gsample[,x])  
-brewdir <- file.path(find.package("betr"), "examples")
-expt <- experiment(N=N, clients_in_url=TRUE, name="public-goods")
+brewdir <- system.file("examples", package="betr")
+expt <- experiment(N=N, clients_in_url=TRUE, name="public-goods", autostart=TRUE)
 with(environment(expt), {
   mydf <- data.frame(id=numeric(0), group=numeric(0), contrib=numeric(0), 
     timed_out=logical(0))
@@ -20,7 +20,7 @@ s1 <- structured_stage(
   },
   timeout = 120,
   on_timeout = function(id, period) {
-    mydf$contrib[mydf$id==id & mydf$period==period] <<- params$contrib
+    mydf$contrib[mydf$id==id & mydf$period==period] <<- 0
     mydf$timed_out[mydf$id==id & mydf$period==period] <<- TRUE
   },
   wait_for = groups,

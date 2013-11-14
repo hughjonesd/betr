@@ -4,7 +4,7 @@
 \alias{stage}
 \alias{WAIT}
 \title{Create a stage for an experiment}
-\format{num -1}
+\format{Class 'NEXT'  num -1}
 \usage{
   stage(handler)
 
