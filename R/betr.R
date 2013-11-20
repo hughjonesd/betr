@@ -145,7 +145,6 @@ Experiment <- setRefClass("Experiment",
       request <- list(client=client, params=params, 
         time=Sys.time() - start_time)
       requests <<- append(requests, request)
-      # TODO: print to file
       tmp <- file(file.path(session_name, "record", 
             paste0("request-", as.character(request$time))), open="w")
       cat(client, "\n", paste(mapply(paste, names(params), params,

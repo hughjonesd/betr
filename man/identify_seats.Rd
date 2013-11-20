@@ -1,0 +1,40 @@
+\name{identify_seats}
+\alias{identify_seats}
+\title{Starts a web server to allow you to identify computer seat numbers}
+\usage{
+  identify_seats(method = "IP", serve = TRUE)
+}
+\arguments{
+  \item{method}{one of 'IP', 'cookie' or 'both'. See
+  below.}
+
+  \item{serve}{if TRUE, starts the \code{\link{Rhttpd}} web
+  server to serve the application. If FALSE the function
+  returns a Rook app which can be served by your preferred
+  method}
+}
+\description{
+  After calling this function, go to each computer, start
+  the web browser you use for experiments, and browse to
+  <server IP>:<server port> /custom/seats . Then you can
+  enter the computer's seat number.
+}
+\details{
+  Seat details are stored in a file betr-SEATS.txt, which
+  is looked for when \code{\link{ready()}} is called. The
+  file can be created manually - this function is just for
+  convenience. The file format is like: \preformatted{ seat
+  IP cookie 1 111.1.1.123 AFDJKLREUDFS 2 111.1.1.124
+  REAJKJKL ... } Either IP or cookie may be NA. If the
+  (default) IP method is used, seats will be identified by
+  IP address: this requires static IP addresses for your
+  clients. The cookie method sets a cookie on the client
+  browser, which will only work on a per-browser basis. If
+  method is 'both' then both cookie and IP address will be
+  used; if both cookie and IP address match the seat file,
+  betr will use the cookie.
+}
+\seealso{
+  Other development tools: \code{\link{browser_test}}
+}
+

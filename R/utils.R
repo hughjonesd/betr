@@ -19,3 +19,94 @@ browser_test <- function (experiment, N=ifelse(is.finite(experiment$N),
     browseURL(paste0(get_url(experiment), if(clients_in_url) paste0("/", ids[[i]])))
   }
 }
+
+#' Starts a web server to allow you to identify computer seat numbers
+#' 
+#' After calling this function, go to each computer, start the web 
+#' browser you use for experiments, and browse to <server IP>:<server port>
+#' /custom/seats . Then you can enter the computer's seat number. 
+#' 
+#' @param method one of 'IP', 'cookie' or 'both'. See below.
+#' @param serve if TRUE, starts the \code{\link{Rhttpd}} web server
+#'        to serve the application. If FALSE the function returns
+#'        a Rook app which can be served by your preferred method
+#' @family development tools
+#' @details
+#' Seat details are stored in a file betr-SEATS.txt, which is looked
+#' for when \code{\link{ready()}} is called. The file can be created 
+#' manually - this function is just for convenience. 
+#' The file format is like:
+#' \preformatted{
+#' seat IP  cookie
+#' 1  111.1.1.123 AFDJKLRE
+#' 2  111.1.1.124 REAJKJKL
+#' ...
+#' }
+#' Either IP or cookie may be NA. If the (default) IP method is used,
+#' seats will be identified by IP address: this requires static
+#' IP addresses for your clients. The cookie method sets a cookie
+#' on the client browser, which will only work on a per-browser basis.
+#' If method is 'both' then both cookie and IP address will be used;
+#' if both cookie and IP address match the seat file, betr will use
+#' the cookie.
+#' @export
+identify_seats <- function (method="IP", serve=TRUE) {
+  if (! method %in% c("IP", "cookie", "both")) stop(
+        "'method' must be one of 'IP', 'cookie' or 'both'")
+  app <- function(env) {
+    if (file.exists("betr-SEATS.txt")) seats <- read.table("betr-SEATS.txt", 
+          as.is=TRUE, header=TRUE)
+    req <- Rook::Request$new(env)
+    res <- Rook::Response$new()
+    IP <- req$ip()
+    p <- req$params()
+    ck <- req$cookies()
+    error <- ""
+    if ("seat" %in% names(p)) try ({ # print results to file
+      if (nchar(IP) == 0 && method != "cookie") {
+        error <- paste("Couldn't find IP address for seat", p$seat)
+        warning(error)
+        IP <- NA
+      }
+      if (method=="cookie") IP <- NA
+      if (! "betr-seat" %in% names(ck) && method !="IP") {
+        error <- paste("Couldn't find cookie for seat", p$seat)
+        warning(error)
+      } else {
+        cookie <- ck$"betr-seat"
+      }
+      if (p$seat %in% seats$seat) stop("Seat already defined in betr-SEATS.txt (did you enter the same seat number twice?)")
+      # write seat, IP, cookie to file
+      if (! file.exists("betr-SEATS.txt")) {
+        cat("seat\tIP\tcookie\n", file=sf)
+      } else {
+        sf <- file("betr-SEATS.txt", "a")        
+      }
+      cat(sprintf("%s\t%s\t%s\n", seat, IP, cookie), file=sf)
+      res$write(sprintf("<html><body><h1>Successfully assigned seat %s in betr-SEATS.txt</h1>", seat))
+      if (! is.na(IP)) res$write("<p>IP address:", IP, "</p>")
+      if (! is.na(cookie)) res$write("<p>betr-seat cookie ID:", cookie, "</p>")
+      res$write("</body></html>")
+      res$finish()
+    }, error = function(e) error <<- e$message)
+    
+    res$write("<html><body><h1>Enter seat number</h1>")
+    if (nchar(error)>0) res$write(sprintf("<p style='color:red'>%s</p>", 
+          error))
+    res$write("<form action='' method=POST>Enter this computer's seat number:")
+    res$write("<br><input type='text' name='seat' width='4'>")
+    res$write("<input type='submit'></form></body></html>")
+    res$set_cookie("betr-seat", paste(sample(LETTERS, 10, replace=T), 
+          collapse="")
+    
+  }
+  if (serve) {
+    svr <- Rhttpd$new()
+    rhapp <- RhttpdApp$new(name="seats", app=app)
+    svr$add(rhapp)
+    svr$start()
+    cat("Serving on", svr$full_url(1))
+  } else {
+    return(app)
+  }
+}
