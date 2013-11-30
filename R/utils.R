@@ -54,51 +54,51 @@ identify_seats <- function (method="IP", serve=TRUE) {
   if (! method %in% c("IP", "cookie", "both")) stop(
         "'method' must be one of 'IP', 'cookie' or 'both'")
   app <- function(env) {
-    if (file.exists("betr-SEATS.txt")) seats <- read.table("betr-SEATS.txt", 
-          as.is=TRUE, header=TRUE)
     req <- Rook::Request$new(env)
     res <- Rook::Response$new()
     IP <- req$ip()
     p <- req$params()
     ck <- req$cookies()
     error <- ""
-    if ("seat" %in% names(p)) try ({ # print results to file
-      if (nchar(IP) == 0 && method != "cookie") {
-        error <- paste("Couldn't find IP address for seat", p$seat)
-        warning(error)
-        IP <- NA
+    if ("seat" %in% names(p)) tryCatch({ 
+      if (is.null(IP) && method != "cookie") {
+        stop("Couldn't find IP address for seat", p$seat)
       }
       if (method=="cookie") IP <- NA
       if (! "betr-seat" %in% names(ck) && method !="IP") {
-        error <- paste("Couldn't find cookie for seat", p$seat)
-        warning(error)
+        stop("Couldn't find cookie for seat", p$seat)
       } else {
         cookie <- ck$"betr-seat"
       }
-      if (p$seat %in% seats$seat) stop("Seat already defined in betr-SEATS.txt (did you enter the same seat number twice?)")
       # write seat, IP, cookie to file
       if (! file.exists("betr-SEATS.txt")) {
+        sf <- file("betr-SEATS.txt", "a")        
         cat("seat\tIP\tcookie\n", file=sf)
       } else {
+        seats <- read.table("betr-SEATS.txt")
+        if (p$seat %in% seats$seat) stop("Seat already defined in betr-SEATS.txt
+              (did you enter the same seat number twice?)")
         sf <- file("betr-SEATS.txt", "a")        
       }
-      cat(sprintf("%s\t%s\t%s\n", seat, IP, cookie), file=sf)
-      res$write(sprintf("<html><body><h1>Successfully assigned seat %s in betr-SEATS.txt</h1>", seat))
-      if (! is.na(IP)) res$write("<p>IP address:", IP, "</p>")
-      if (! is.na(cookie)) res$write("<p>betr-seat cookie ID:", cookie, "</p>")
+      cat(sprintf("%s\t%s\t%s\n", p$seat, IP, cookie), file=sf)
+      res$write(sprintf("<html><body><h1>Successfully assigned seat %s in betr-SEATS.txt</h1>", p$seat))
+      if (! is.na(IP)) res$write(paste("<p>IP address:", IP, "</p>"))
+      if (! is.na(cookie)) res$write(paste("<p>betr-seat cookie ID:", cookie, "</p>"))
       res$write("</body></html>")
-      res$finish()
     }, error = function(e) error <<- e$message)
     
-    res$write("<html><body><h1>Enter seat number</h1>")
-    if (nchar(error)>0) res$write(sprintf("<p style='color:red'>%s</p>", 
-          error))
-    res$write("<form action='' method=POST>Enter this computer's seat number:")
-    res$write("<br><input type='text' name='seat' width='4'>")
-    res$write("<input type='submit'></form></body></html>")
-    res$set_cookie("betr-seat", paste(sample(LETTERS, 10, replace=T), 
-          collapse="")
-    
+    if (nchar(error) > 0 || ! "seat" %in% names(p)) {
+      res$set_cookie("betr-seat", paste(sample(LETTERS, 10, replace=T), 
+            collapse=""))
+      res$write("<html><body>")
+      if (nchar(error)>0) res$write(sprintf("<p style='color:red'>%s</p>", 
+            error))
+      res$write("<h1>Enter seat number</h1>
+            <form action='' method=POST>Enter this computer's seat number:
+            <br><input type='text' name='seat' width='4'>
+            <input type='submit'></form></body></html>")
+    }
+    res$finish()
   }
   if (serve) {
     svr <- Rhttpd$new()

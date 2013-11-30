@@ -24,15 +24,15 @@
   is looked for when \code{\link{ready()}} is called. The
   file can be created manually - this function is just for
   convenience. The file format is like: \preformatted{ seat
-  IP cookie 1 111.1.1.123 AFDJKLREUDFS 2 111.1.1.124
-  REAJKJKL ... } Either IP or cookie may be NA. If the
-  (default) IP method is used, seats will be identified by
-  IP address: this requires static IP addresses for your
-  clients. The cookie method sets a cookie on the client
-  browser, which will only work on a per-browser basis. If
-  method is 'both' then both cookie and IP address will be
-  used; if both cookie and IP address match the seat file,
-  betr will use the cookie.
+  IP cookie 1 111.1.1.123 AFDJKLRE 2 111.1.1.124 REAJKJKL
+  ... } Either IP or cookie may be NA. If the (default) IP
+  method is used, seats will be identified by IP address:
+  this requires static IP addresses for your clients. The
+  cookie method sets a cookie on the client browser, which
+  will only work on a per-browser basis. If method is
+  'both' then both cookie and IP address will be used; if
+  both cookie and IP address match the seat file, betr will
+  use the cookie.
 }
 \seealso{
   Other development tools: \code{\link{browser_test}}
