@@ -215,7 +215,7 @@ Experiment <- setRefClass("Experiment",
       if (map) .self$map()
     },
     
-    session_name = function() {
+    get_session_name = function() {
       if (status=="Stopped") {
         warning("No session defined yet, status is Stopped")
         return(NA)
@@ -480,7 +480,7 @@ get_url <- function(experiment) experiment$get_url()
 
 #' @rdname info
 #' @export
-session_name <- function(experiment) experiment$session_name()
+session_name <- function(experiment) experiment$get_session_name()
 
 setGeneric("environment")
 #' Return an experiment's environment
