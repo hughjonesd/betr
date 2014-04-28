@@ -248,7 +248,7 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
 #'        If \code{NULL}, then participants move immediately to results.
 #' 
 #' @details 
-#' Structured stages use the following flowchart.\preformatted{
+#' Structured stages use the following flowchart.
 #' 1. Has the participant been marked as \emph{finished}?
 #' Yes => return \code{NEXT}
 #' No => continue:
@@ -271,7 +271,6 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
 #' If this \code{stop}s => call \code{form} again, passing the error message.
 #'                         The timeout is \emph{not} reset.
 #' Otherwise => mark the participant as \emph{ready} and start from stage 1.
-#' }
 #' 
 #' \code{form} and \code{results} may be connections resulting from a call to 
 #' \code{\link{file()}}, character vectors, or functions which return HTML.

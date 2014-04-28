@@ -119,6 +119,15 @@ test_that("TextStages work", {
   expect_that(text_stage(file="whatever", text="foo"), throws_error())
 })
 
+test_that("StructuredStages work", {
+  s1 <- structured_stage(
+    form=function(id, period, params, error='') paste("Foo", error),
+    process=function(id, period, params) stop("barf!")
+  )
+  expect_that(s1$handle_request(1,1, list())$body, equals("Foo "))
+  expect_that(s1$handle_request(1,1, list()), equals("Foo barf!"), 
+        info="Errors in process not being caught")
+})
 
 test_that("Experiment environments work", {
   expt <- experiment(N=1)

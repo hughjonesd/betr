@@ -215,6 +215,15 @@ Experiment <- setRefClass("Experiment",
       if (map) .self$map()
     },
     
+    session_name = function() {
+      if (status=="Stopped") {
+        warning("No session defined yet, status is Stopped")
+        return(NA)
+      } else {
+        return(session_name)
+      }
+    },
+    
     map = function() {
       tbl <- table(subjects$period)
       cat("Stage progression:\n")
@@ -447,7 +456,9 @@ next_period <- function(experiment, subjid) {
 #' and the URL where the experiment is serving.
 #' \code{map} shows a map of how subjects are progressing through the stages.
 #' \code{get_url} returns the experiment url.
-#' @param exxperiment an object of class Experiment
+#' \code{session_name} returns the experiment session name, 
+#' or NA if the experiment status is Stopped.
+#' @param experiment an object of class Experiment
 #' @param subj if TRUE, print the subjects table
 #' @param map if TRUE, also calls \code{map}
 #' 
@@ -466,6 +477,10 @@ map <- function(experiment) experiment$map()
 #' @rdname info
 #' @export
 get_url <- function(experiment) experiment$get_url()
+
+#' @rdname info
+#' @export
+session_name <- function(experiment) experiment$session_name()
 
 setGeneric("environment")
 #' Return an experiment's environment
