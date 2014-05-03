@@ -1,8 +1,8 @@
 \docType{data}
 \name{stage}
 \alias{NEXT}
-\alias{stage}
 \alias{WAIT}
+\alias{stage}
 \title{Create a stage for an experiment}
 \format{Class 'NEXT'  num -1}
 \usage{

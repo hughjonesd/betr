@@ -21,6 +21,6 @@
   \code{\link{info}}, \code{\link{map}},
   \code{\link{next_period}}, \code{\link{pause}},
   \code{\link{print}}, \code{\link{restart}},
-  \code{\link{start}}
+  \code{\link{session_name}}, \code{\link{start}}
 }
 

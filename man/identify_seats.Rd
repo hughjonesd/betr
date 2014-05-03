@@ -21,7 +21,7 @@
 }
 \details{
   Seat details are stored in a file betr-SEATS.txt, which
-  is looked for when \code{\link{ready()}} is called. The
+  is looked for when \code{\link{ready}} is called. The
   file can be created manually - this function is just for
   convenience. The file format is like: \preformatted{ seat
   IP cookie 1 111.1.1.123 AFDJKLRE 2 111.1.1.124 REAJKJKL

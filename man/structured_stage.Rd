@@ -46,26 +46,25 @@
   to finish before proceeding. Gory details below.
 }
 \details{
-  Structured stages use the following
-  flowchart.\preformatted{ 1. Has the participant been
-  marked as \emph{finished}? Yes => return \code{NEXT} No
-  => continue: 2. Has the participant been marked as
-  \emph{ready}? Yes => go to 3. No => go to 5. 3. Are all
-  participants in \code{wait_for} (see below) ready? No =>
-  return \code{WAIT}. Yes => continue: 4. Mark the
-  participant as \emph{finished}. Return the \code{results}
-  section, which returns some HTML or \code{NEXT}. 5. Has
-  the participant seen the stage already in this period? No
-  => call the stage's \code{form} function, which returns
-  some HTML, and start counting \code{timeout} from now.
-  Yes => continue: 6. Did the participant respond within
-  \code{timeout} seconds? No => call the stage's
-  \code{on_timeout} function, then continue: Yes =>
-  continue: 7. Call the \code{process} function. If this
-  \code{stop}s => call \code{form} again, passing the error
-  message.  The timeout is \emph{not} reset. Otherwise =>
-  mark the participant as \emph{ready} and start from stage
-  1. }
+  Structured stages use the following flowchart. 1. Has the
+  participant been marked as \emph{finished}? Yes => return
+  \code{NEXT} No => continue: 2. Has the participant been
+  marked as \emph{ready}? Yes => go to 3. No => go to 5. 3.
+  Are all participants in \code{wait_for} (see below)
+  ready? No => return \code{WAIT}. Yes => continue: 4. Mark
+  the participant as \emph{finished}. Return the
+  \code{results} section, which returns some HTML or
+  \code{NEXT}. 5. Has the participant seen the stage
+  already in this period? No => call the stage's
+  \code{form} function, which returns some HTML, and start
+  counting \code{timeout} from now. Yes => continue: 6. Did
+  the participant respond within \code{timeout} seconds? No
+  => call the stage's \code{on_timeout} function, then
+  continue: Yes => continue: 7. Call the \code{process}
+  function. If this \code{stop}s => call \code{form} again,
+  passing the error message.  The timeout is \emph{not}
+  reset. Otherwise => mark the participant as \emph{ready}
+  and start from stage 1.
 
   \code{form} and \code{results} may be connections
   resulting from a call to \code{\link{file()}}, character
@@ -118,7 +117,7 @@ s1 <- structured_stage(
 )
 }
 \seealso{
-  Other stages: \code{\link{NEXT}}, \code{\link{stage}},
-  \code{\link{text_stage}}, \code{\link{WAIT}}
+  Other stages: \code{\link{NEXT}}, \code{\link{WAIT}},
+  \code{\link{stage}}, \code{\link{text_stage}}
 }
 

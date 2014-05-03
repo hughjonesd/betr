@@ -26,7 +26,7 @@
   participant who is at a TextStage.
 }
 \seealso{
-  Other stages: \code{\link{NEXT}}, \code{\link{stage}},
-  \code{\link{structured_stage}}, \code{\link{WAIT}}
+  Other stages: \code{\link{NEXT}}, \code{\link{WAIT}},
+  \code{\link{stage}}, \code{\link{structured_stage}}
 }
 
