@@ -154,3 +154,66 @@ RookServer <- setRefClass("RookServer", contains="Server",
     get_url = function() return(rhttpd$full_url(1))
   )
 )
+
+#' @export
+ReplayServer <- setRefClass("ReplayServer", contains="Server",
+  fields=list(
+    folder="character",
+    speed="ANY",
+    maxtime="numeric",
+    pass_command="function"
+  ),
+  methods=list(
+    initialize = function(pass_request=NULL, folder=NULL, speed=NULL, maxtime=Inf, 
+      pass_command=NULL, ...) {
+       callSuper(folder=folder, speed=speed, period=period, pass_request=pass_request,
+         pass_command=pass_command, ...)
+    },
+    
+    start = function() {
+      # list all the files in folder/record; 
+      comreq <- list.files(file.path(folder, "record"), 
+        pattern="(command|request)-[0-9\\.]+")
+      comreq <- data.frame(name=comreq, type=sub("(command|request).*", "\\1", comreq),
+        time=sub("command|request)-([0-9\\.]+)", "\\2"), command_name=NA, client=NA)
+      paramlist <- list()
+      comreq$time <- as.numeric(comreq$time)
+      comreq <- comreq[order(comreq$time),]
+      comreq <- comreq[comreq$time <= maxtime,]
+      for (i in 1:nrow(comreq)) {
+        txt <- readLines(file.path(folder, "record", comreq$name[i]), warn=FALSE)
+        if (comreq$type[i]=="command") comreq$command_name[i] <- txt[1] else
+          comreq$client[i] <- txt[1]
+        paramlist[[i]] <- if (length(txt)>1) tail(txt, -1) else NA
+      }
+      comreq$command_name <- sub("^\\s+", "", comreq$command_name)
+      comreq$command_name <- sub("\\s+$", "", comreq$command_name)
+      comreq$client <- sub("^\\s+", "", comreq$client)
+      comreq$client <- sub("\\s+$", "", comreq$client)
+            
+      # at appropriate speed, pass them to pass_request or to "pass_command"?
+      reltimes <- diff(c(0, comreq$time))
+      for (i in 1:nrow(comreq)) {
+        # this unfortunately won't let you do anything on command line! or will it...
+        if (speed=="realtime") Sys.sleep(reltimes[i])
+        if (is.numeric(speed)) Sys.sleep(speed)
+        fields <- paramlist[[i]]
+        pnames <- sub("([^:]*):.*", "\\1", fields)
+        params <- sub("[^:]*:(.*)", "\\1", fields)
+        names(params) <- pnames
+        switch(comreq$type[i], 
+          command= pass_command(comreq$command_name[i], params)
+          request= .pass_request(comreq$client[i], params)) 
+      }
+    },
+    
+    halt = function() {
+      
+    },
+    
+    get_url = function() {
+      return(normalizePath(folder))
+    }
+  )
+)
+  

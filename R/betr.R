@@ -292,7 +292,7 @@ Experiment <- setRefClass("Experiment",
       }
     },
     
-    replay = function(folder=NULL, period=NULL, speed=NULL) {
+    replay = function(folder=NULL, maxtime=NULL, speed=NULL) {
       # if folder is null, use my current session_name or guess the most recently modified
       if (is.null(folder)) {
         if (is.na(session_name)) {
@@ -312,11 +312,12 @@ Experiment <- setRefClass("Experiment",
       # clean up the experiment environment, subjects table etc.
       # would be cleaner to do this all via "ready"...
       rm(list=objects(env), envir=env)
+      requests <<- commands <<- list()
       initialize_subjects()
       # start a replayserver which runs the commands
-      server <<- ReplayServer$new(folder=folder, period=period, 
-        pass_request=.self$handle_request, 
-        clients_in_url=clients_in_url, name=name, speed=speed)
+      server <<- ReplayServer$new(folder=folder, 
+        pass_request=.self$handle_request, pass_command=.self$handle_command,
+        name=name, speed=speed, maxtime=maxtime)
       ready() # this will create a new session. I think that is desirable.
       # if we have autostart, then ready() will get the server running and do everything
       # if we don't have autostart, then a "start" command will be read in
