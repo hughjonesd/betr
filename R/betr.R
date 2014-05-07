@@ -19,6 +19,7 @@ Experiment <- setRefClass("Experiment",
     allow_latecomers="logical",
     auth="ANY",
     server="Server",
+    .oldserver="Server",
     subjects="data.frame",
     requests="list",
     commands="list",
@@ -32,9 +33,7 @@ Experiment <- setRefClass("Experiment",
       client_refresh=10, clients_in_url=FALSE) {
       stages <<- list()
       env <<- new.env(parent=.GlobalEnv)
-      subjects <<- data.frame(client=character(0), id=numeric(0), 
-            period=numeric(0), status=factor(, levels=c("Running", "Waiting", 
-            "Finished")), stringsAsFactors=FALSE)
+      initialize_subjects()
       status <<- "Stopped"
       
       # server can be a class name, a class object (refObjectGenerator), 
@@ -54,6 +53,12 @@ Experiment <- setRefClass("Experiment",
             allow_latecomers=allow_latecomers, N=N, client_refresh=client_refresh,
             name=name)
       if (is.infinite(N)) warning("No maximum N set for experiment")
+    },
+    
+    initialize_subjects = function() {
+      subjects <<- data.frame(client=character(0), id=numeric(0), 
+        period=numeric(0), status=factor(, levels=c("Running", "Waiting", 
+          "Finished")), stringsAsFactors=FALSE)
     },
     
     finalize = function(...) {
@@ -287,8 +292,40 @@ Experiment <- setRefClass("Experiment",
       }
     },
     
-    rewind = function() {
-      
+    replay = function(folder=NULL, period=NULL, speed=NULL) {
+      # if folder is null, use my current session_name or guess the most recently modified
+      if (is.null(folder)) {
+        if (is.na(session_name)) {
+          dirs <- file.info(list.files(pattern=paste0("^",name, 
+            "[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{6}$"), include.dirs=TRUE))
+          dirs <- dirs[order(dirs$mtime, decreasing=TRUE),]
+          dirs <- dirs[isdir,]
+          folder <- rownames(dirs[1,])
+        } else folder <- session_name 
+      }
+      # if we've started, change status and halt the server
+      if (status != "Stopped") {
+        status <<- "Stopped"      
+        server$halt()        
+      }
+      .oldserver <<- server
+      # clean up the experiment environment, subjects table etc.
+      # would be cleaner to do this all via "ready"...
+      rm(list=objects(env), envir=env)
+      initialize_subjects()
+      # start a replayserver which runs the commands
+      server <<- ReplayServer$new(folder=folder, period=period, 
+        pass_request=.self$handle_request, 
+        clients_in_url=clients_in_url, name=name, speed=speed)
+      ready() # this will create a new session. I think that is desirable.
+      # if we have autostart, then ready() will get the server running and do everything
+      # if we don't have autostart, then a "start" command will be read in
+      # so now a bunch of stuff gets called... 
+      # ...
+      server$halt()
+      server <<- .oldserver
+      # hopefully we are now back at the approp. period!
+      # need to think, how could we mix manual and automated clients...      
     }
   )
 )
