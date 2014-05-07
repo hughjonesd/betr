@@ -161,13 +161,14 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
     folder="character",
     speed="ANY",
     maxtime="numeric",
-    pass_command="function"
+    pass_command="function",
+    ask="logical"
   ),
   methods=list(
     initialize = function(pass_request=NULL, folder=NULL, speed=NULL, maxtime=Inf, 
-      pass_command=NULL, ...) {
+      pass_command=NULL, ask=FALSE, ...) {
        callSuper(folder=folder, speed=speed, period=period, pass_request=pass_request,
-         pass_command=pass_command, ...)
+         pass_command=pass_command, ask=ask, ...)
     },
     
     start = function() {
@@ -188,10 +189,9 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
           comreq$client[i] <- txt[1]
         paramlist[[i]] <- if (length(txt)>1) tail(txt, -1) else NA
       }
-      comreq$client <- sub("^\\s+", "", comreq$client)
-      comreq$client <- sub("\\s+$", "", comreq$client)
             
       reltimes <- diff(c(0, comreq$time))
+      skip <- FALSE
       for (i in 1:nrow(comreq)) {
         # this unfortunately won't let you do anything on command line! or will it...
         if (speed=="realtime") Sys.sleep(reltimes[i])
@@ -200,6 +200,25 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
         pnames <- sub("([^:]*):.*", "\\1", fields)
         params <- sub("[^:]*:(.*)", "\\1", fields)
         names(params) <- pnames
+        if (ask) {
+          r <- "xxx"
+          skip <- FALSE
+          while (! r %in% c("y", "", "c", "q", "n")) {
+            r <- readline("Next command? ([y]es, [n]o, [c]ontinue to end, [q]uit, [d]etails)\n")
+            switch(r, n={skip <- TRUE}, c={ask <<- FALSE}, q={skip <- TRUE; ask <<- FALSE}, d={
+                if (comreq$type[i]=="request") cat("Request from client:", comreq$client[i]) else
+                  cat("Command:", comreq$command_name[i])
+                cat("\nTime from start:", comreq$time[i], "\n")
+                cat("Params:\n")
+                cat(str(params), "\n")
+              },
+              ...={
+                try(eval(parse(text=r), envir = globalenv()))
+              }
+            )
+          }
+        }
+        if (skip) next
         switch(comreq$type[i], 
           command= pass_command(comreq$command_name[i], params),
           request= .pass_request(comreq$client[i], params)

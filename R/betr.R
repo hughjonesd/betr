@@ -292,7 +292,7 @@ Experiment <- setRefClass("Experiment",
       }
     },
     
-    replay = function(folder=NULL, maxtime=NULL, speed=NULL) {
+    replay = function(folder=NULL, maxtime=NULL, speed=NULL, ask=FALSE) {
       # if folder is null, use my current session_name or guess the most recently modified
       if (is.null(folder)) {
         if (is.na(session_name)) {
@@ -317,7 +317,7 @@ Experiment <- setRefClass("Experiment",
       # start a replayserver which runs the commands
       server <<- ReplayServer$new(folder=folder, 
         pass_request=.self$handle_request, pass_command=.self$handle_command,
-        name=name, speed=speed, maxtime=maxtime)
+        name=name, speed=speed, maxtime=maxtime, ask=ask)
       ready() # this will create a new session. I think that is desirable.
       # if we have autostart, then ready() will get the server running and do everything
       # if we don't have autostart, then a "start" command will be read in
@@ -522,6 +522,59 @@ get_url <- function(experiment) experiment$get_url()
 #' @export
 session_name <- function(experiment) experiment$get_session_name()
 
+
+#' Replay part or all of an experiment
+#' 
+#' \code{replay} plays back an experiment using records stored on disk.
+#' If the experiment is already started, it will be stopped
+#' and all information in the experiment's environment will be
+#' deleted in preparation for the replay.
+#' All requests from clients, and all commands issued on the command line,
+#' will be replayed. Afterwards the experiment can be continued.
+#' 
+#' @param experiment an object of class Experiment
+#' @param folder which record to use. Default is the current session 
+#' or the most recent session found
+#' @param speed how long to wait between each command or request
+#' @param maxtime replay only 'maxtime' seconds of the original session
+#' @param ask ask before replaying each command or request
+#' 
+#' @details
+#' betr records requests and commands in a folder named <experiment name>-YYYY-MM-DD-HHMMSS,
+#' where the date and time record when \code{\link{ready}} was called. Within this folder,
+#' the subfolder 'record' holds details. If \code{folder} is not given, the default is either
+#' the current session name, or the most recently accessed folder matching the format above.
+#' 
+#' \code{speed} can be numeric or "realtime". A numeric gives the number of seconds
+#' to wait before executing each command or request. "realtime" means, go at the speed of the
+#' original session.
+#' 
+#' If \code{maxtime} is given, only the first maxTime seconds of the experiment will be replayed.
+#' This is useful if you want to "rewind" the experiment because of lab problems,
+#' or during debugging.
+#' 
+#' If \code{ask} is \code{TRUE} then the experimenter will be prompted before each
+#' command or request is replayed:
+#' 
+#' \itemize{
+#'   \item 'y' replays the command/request
+#'   \item 'c' continues replaying to the end, without prompting again
+#'   \item 'n' skips the command/request
+#'   \item 'q' skips this and all other commands/requests
+#'   \item 'd' shows details of the command/request
+#'   \item Any other item will be evaluated in the global environment
+#' } 
+#' 
+#' @examples
+#' start(expt)
+#' # something goes wrong after 2 minutes
+#' replay(expt, maxTime=120)
+#' 
+#' @family command line functions
+#' @export
+replay <- function(experiment, folder=NULL, maxtime=Inf, speed=NULL, ask=FALSE) 
+  experiment$replay(folder, maxtime, speed, ask)
+  
 setGeneric("environment")
 #' Return an experiment's environment
 #' 
