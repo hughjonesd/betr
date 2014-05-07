@@ -249,51 +249,68 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
 #' 
 #' @details 
 #' Structured stages use the following flowchart.
+#' 
 #' 1. Has the participant been marked as \emph{finished}?
-#' Yes => return \code{NEXT}
-#' No => continue:
+#' 
+#' Yes => return \code{NEXT}. No => continue:
+#' 
 #' 2. Has the participant been marked as \emph{ready}?
-#' Yes => go to 3.
-#' No => go to 5.
+#' 
+#' Yes => go to 3. No => go to 5.
+#' 
 #' 3. Are all participants in \code{wait_for} (see below) ready?
-#' No => return \code{WAIT}.
-#' Yes => continue:
+#' 
+#' No => return \code{WAIT}. Yes => continue:
+#' 
 #' 4. Mark the participant as \emph{finished}. Return the \code{results} section, 
 #' which returns some HTML or \code{NEXT}.
+#' 
 #' 5. Has the participant seen the stage already in this period?
+#' 
 #' No => call the stage's \code{form} function, which returns some HTML,
-#'       and start counting \code{timeout} from now.
+#'       and start counting \code{timeout} from now. 
+#'       
 #' Yes => continue: 
+#' 
 #' 6. Did the participant respond within \code{timeout} seconds?
+#' 
 #' No => call the stage's \code{on_timeout} function, then continue:
+#' 
 #' Yes => continue:
+#' 
 #' 7. Call the \code{process} function. 
+#' 
 #' If this \code{stop}s => call \code{form} again, passing the error message.
-#'                         The timeout is \emph{not} reset.
-#' Otherwise => mark the participant as \emph{ready} and start from stage 1.
+#' The timeout is \emph{not} reset.
+#' 
+#' Otherwise => mark the participant as \emph{ready} and return to stage 1.
 #' 
 #' \code{form} and \code{results} may be connections resulting from a call to 
-#' \code{\link{file()}}, character vectors, or functions which return HTML.
+#' \code{\link{file}}, character vectors, or functions which return HTML.
 #' Files will be opened and returned. If the file name ends in \code{.brew} then
 #' it will be processed by \code{\link{brew}}. Character vectors are returned 
 #' as-is.
 #' 
-#'  If \code{form} is a function, it should take four arguments, like 
+#'  If \code{form} is a function, it should take four arguments, as follows: 
 #'        \code{function(id, period, params, error)}. 
-#'        \code{params} and \code{error} may both be missing. 
+#'        
+#'  \code{params} and \code{error} may both be missing. 
 #'  
 #'  If \code{result} is a function, it should take three arguments, like 
-#'        \code{function(id, period, params)}. \code{params} may be missing.
+#'        \code{function(id, period, params)}. 
+#'        
+#'  \code{params} may be missing.
 #'  
 #' If \code{wait_for} is a function, it should be of the form 
-#'        \code{function(id, period, params, ready)}. \code{ready} is a vector 
-#'        containing the ids of participants who have been marked as ready.
-#'         The participant will
+#'        \code{function(id, period, params, ready)}. 
+#'        
+#'        \code{ready} is a vector containing the ids of participants who have been 
+#'        marked as ready. The participant will
 #'        move on to \code{results} only when the function returns \code{TRUE}. If
 #'        it is a list of vectors, then the participant will move on only when 
 #'        all participants in the same vector are ready. For example, 
 #'        \code{wait_for=list(1:4,5:8,9:12,13:16)} requires that participant
-#'        IDs 1 to 4 are all ready before moving to \code{results}.
+#'        IDs 1 to 4 are all ready before participant 1 can move to \code{results}.
 #' @examples
 #' s1 <- structured_stage(
 #'   form = function(id, period, params, error) {

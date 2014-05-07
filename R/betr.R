@@ -219,9 +219,8 @@ Experiment <- setRefClass("Experiment",
       if (status=="Stopped") {
         warning("No session defined yet, status is Stopped")
         return(NA)
-      } else {
-        return(session_name)
       }
+      return(session_name)
     },
     
     map = function() {
@@ -286,8 +285,11 @@ Experiment <- setRefClass("Experiment",
         status <<- "Running"
         return(invisible(TRUE))
       }
-    }
+    },
     
+    rewind = function() {
+      
+    }
   )
 )
 
