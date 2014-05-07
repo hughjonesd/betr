@@ -1,6 +1,7 @@
 export(AbstractStage)
 export(CommandLineServer)
 export(NEXT)
+export(ReplayServer)
 export(RookServer)
 export(Server)
 export(Stage)

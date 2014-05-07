@@ -182,16 +182,15 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
       comreq <- comreq[comreq$time <= maxtime,]
       for (i in 1:nrow(comreq)) {
         txt <- readLines(file.path(folder, "record", comreq$name[i]), warn=FALSE)
+        txt <- sub("^\\s+", "", txt)
+        txt <- sub("\\s+$", "", txt)
         if (comreq$type[i]=="command") comreq$command_name[i] <- txt[1] else
           comreq$client[i] <- txt[1]
         paramlist[[i]] <- if (length(txt)>1) tail(txt, -1) else NA
       }
-      comreq$command_name <- sub("^\\s+", "", comreq$command_name)
-      comreq$command_name <- sub("\\s+$", "", comreq$command_name)
       comreq$client <- sub("^\\s+", "", comreq$client)
       comreq$client <- sub("\\s+$", "", comreq$client)
             
-      # at appropriate speed, pass them to pass_request or to "pass_command"?
       reltimes <- diff(c(0, comreq$time))
       for (i in 1:nrow(comreq)) {
         # this unfortunately won't let you do anything on command line! or will it...
@@ -202,8 +201,9 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
         params <- sub("[^:]*:(.*)", "\\1", fields)
         names(params) <- pnames
         switch(comreq$type[i], 
-          command= pass_command(comreq$command_name[i], params)
-          request= .pass_request(comreq$client[i], params)) 
+          command= pass_command(comreq$command_name[i], params),
+          request= .pass_request(comreq$client[i], params)
+        ) 
       }
     },
     
