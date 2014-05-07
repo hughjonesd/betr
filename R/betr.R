@@ -248,8 +248,8 @@ Experiment <- setRefClass("Experiment",
       dir.create(fp <- file.path(session_name, "record"), recursive=TRUE)
       if (file.access(fp, 2) != 0) stop("Could not write into ", fp)
       ## run server
-      server$start(session_name=session_name)
       status <<- "Waiting"
+      server$start(session_name=session_name)
       return(invisible(TRUE))
     },
     
@@ -295,7 +295,7 @@ Experiment <- setRefClass("Experiment",
     replay = function(folder=NULL, maxtime=NULL, speed=NULL, ask=FALSE) {
       # if folder is null, use my current session_name or guess the most recently modified
       if (is.null(folder)) {
-        if (is.na(session_name)) {
+        if (is.null(session_name)) {
           dirs <- file.info(list.files(pattern=paste0("^",name, 
             "[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{6}$"), include.dirs=TRUE))
           dirs <- dirs[order(dirs$mtime, decreasing=TRUE),]
@@ -549,7 +549,7 @@ session_name <- function(experiment) experiment$get_session_name()
 #' to wait before executing each command or request. "realtime" means, go at the speed of the
 #' original session.
 #' 
-#' If \code{maxtime} is given, only the first maxTime seconds of the experiment will be replayed.
+#' If \code{maxtime} is given, only the first \code{maxtime} seconds of the experiment will be replayed.
 #' This is useful if you want to "rewind" the experiment because of lab problems,
 #' or during debugging.
 #' 

@@ -20,6 +20,7 @@
   \code{\link{info}}, \code{\link{map}},
   \code{\link{next_period}}, \code{\link{pause}},
   \code{\link{print}}, \code{\link{ready}},
-  \code{\link{session_name}}, \code{\link{start}}
+  \code{\link{replay}}, \code{\link{session_name}},
+  \code{\link{start}}
 }
 

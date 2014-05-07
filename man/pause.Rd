@@ -20,7 +20,8 @@
   Other command line functions: \code{\link{get_url}},
   \code{\link{info}}, \code{\link{map}},
   \code{\link{next_period}}, \code{\link{print}},
-  \code{\link{ready}}, \code{\link{restart}},
-  \code{\link{session_name}}, \code{\link{start}}
+  \code{\link{ready}}, \code{\link{replay}},
+  \code{\link{restart}}, \code{\link{session_name}},
+  \code{\link{start}}
 }
 

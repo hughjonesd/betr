@@ -53,6 +53,7 @@ CommandLineServer <- setRefClass("CommandLineServer",
       pnames <- sub("([^:]*):.*", "\\1", fields[-1])
       params <- sub("[^:]*:(.*)", "\\1", fields[-1])
       names(params) <- pnames
+      params <- as.list(params)
       return(.pass_request(client, params))     
     },
     
@@ -167,16 +168,18 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
   methods=list(
     initialize = function(pass_request=NULL, folder=NULL, speed=NULL, maxtime=Inf, 
       pass_command=NULL, ask=FALSE, ...) {
-       callSuper(folder=folder, speed=speed, period=period, pass_request=pass_request,
+       callSuper(folder=folder, speed=speed, maxtime=maxtime, pass_request=pass_request,
          pass_command=pass_command, ask=ask, ...)
     },
     
-    start = function() {
-      # list all the files in folder/record; 
+    start = function(session_name=NULL) {
+# browser()
       comreq <- list.files(file.path(folder, "record"), 
         pattern="(command|request)-[0-9\\.]+")
+      if (length(comreq) == 0) stop("Found no commands or requests in ", file.path(folder, "record"))
       comreq <- data.frame(name=comreq, type=sub("(command|request).*", "\\1", comreq),
-        time=sub("command|request)-([0-9\\.]+)", "\\2"), command_name=NA, client=NA)
+        time=sub("(command|request)-([0-9\\.]+)", "\\2", comreq), command_name=NA, client=NA,
+        stringsAsFactors=FALSE)
       paramlist <- list()
       comreq$time <- as.numeric(comreq$time)
       comreq <- comreq[order(comreq$time),]
@@ -194,12 +197,15 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
       skip <- FALSE
       for (i in 1:nrow(comreq)) {
         # this unfortunately won't let you do anything on command line! or will it...
-        if (speed=="realtime") Sys.sleep(reltimes[i])
-        if (is.numeric(speed)) Sys.sleep(speed)
+        if (! is.null(speed)) { 
+          if(speed=="realtime") Sys.sleep(reltimes[i])
+          if (is.numeric(speed)) Sys.sleep(speed)
+        }
         fields <- paramlist[[i]]
         pnames <- sub("([^:]*):.*", "\\1", fields)
         params <- sub("[^:]*:(.*)", "\\1", fields)
         names(params) <- pnames
+        params <- as.list(params)
         if (ask) {
           r <- "xxx"
           skip <- FALSE

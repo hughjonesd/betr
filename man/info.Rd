@@ -41,6 +41,7 @@ expt # on the command line, calls info()
 \seealso{
   Other command line functions: \code{\link{next_period}},
   \code{\link{pause}}, \code{\link{ready}},
-  \code{\link{restart}}, \code{\link{start}}
+  \code{\link{replay}}, \code{\link{restart}},
+  \code{\link{start}}
 }
 

@@ -1,6 +1,6 @@
 
 mydf <<- data.frame(id=1, period=1:5, guess=NA, correct=NA)
-expt <- experiment(N=1, autostart=TRUE)
+expt <- experiment(N=1, autostart=TRUE, clients_in_url=TRUE)
 
 s1 <- function(id, period, params) {
   me_now <- mydf$id==id & mydf$period==period
@@ -25,4 +25,3 @@ s1 <- function(id, period, params) {
   )))
 }
 add_stage(expt, s1, times=5)
-ready(expt)
