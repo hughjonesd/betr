@@ -3,4 +3,6 @@
 .RData
 ..Rcheck
 *-2013-*
+*-2014-*
 betr-SEATS.txt
+.DS_Store
