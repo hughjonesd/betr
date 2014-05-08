@@ -13,7 +13,7 @@ Economic-style experiments in R. Principles:
 Installation
 ------------
 
-```{r}
+```r
 install.packages("devtools") # if not installed already
 library(devtools)
 install_github("betr", "hughjonesd")
@@ -24,7 +24,7 @@ Writing experiments
 
 A source file for a simple guessing game:
 
-```{r}
+```r
 
 mydf <<- data.frame(id=1, period=1:5, guess=NA, correct=NA)
 expt <- experiment(N=1, autostart=TRUE)
@@ -62,20 +62,20 @@ Running your experiment
 
 On the command line:
 
-```{r}
+```r
 > source("my-experiment.R")
 > ready(expt)
 ```
 
 To see experiment info:
 
-```{r}
+```r
 > info(expt)
 ```
 
 When participants are at their computers:
 
-```{r}
+```r
 > start(expt)
 ```
 
@@ -84,7 +84,7 @@ Developing and testing
 
 Add `clients_in_url=TRUE` to your call to `experiment`. Then, on the command line:
 
-```{r}
+```r
 > source("my-experiment.R")
 > ready(expt)
 > browser_test(expt) # launches many browser windows!
@@ -92,20 +92,20 @@ Add `clients_in_url=TRUE` to your call to `experiment`. Then, on the command lin
 
 After running a session, you can replay it:
 
-```{r}
+```r
 > replay(expt) 
 ```
 
 Or replay step by step and watch how things happen:
 
-```{r}
+```r
 > replay(expt, ask=TRUE) 
 ```
 
 
 Or replay a particular session:
 
-```{r}
+```r
 > replay(expt, folder="betr-2014-05-29-120000") 
 ```
 
