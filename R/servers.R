@@ -108,9 +108,8 @@ RookServer <- setRefClass("RookServer", contains="Server",
         client <- req$cookies()[[session_name]]
       } else {
         ip <- req$ip()
-        if (length(ip)==0) ip <- "127.0.0.1" # work around Rook bug
-        client <- paste0(ip, "-", do.call(paste0, as.list(
-              sample(LETTERS, 10))))
+        if (length(ip) == 0) ip <- "127.0.0.1" # work around Rook bug
+        client <- paste0(ip, "-", paste(sample(LETTERS, 10), collapse=TRUE))
       }
       if (clients_in_url) {
         # always overrides cookie
@@ -209,18 +208,19 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
         if (ask) {
           r <- "xxx"
           skip <- FALSE
-          while (! r %in% c("y", "", "c", "q", "n")) {
-            r <- readline("Next command? ([y]es, [n]o, [c]ontinue to end, [q]uit, [d]etails)\n")
-            switch(r, n={skip <- TRUE}, c={ask <<- FALSE}, q={skip <- TRUE; ask <<- FALSE}, d={
+          while (! r %in% c("n", "", "c", "q", "s")) {
+            r <- readline("replay > ")
+            switch(r, s={skip <- TRUE}, c={ask <<- FALSE}, q={skip <- TRUE; ask <<- FALSE}, d={
                 if (comreq$type[i]=="request") cat("Request from client:", comreq$client[i]) else
                   cat("Command:", comreq$command_name[i])
                 cat("\nTime from start:", comreq$time[i], "\n")
                 cat("Params:\n")
                 cat(str(params), "\n")
               },
-              ...={
-                try(eval(parse(text=r), envir = globalenv()))
-              }
+              h=,
+              "?"=cat("[n]ext command/request, [s]kip command/request, [c]ontinue to end, [q]uit, [d]etails, [?h]elp, or enter R expression\n"),
+              n=NULL,
+              if (nchar(r)>0) try(print(eval(parse(text=r), envir = globalenv())))
             )
           }
         }

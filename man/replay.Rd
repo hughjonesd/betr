@@ -50,11 +50,12 @@
   If \code{ask} is \code{TRUE} then the experimenter will
   be prompted before each command or request is replayed:
 
-  \itemize{ \item 'y' replays the command/request \item 'c'
-  continues replaying to the end, without prompting again
-  \item 'n' skips the command/request \item 'q' skips this
-  and all other commands/requests \item 'd' shows details
-  of the command/request \item Any other item will be
+  \itemize{ \item enter or 'n' replays the command/request
+  \item 'c' continues replaying to the end, without
+  prompting again \item 's' skips the command/request \item
+  'q' skips this and all other commands/requests \item 'd'
+  shows details of the command/request \item '?' or 'h'
+  shows a help message \item Any other item will be
   evaluated in the global environment }
 }
 \examples{
