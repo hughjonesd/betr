@@ -22,7 +22,7 @@ install_github("betr", "hughjonesd")
 Writing experiments
 -------------------
 
-In your source file:
+A source file for a simple guessing game:
 
 ```{r}
 
@@ -90,17 +90,24 @@ Add `clients_in_url=TRUE` to your call to `experiment`. Then, on the command lin
 > browser_test(expt) # launches many browser windows!
 ```
 
-(TODO!)
--------
-
-After running a session, you can replay it and test just one client:
+After running a session, you can replay it:
 
 ```{r}
-> replay(expt, exclude=12) 
-> browser_test(expt, N=1, ids="manual")
+> replay(expt) 
+```
+
+Or replay step by step and watch how things happen:
+
+```{r}
+> replay(expt, ask=TRUE) 
 ```
 
 
+Or replay a particular session:
+
+```{r}
+> replay(expt, folder="beter-2014-05-29-120000") 
+```
 
 
 	
