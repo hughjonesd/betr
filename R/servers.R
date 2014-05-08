@@ -109,7 +109,7 @@ RookServer <- setRefClass("RookServer", contains="Server",
       } else {
         ip <- req$ip()
         if (length(ip) == 0) ip <- "127.0.0.1" # work around Rook bug
-        client <- paste0(ip, "-", paste(sample(LETTERS, 10), collapse=TRUE))
+        client <- paste0(ip, "-", paste(sample(LETTERS, 10), collapse=''))
       }
       if (clients_in_url) {
         # always overrides cookie
