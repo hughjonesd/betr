@@ -106,7 +106,7 @@ Or replay step by step and watch how things happen:
 Or replay a particular session:
 
 ```{r}
-> replay(expt, folder="beter-2014-05-29-120000") 
+> replay(expt, folder="betr-2014-05-29-120000") 
 ```
 
 
