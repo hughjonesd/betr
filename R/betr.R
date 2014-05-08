@@ -287,7 +287,7 @@ Experiment <- setRefClass("Experiment",
         warning("Experiment not paused, cannot restart")
         return(invisible(FALSE))
       } else {
-        status <<- "Running"
+        status <<- "Started"
         return(invisible(TRUE))
       }
     },
@@ -323,9 +323,11 @@ Experiment <- setRefClass("Experiment",
       # if we don't have autostart, then a "start" command will be read in
       # so now a bunch of stuff gets called... 
       # ...
+      # but do we ever get here?
       server$halt()
       server <<- .oldserver
-      # hopefully we are now back at the approp. period!
+      server$start()
+      # hopefully we are now back at the approp. period and with correct status...
       # need to think, how could we mix manual and automated clients...      
     }
   )

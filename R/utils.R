@@ -15,6 +15,7 @@ NULL
 #' @export
 browser_test <- function (experiment, N=ifelse(is.finite(experiment$N), 
       experiment$N, 1), clients_in_url=TRUE, ids=paste("client", 1:N, sep="-")) {
+  if (experiment$status=="Stopped") warning("Experiment status is Stopped. Try calling ready() first")
   for (i in 1:N) {
     browseURL(paste0(get_url(experiment), if(clients_in_url) paste0("/", ids[[i]])))
   }
