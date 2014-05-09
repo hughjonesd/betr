@@ -22,7 +22,7 @@ Experiment <- setRefClass("Experiment",
     .oldserver="Server",
     subjects="data.frame",
     seats="data.frame",
-    on_ready="function",
+    on_ready="ANY",
     requests="list",
     commands="list",
     start_time="POSIXct",
@@ -52,7 +52,7 @@ Experiment <- setRefClass("Experiment",
       }
       requests <<- commands <<- list()
       .command_names <<- c("start", "pause", "restart", "next_period")
-      seats <- data.frame(seat=numeric(0), IP=character(0), cookie=character(0))
+      seats <<- data.frame(seat=numeric(0), IP=character(0), cookie=character(0))
       err <- try(seats <<- read.table(seats_file, header=TRUE, 
             colClasses=c("integer", "character", "character")), silent=TRUE)    
       if (class(err)=="try-error") warning("Problem reading seats file ", seats_file)

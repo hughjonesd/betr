@@ -169,8 +169,10 @@ test_that("Experiment replay works", {
 
   replay(expt, maxtime=t2+6)
   expect_that(foo, equals(2))
-  replay(expt, maxtime=t2+2)
+  Sys.sleep(1)
+  replay(expt, maxtime=t2+2, folder=snm)
   expect_that(foo, equals(1))
+  Sys.sleep(1)
   replay(expt, folder=snm) 
   expect_that(foo, equals(3))
 })

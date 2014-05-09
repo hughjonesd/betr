@@ -4,7 +4,8 @@
 
 if (getRversion() < "2.15.0") paste0 <- function(...) paste(..., sep="")
 
-#' @export
+#' @export Server
+#' @exportClass Server
 Server <- setRefClass("Server",
   fields=list(
     pass_request="function",
@@ -28,7 +29,8 @@ Server <- setRefClass("Server",
   )
 )
 
-#' @export
+#' @export CommandLineServer
+#' @exportClass CommandLineServer
 CommandLineServer <- setRefClass("CommandLineServer", 
   contains="Server",
   fields=list(
@@ -89,7 +91,8 @@ clclient <- function(port=35538) {
   close(sc)
 }
 
-#' @export
+#' @export RookServer
+#' @exportClass RookServer
 RookServer <- setRefClass("RookServer", contains="Server",
   fields=list(
     rhttpd = "Rhttpd",
@@ -155,7 +158,8 @@ RookServer <- setRefClass("RookServer", contains="Server",
   )
 )
 
-#' @export
+#' @export ReplayServer
+#' @exportClass ReplayServer
 ReplayServer <- setRefClass("ReplayServer", contains="Server",
   fields=list(
     folder="character",
