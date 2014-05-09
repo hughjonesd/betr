@@ -114,10 +114,10 @@ file_or_brew <- function(fb, error=NULL) {
 }
 
 ffbc <- function(thing, ..., error=NULL) {
-  if (is.function(thing)) return(thing(..., error))
+  if (is.function(thing)) return(if (is.null(error)) thing(...) else thing(..., error)) # ugly
   if (inherits(thing, "file")) return(file_or_brew(thing, error))
   if (is.character(thing)) return(thing)
-  stop("Unrecognized object of class ", class(thing), "passed to fff")
+  stop("Unrecognized object of class ", class(thing), "passed to ffbc")
 }
 
 rookify <- function (thing) {
@@ -175,7 +175,7 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
       
       # we are not ready. 
       if (! id %in% started) {
-        output <- ffbc(form, id, period, params)
+        output <- ffbc(form, id, period, params, error=NULL)
         if (is.next(output) || is.wait(output)) return(output) 
         rr <- rookify(output)
         if (! is.null(timeout)) {
