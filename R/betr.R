@@ -256,14 +256,13 @@ Experiment <- setRefClass("Experiment",
         "%Y-%m-%d-%H%M%S"), sep="-")
       dir.create(fp <- file.path(session_name, "record"), recursive=TRUE)
       if (file.access(fp, 2) != 0) stop("Could not write into ", fp)
-      ## run server
       status <<- "Waiting"
-      server$start(session_name=session_name)
-      
       if (! is.null(on_ready)) {
         environment(on_ready) <- env
         on_ready()
       }
+      server$start(session_name=session_name)
+
       return(invisible(TRUE))
     },
     
@@ -332,7 +331,7 @@ Experiment <- setRefClass("Experiment",
       server <<- ReplayServer$new(folder=folder, 
         pass_request=.self$handle_request, pass_command=.self$handle_command,
         name=name, speed=speed, maxtime=maxtime, ask=ask)
-      ready() # this will create a new session. I think that is desirable.
+      ready() # this will create a new session (good idea?)
       # if we have autostart, then ready() will get the server running and do everything
       # if we don't have autostart, then a "start" command will be read in
       # so now a bunch of stuff gets called... 
