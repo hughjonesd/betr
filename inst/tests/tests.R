@@ -149,21 +149,24 @@ test_that("Experiment environments work", {
 unlink(dir(pattern="betr-201.*"), recursive=TRUE)
 
 test_that("Experiment replay works", {
-  init_data <- function () {foo <<- 0; mypar <<- ""}
+  init_data <- function () foo <<- 0
   expt <- experiment(N=1, server="RookServer", autostart=TRUE, on_ready=init_data)
   s1 <- stage(handler=function(id, period, params) {foo <<- foo + 1})
   add_stage(expt, s1)
   t1 <- Sys.time()
   ready(expt)
+  
   expt$handle_request("jim", list(mypar="a"))
-  t2 <- Sys.time() - t1
+  t2 <- as.numeric(Sys.time() - t1)
   expect_that(with(environment(expt), foo), equals(1))
   Sys.sleep(4)
   expt$handle_request("jim", list(mypar="b"))
   expect_that(with(environment(expt), foo), equals(2))
   Sys.sleep(4)
   expt$handle_request("jim", list(mypar="c"))
-  replay(expt, maxtime=t2+5)
+  expect_that(with(environment(expt), foo), equals(3))
+
+  replay(expt, maxtime=t2+6)
   expect_that(with(environment(expt), foo), equals(2))
   replay(expt, maxtime=t2+2)
   expect_that(with(environment(expt), foo), equals(1))

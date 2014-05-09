@@ -54,7 +54,7 @@ Experiment <- setRefClass("Experiment",
       .command_names <<- c("start", "pause", "restart", "next_period")
       seats <- data.frame(seat=numeric(0), IP=character(0), cookie=character(0))
       err <- try(seats <<- read.table(seats_file, header=TRUE, 
-            colClasses=c("integer", "character", "character")))    
+            colClasses=c("integer", "character", "character")), silent=TRUE)    
       if (class(err)=="try-error") warning("Problem reading seats file ", seats_file)
       callSuper(..., auth=auth, autostart=autostart, clients_in_url=clients_in_url,
             allow_latecomers=allow_latecomers, N=N, client_refresh=client_refresh,
