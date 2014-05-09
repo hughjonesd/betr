@@ -1,8 +1,8 @@
 
 mydf <<- data.frame(id=1, period=1:5, guess=NA, correct=NA)
 expt <- experiment(N=1, autostart=TRUE, clients_in_url=TRUE)
-
 s1 <- function(id, period, params) {
+
   me_now <- mydf$id==id & mydf$period==period
   gg <- ! missing(params) && 'guess' %in% names(params) 
   if (gg) {

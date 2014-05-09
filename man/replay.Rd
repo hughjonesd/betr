@@ -20,9 +20,6 @@ or the most recent session found}
 }
 \description{
 \code{replay} plays back an experiment using records stored on disk.
-If the experiment is already started, it will be stopped
-and all information in the experiment's environment will be
-deleted in preparation for the replay.
 All requests from clients, and all commands issued on the command line,
 will be replayed. Afterwards the experiment can be continued.
 }
@@ -31,6 +28,10 @@ betr records requests and commands in a folder named <experiment name>-YYYY-MM-D
 where the date and time record when \code{\link{ready}} was called. Within this folder,
 the subfolder 'record' holds details. If \code{folder} is not given, the default is either
 the current session name, or the most recently accessed folder matching the format above.
+
+Before replay, the experiment will be stopped (if it is already started); the subject table
+will be reinitialized and \code{\link{ready}} will be called. This has the effect of
+calling any user-defined \code{on_ready} function.
 
 \code{speed} can be numeric or "realtime". A numeric gives the number of seconds
 to wait before executing each command or request. "realtime" means, go at the speed of the
@@ -63,8 +64,8 @@ replay(expt, maxtime=120)
 : the first replay will have created a new session with only the commands
 from the first 30 seconds. (NB also: the timings will have been changed to reflect
 the replay speed. This is probably a bug.) If you want to move backward and forward
-within a session, use \code{replay(expt, folder="xxx")} where xxx is a specific
-session.
+within a session, use \code{replay(expt, folder="xxx")} where xxx is the specific
+session of interest.
 }
 \examples{
 start(expt)

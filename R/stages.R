@@ -1,23 +1,19 @@
 #' @import brew
 
-#' @export
+#' @export AbstractStage
+#' @exportClass AbstractStage
 AbstractStage <- setRefClass("AbstractStage",
-  fields=list(
-    env = "environment"  
-  ),
+  fields=list(),
   methods=list(
     initialize = function(...) callSuper(...),
     
     handle_request = function(id, period, params) stop(
-          "handle_request called on object of class AbstractStage"),
-    
-    environment = function() env,
-    
-    set_environment = function(env) env <<- env
+          "handle_request called on object of class AbstractStage")
   )
 )
 
-#' @export
+#' @export Stage
+#' @exportClass Stage
 Stage <- setRefClass("Stage", contains="AbstractStage",
   fields=list(
     .handle_request = "function"
@@ -29,7 +25,6 @@ Stage <- setRefClass("Stage", contains="AbstractStage",
     },
     
     handle_request = function(id, period, params) {
-      environment(.handle_request) <<- env
       .handle_request(id, period, params)
     }
   )
@@ -62,7 +57,8 @@ Stage <- setRefClass("Stage", contains="AbstractStage",
 stage <- function (handler) Stage$new(handler)
 
 
-#' @export
+#' @export TextStage
+#' @exportClass TextStage
 TextStage <- setRefClass("TextStage", contains="AbstractStage",
   fields=list(
     text="character",
@@ -83,7 +79,7 @@ TextStage <- setRefClass("TextStage", contains="AbstractStage",
       shown <<- c(shown, id)
       if (length(text)>0) return(text)
       # don't crash if a file is missing?
-      tryCatch(html <- file_or_brew(file, env), error= function(e) warning(e))
+      tryCatch(html <- file_or_brew(file), error= function(e) warning(e))
       return(html)
     }
   )
@@ -106,22 +102,20 @@ TextStage <- setRefClass("TextStage", contains="AbstractStage",
 #' @export
 text_stage <- function (...) TextStage$new(...)
 
-file_or_brew <- function(fb, env=parent.frame()) {
+file_or_brew <- function(fb, error=NULL) {
   fbn <- if (class(fb)=="file") summary(fb)$description else fb
+  error <- error
   # WTF does brew() not just return a string?
   if (grepl("\\.brew$", fbn)) {
-    capture.output(brew(fbn, envir=env))
+    capture.output(brew(fbn))
   } else {
     readLines(fb)
   }    
 }
 
-ffbc <- function(thing, ..., env=parent.frame()) {
-  if (is.function(thing)) {
-    environment(thing) <- env
-    return(thing(...))
-  }
-  if (inherits(thing, "file")) return(file_or_brew(thing, env))
+ffbc <- function(thing, ..., error=NULL) {
+  if (is.function(thing)) return(thing(..., error))
+  if (inherits(thing, "file")) return(file_or_brew(thing, error))
   if (is.character(thing)) return(thing)
   stop("Unrecognized object of class ", class(thing), "passed to fff")
 }
@@ -133,7 +127,8 @@ rookify <- function (thing) {
   return(rr)
 }
 
-#' @export
+#' @export StructuredStage
+#' @exportClass StructuredStage
 StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
   fields = list(
     form        = "ANY",
@@ -154,10 +149,7 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
             process=process, ...)
     },
     
-    handle_request = function (id, period, params) {
-      tryCatch(rm("error", envir=env), error = function(e) e, 
-            warning = function(w) w) # clean the environment
-      
+    handle_request = function (id, period, params) {    
       if (id %in% finished) return(NEXT)
       
       if (id %in% ready) {
@@ -165,7 +157,6 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
         if (is.null(wait_for)) {
           do_result <- TRUE
         } else if (is.function(wait_for)) {
-          environment(wait_for) <- env
           do_result <- wait_for(id, period, params, ready) 
         } else {
           ids <- unlist(wait_for[sapply(wait_for, '%in%', x=id)])
@@ -173,7 +164,7 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
         }
         if (do_result) {
           # if so, do it and mark id as finished
-          output <- ffbc(result, id, period, params, env=env)
+          output <- ffbc(result, id, period, params)
           finished <<- c(finished, id)
           return(output)
         } else {
@@ -184,7 +175,7 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
       
       # we are not ready. 
       if (! id %in% started) {
-        output <- ffbc(form, id, period, params, env=env)
+        output <- ffbc(form, id, period, params)
         if (is.next(output) || is.wait(output)) return(output) 
         rr <- rookify(output)
         if (! is.null(timeout)) {
@@ -198,18 +189,15 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
         # if we've timed out, run on_timeout
           maybe <- NULL
           if(is.function(on_timeout)) {
-            environment(on_timeout) <- env
             maybe <- on_timeout(id, period)
           } 
           if (is.list(maybe)) params <- maybe
         }
         # process the result, if needed
         if (is.function(process)) {
-          environment(process) <- env
           chk <- tryCatch(process(id, period, params), error= function(e) e)
           if (inherits(chk, "error")) {
-            assign("error", chk$message, envir=env)
-            return(ffbc(form, id, period, params, chk$message, env=env))
+            return(ffbc(form, id, period, params, error=chk$message))
           }
         }
         # mark the participant as ready and call again from the top

@@ -1,6 +1,8 @@
 #' @include servers.R
 #' @include stages.R
 
+#' @export Experiment
+#' @exportClass Experiment
 Experiment <- setRefClass("Experiment",
   fields=list(
     stages="ANY",
@@ -26,8 +28,7 @@ Experiment <- setRefClass("Experiment",
     requests="list",
     commands="list",
     start_time="POSIXct",
-    clients_in_url="logical",
-    env="environment"
+    clients_in_url="logical"
   ),
   methods=list(
     initialize = function(..., auth=TRUE, port, autostart=FALSE, 
@@ -35,7 +36,6 @@ Experiment <- setRefClass("Experiment",
       client_refresh=10, clients_in_url=FALSE, seats_file="betr-SEATS.txt",
       on_ready=NULL) {
       stages <<- list()
-      env <<- new.env(parent=.GlobalEnv)
       initialize_subjects()
       status <<- "Stopped"
       
@@ -72,8 +72,6 @@ Experiment <- setRefClass("Experiment",
       if (inherits(server, "Server")) server$halt()
     },
     
-    environment = function() env,
-    
     add_stage = function(..., times, each, after) {
       if (status != "Stopped") 
         warning("Adding stage to server while status is ", status, 
@@ -86,7 +84,6 @@ Experiment <- setRefClass("Experiment",
       if (! missing(each)) stgs <- rep(stgs, each=each)
       if (missing(after)) after <- length(stages)
       stgs <- sapply(stgs, function (x) x$copy())
-      sapply(stgs, function (x) x$set_environment(env))
       stages <<- append(stages, stgs, after=after)
     }, 
     
@@ -115,14 +112,16 @@ Experiment <- setRefClass("Experiment",
           "', should be character or function")
       )
       if (! ok) stop("Client unauthorized")
-      
+
       id <- if(nrow(subjects)) max(subjects$id)+1 else 1
       seat <- NA
-      if (! is.null(cookies) && "betr-seat" %in% cookies) 
-        seat <- seats$seat[ seats$cookie==cookies[["betr-seat"]] ] else 
-        if (! is.null(ip)) 
-          seat <- seats$seat[seats$IP==ip] else
-          warning("Seat not found for client ", client)
+      if (nrow(seats)>0) {
+        if (! is.null(cookies) && "betr-seat" %in% cookies && nrow(seats)>0) {
+          seat <- seats$seat[ seats$cookie==cookies[["betr-seat"]] ] 
+        } else if (! is.null(ip)) {
+          seat <- seats$seat[seats$IP==ip] 
+        } else warning("Seat not found for client ", client)  
+      }
       subjects <<- rbind(subjects, data.frame( client=client, id=id, seat=seat, 
             period=0, status=factor("Running", levels=c("Running", "Waiting", 
             "Finished")), stringsAsFactors=FALSE))
@@ -196,8 +195,6 @@ Experiment <- setRefClass("Experiment",
           if (subject$status=="Finished") return(special_page("Experiment finished"))
           stage <- stages[[subject$period]]
           client <- client
-          assign("period", subject$period, envir=env)
-          assign("id", subject$id, envir=env)
           result <- stage$handle_request(subject$id, subject$period, params)
           if (is.next(result)) {
             next_period(subject)
@@ -256,10 +253,7 @@ Experiment <- setRefClass("Experiment",
       dir.create(fp <- file.path(session_name, "record"), recursive=TRUE)
       if (file.access(fp, 2) != 0) stop("Could not write into ", fp)
       status <<- "Waiting"
-      if (! is.null(on_ready)) {
-        environment(on_ready) <- env
-        on_ready()
-      }
+      if (! is.null(on_ready)) on_ready()
       server$start(session_name=session_name)
 
       return(invisible(TRUE))
@@ -321,9 +315,7 @@ Experiment <- setRefClass("Experiment",
         server$halt()        
       }
       .oldserver <<- server
-      # clean up the experiment environment, subjects table etc.
-      # would be cleaner to do this all via "ready"...
-      rm(list=objects(env), envir=env)
+      # clean up the subjects table etc.
       requests <<- commands <<- list()
       initialize_subjects()
       # start a replayserver which runs the commands
@@ -381,8 +373,8 @@ setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
 #' @param on_ready a user-defined function, to be called when \code{\link{ready}} 
 #'        is called. Use \code{on_ready} to initialize your data. In this
 #'        way your experiment will be replay-safe, since \code{replay} calls
-#'        \code{ready} automatically. The function will be called in the 
-#'        experiment's environment.
+#'        \code{ready} automatically. 
+#'        
 #' @return an object of class Experiment.
 #' 
 #' @details 
@@ -395,15 +387,7 @@ setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
 #' command line. When you want the experiment to start, call 
 #' \code{\link[=start]{start(experiment)}}.
 #' 
-#' An experiment has its own empty environment. Functions and brew files
-#' passed into stages will be evaluated in this environment. When the experiment
-#' is replayed, this environment is cleaned. It is a good idea to assign
-#' variables into the experiment's environment rather than elsewhere:
-#' \code{
-#'   with(environment(expt), mydf <- data.frame(id=character(0), profit=character(0)))
-#' }
-#' This will keep your experiments replay-safe. To initialize your data,
-#' use \code{on_ready}.
+#' To keep your experiments replay-safe, use \code{\link{on_ready}} to initialize your data.
 #' 
 #' @examples
 #' expt <- experiment(name='testing', port=12345, N=4)
@@ -548,9 +532,6 @@ session_name <- function(experiment) experiment$get_session_name()
 #' Replay part or all of an experiment
 #' 
 #' \code{replay} plays back an experiment using records stored on disk.
-#' If the experiment is already started, it will be stopped
-#' and all information in the experiment's environment will be
-#' deleted in preparation for the replay.
 #' All requests from clients, and all commands issued on the command line,
 #' will be replayed. Afterwards the experiment can be continued.
 #' 
@@ -566,6 +547,10 @@ session_name <- function(experiment) experiment$get_session_name()
 #' where the date and time record when \code{\link{ready}} was called. Within this folder,
 #' the subfolder 'record' holds details. If \code{folder} is not given, the default is either
 #' the current session name, or the most recently accessed folder matching the format above.
+#' 
+#' Before replay, the experiment will be stopped (if it is already started); the subject table
+#' will be reinitialized and \code{\link{ready}} will be called. This has the effect of
+#' calling any user-defined \code{on_ready} function.
 #' 
 #' \code{speed} can be numeric or "realtime". A numeric gives the number of seconds
 #' to wait before executing each command or request. "realtime" means, go at the speed of the
@@ -598,8 +583,8 @@ session_name <- function(experiment) experiment$get_session_name()
 #' : the first replay will have created a new session with only the commands 
 #' from the first 30 seconds. (NB also: the timings will have been changed to reflect
 #' the replay speed. This is probably a bug.) If you want to move backward and forward
-#' within a session, use \code{replay(expt, folder="xxx")} where xxx is a specific 
-#' session.
+#' within a session, use \code{replay(expt, folder="xxx")} where xxx is the specific 
+#' session of interest.
 #' 
 #' @examples
 #' start(expt)
@@ -610,21 +595,3 @@ session_name <- function(experiment) experiment$get_session_name()
 #' @export
 replay <- function(experiment, folder=NULL, maxtime=Inf, speed=NULL, ask=FALSE) 
   experiment$replay(folder, maxtime, speed, ask)
-  
-setGeneric("environment")
-#' Return an experiment's environment
-#' 
-#' @examples
-#' expt <- experiment(N=1)
-#' with(environment(expt),
-#'     mydf <- data.frame(id=numeric(0), profit=numeric(0))
-#' )
-#' 
-#' @details
-#' It is a good idea to assign variables within the experiment's environment
-#' in your source file before defining stages. These variables can then be
-#' accessed in your stage functions and brew files. They can be written to
-#' using \code{<<-}. Doing this helps make your experiment replay-safe.
-#' @export
-setMethod("environment", "Experiment", function(fun) 
-      fun$environment())

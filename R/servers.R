@@ -119,9 +119,9 @@ RookServer <- setRefClass("RookServer", contains="Server",
         if (nchar(poss_client)>0) client <- poss_client
       }    
       params <- req$params()
-      
+
       result <- .pass_request(client, params, ip, cookies)
-      
+         
       if (inherits(result, "Response")) {
         result$set_cookie(session_name, client)
         result$finish()
@@ -131,7 +131,7 @@ RookServer <- setRefClass("RookServer", contains="Server",
         res$set_cookie(session_name, client)
         res$write(result)
         res$finish()
-      }
+      }          
     },
     start = function (session_name=paste0(name, Sys.time())) {
       session_name <<- session_name

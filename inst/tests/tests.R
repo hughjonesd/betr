@@ -1,17 +1,19 @@
 
-test_that("Command line server works remotely", {
-  cls <- CommandLineServer$new(port=12345, 
-    pass_request = function(name, params, ip, client) return(params["foo"]))
-  cls$start()
-  tmp <- socketConnection(port=12345)
-  cat("test foo:bar\n", file=tmp)
-  Sys.sleep(0.2)
-  resp <- readLines(tmp)
-  expect_that(resp, matches("bar"))
-  cls$halt()
-  close(tmp)
-  expect_that(socketConnection(port=12345), gives_warning())
-})
+library(testthat)
+
+# test_that("Command line server works remotely", {
+#   cls <- CommandLineServer$new(port=12345, 
+#     pass_request = function(name, params, ip, client) return(params["foo"]))
+#   cls$start()
+#   tmp <- socketConnection(port=12345)
+#   cat("test foo:bar\n", file=tmp)
+#   Sys.sleep(0.2)
+#   resp <- readLines(tmp)
+#   expect_that(resp, matches("bar"))
+#   cls$halt()
+#   close(tmp)
+#   expect_that(socketConnection(port=12345), gives_warning())
+# })
 
 test_that("RookServer works", {
   rs <- RookServer$new(name="jim", clients_in_url=FALSE,
@@ -88,9 +90,8 @@ test_that("Rook server works with experiment", {
   s1 <- stage(handler=function(...) "Got to stage s1")
   add_stage(expt, s1)
   ready(expt)
-  expect_that(show(expt), matches("Waiting"))
+  expect_that(show(expt), prints_text("Waiting"))
   expect_that(expt$handle_request("jim", list()), equals("Got to stage s1"))
-  start(expt)
   
   expt <- experiment(N=1, server="RookServer", autostart=FALSE)
   add_stage(expt, s1)
@@ -128,25 +129,6 @@ test_that("StructuredStages work", {
   expect_that(s1$handle_request(1,1, list()), equals("Foo barf!"), 
         info="Errors in process not being caught")
 })
-
-test_that("Experiment environments work", {
-  expt <- experiment(N=1)
-  with(environment(expt), foo <- "blah")
-  expect_that(get("foo", envir=environment(expt)), equals("blah"))
-  s1 <- function (id, period, params) {
-    if ("foo" %in% names(params)) foo <<- params$foo
-    foo
-  }
-  add_stage(expt, s1, s1)
-  ready(expt)
-  expt$handle_request("jim", list())
-  start(expt)
-  expect_that(expt$handle_request("jim", list()), equals("blah"))
-  expect_that(expt$handle_request("jim", list(foo="baz")), equals("baz"))
-  expect_that(exists("foo"), is_false())
-  expect_that(get("foo", envir=environment(expt)), equals("baz"))
-})
-unlink(dir(pattern="betr-201.*"), recursive=TRUE)
 
 test_that("Experiment replay works", {
   init_data <- function () foo <<- 0

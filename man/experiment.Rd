@@ -36,10 +36,9 @@ be turned off in production!}
 \code{\link{identify_seats}} for details.}
 
 \item{on_ready}{a user-defined function, to be called when \code{\link{ready}}
-is called. Use \code{on_ready} to initialize your data. In this
-way your experiment will be replay-safe, since \code{replay} calls
-\code{ready} automatically. The function will be called in the
-experiment's environment.}
+       is called. Use \code{on_ready} to initialize your data. In this
+       way your experiment will be replay-safe, since \code{replay} calls
+       \code{ready} automatically.}
 }
 \value{
 an object of class Experiment.
@@ -58,15 +57,7 @@ page which refreshes regularly. To see your experiment's status, call
 command line. When you want the experiment to start, call
 \code{\link[=start]{start(experiment)}}.
 
-An experiment has its own empty environment. Functions and brew files
-passed into stages will be evaluated in this environment. When the experiment
-is replayed, this environment is cleaned. It is a good idea to assign
-variables into the experiment's environment rather than elsewhere:
-\code{
-  with(environment(expt), mydf <- data.frame(id=character(0), profit=character(0)))
-}
-This will keep your experiments replay-safe. To initialize your data,
-use \code{on_ready}.
+To keep your experiments replay-safe, use \code{\link{on_ready}} to initialize your data.
 }
 \examples{
 expt <- experiment(name='testing', port=12345, N=4)
