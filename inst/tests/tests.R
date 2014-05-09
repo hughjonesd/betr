@@ -149,19 +149,22 @@ test_that("Experiment environments work", {
 unlink(dir(pattern="betr-201.*"), recursive=TRUE)
 
 test_that("Experiment replay works", {
-  init_data <- function () {foo <<- 0; mypar <<- ""; warning("got here")}
+  init_data <- function () {foo <<- 0; mypar <<- ""}
   expt <- experiment(N=1, server="RookServer", autostart=TRUE, on_ready=init_data)
-  s1 <- stage(handler=function(id, period, params) {foo <<- foo + 1; mypar <<- params$mypar})
+  s1 <- stage(handler=function(id, period, params) {foo <<- foo + 1})
   add_stage(expt, s1)
+  t1 <- Sys.time()
   ready(expt)
-  expt$handle_request("jim", list(mypar="a"), "127.0.0.1", list(cookie1="b"))
+  expt$handle_request("jim", list(mypar="a"))
+  t2 <- Sys.time() - t1
   expect_that(with(environment(expt), foo), equals(1))
-  expect_that(with(environment(expt), mypar), is_identical_to("a"))
-  Sys.sleep(5)
-  expt$handle_request("jim", list(mypar="b"), "127.0.0.1", list(cookie1="b"))
+  Sys.sleep(4)
+  expt$handle_request("jim", list(mypar="b"))
   expect_that(with(environment(expt), foo), equals(2))
-  expect_that(with(environment(expt), mypar), is_identical_to("b"))
-  replay(expt, maxtime=2)
+  Sys.sleep(4)
+  expt$handle_request("jim", list(mypar="c"))
+  replay(expt, maxtime=t2+5)
+  expect_that(with(environment(expt), foo), equals(2))
+  replay(expt, maxtime=t2+2)
   expect_that(with(environment(expt), foo), equals(1))
-  expect_that(with(environment(expt), mypar), is_identical_to("a"))
 })

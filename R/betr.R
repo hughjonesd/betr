@@ -160,12 +160,11 @@ Experiment <- setRefClass("Experiment",
     },
     
     record_request = function(client, params, ip=NULL, cookies=NULL) {
-      request <- list(client=client, params=params, ip=ip, cookies=cookies,
-        time=Sys.time() - start_time)
+      request <- list(client=client, params=params, ip=ip, cookies=cookies)
       requests <<- append(requests, request)
-      requests$time <- NULL
-      dput(request, file=file(file.path(session_name, "record", 
-            paste0("request-", as.character(request$time))), open="w"))
+      tm <- Sys.time() - start_time
+      dput(request, file=file.path(session_name, "record", 
+            paste0("request-", as.character(tm))))
     },
     
     handle_command = function(command, params) {      
