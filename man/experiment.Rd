@@ -28,12 +28,22 @@
   creating folders.}
 
   \item{client_refresh}{numeric. How often should waiting
-  clients refresh thier pages?}
+  clients refresh their pages?}
 
   \item{clients_in_url}{logical. If \code{TRUE}, client
   names can be specified in the URL as e.g.
   experiment/client_name. Useful for testing, should be
   turned off in production!}
+
+  \item{seats_file}{path of the file where seat information
+  is stored. See \code{\link{identify_seats}} for details.}
+
+  \item{on_ready}{a user-defined function, to be called
+  when \code{\link{ready}} is called. Use \code{on_ready}
+  to initialize your data. In this way your experiment will
+  be replay-safe, since \code{replay} calls \code{ready}
+  automatically. The function will be called in the
+  experiment's environment.}
 }
 \value{
   an object of class Experiment.
@@ -64,7 +74,8 @@
   variables into the experiment's environment rather than
   elsewhere: \code{ with(environment(expt), mydf <-
   data.frame(id=character(0), profit=character(0))) } This
-  will keep your experiments replay-safe.
+  will keep your experiments replay-safe. To initialize
+  your data, use \code{on_ready}.
 }
 \examples{
 expt <- experiment(name='testing', port=12345, N=4)

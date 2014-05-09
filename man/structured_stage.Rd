@@ -114,12 +114,12 @@
   \code{ready} is a vector containing the ids of
   participants who have been marked as ready. The
   participant will move on to \code{results} only when the
-  function returns \code{TRUE}. If it is a list of vectors,
-  then the participant will move on only when all
-  participants in the same vector are ready. For example,
-  \code{wait_for=list(1:4,5:8,9:12,13:16)} requires that
-  participant IDs 1 to 4 are all ready before participant 1
-  can move to \code{results}.
+  function returns \code{TRUE}. If \code{wait_for} is a
+  list of vectors, then the participant will move on only
+  when all participants in the same vector are ready. For
+  example, \code{wait_for=list(1:4,5:8,9:12,13:16)}
+  requires that participant IDs 1 to 4 are all ready before
+  participant 1 can move to \code{results}.
 }
 \examples{
 s1 <- structured_stage(

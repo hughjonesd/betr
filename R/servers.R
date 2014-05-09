@@ -23,7 +23,8 @@ Server <- setRefClass("Server",
     
     get_url = function() stop("get_url() called on abstract class Server"),
     
-    .pass_request = function(name, params) pass_request(name, params)
+    .pass_request = function(name, params, ip=NULL, client=NULL) 
+      pass_request(name, params, ip, client)
   )
 )
 

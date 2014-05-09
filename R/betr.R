@@ -22,6 +22,7 @@ Experiment <- setRefClass("Experiment",
     .oldserver="Server",
     subjects="data.frame",
     seats="data.frame",
+    on_ready="function",
     requests="list",
     commands="list",
     start_time="POSIXct",
@@ -31,7 +32,8 @@ Experiment <- setRefClass("Experiment",
   methods=list(
     initialize = function(..., auth=TRUE, port, autostart=FALSE, 
       allow_latecomers=FALSE, N=Inf, server="RookServer", name="betr", 
-      client_refresh=10, clients_in_url=FALSE, seats_file="betr-SEATS.txt") {
+      client_refresh=10, clients_in_url=FALSE, seats_file="betr-SEATS.txt",
+      on_ready=NULL) {
       stages <<- list()
       env <<- new.env(parent=.GlobalEnv)
       initialize_subjects()
@@ -56,7 +58,7 @@ Experiment <- setRefClass("Experiment",
       if (class(err)=="try-error") warning("Problem reading seats file ", seats_file)
       callSuper(..., auth=auth, autostart=autostart, clients_in_url=clients_in_url,
             allow_latecomers=allow_latecomers, N=N, client_refresh=client_refresh,
-            name=name)
+            name=name, on_ready=on_ready)
       if (is.infinite(N)) warning("No maximum N set for experiment")
     },
     
@@ -117,7 +119,7 @@ Experiment <- setRefClass("Experiment",
       id <- if(nrow(subjects)) max(subjects$id)+1 else 1
       seat <- NA
       if (! is.null(cookies) && "betr-seat" %in% cookies) 
-        seat <- seats$seat[seats$cookie==cookies[["betr-seat"]] else 
+        seat <- seats$seat[ seats$cookie==cookies[["betr-seat"]] ] else 
         if (! is.null(ip)) 
           seat <- seats$seat[seats$IP==ip] else
           warning("Seat not found for client ", client)
@@ -152,27 +154,18 @@ Experiment <- setRefClass("Experiment",
       command <- list(name=command, params=params, 
         time=Sys.time() - start_time)
       commands <<- append(commands, command)
-      # TODO: print to file
-      tmp <- file(file.path(session_name, "record", paste0("command-", 
-            as.character(command$time))), open="w")
-      cat(command$name, "\n", paste(mapply(paste, names(params), params, 
-            MoreArgs=list(sep=":")), collapse="\n"), file=tmp)
-      close(tmp)
+      command$time <- NULL
+      dput(command, file=file.path(session_name, "record", paste0("command-", 
+            as.character(command$time))))
     },
     
     record_request = function(client, params, ip=NULL, cookies=NULL) {
       request <- list(client=client, params=params, ip=ip, cookies=cookies,
         time=Sys.time() - start_time)
       requests <<- append(requests, request)
-      tmp <- file(file.path(session_name, "record", 
-            paste0("request-", as.character(request$time))), open="w")
-      cat(client, "\n", ip, "\n", 
-            paste(mapply(paste, names(params), params, MoreArgs=list(sep=":")), 
-            collapse="\n"), "\n\n",
-            paste(mapply(paste, names(cookies), cookies, MoreArgs=list(sep=":")), 
-            collapse="\n"), 
-            sep="", file=tmp)
-      close(tmp)
+      requests$time <- NULL
+      dput(request, file=file(file.path(session_name, "record", 
+            paste0("request-", as.character(request$time))), open="w"))
     },
     
     handle_command = function(command, params) {      
@@ -186,7 +179,7 @@ Experiment <- setRefClass("Experiment",
     },
     
     handle_request = function(client, params, ip=NULL, cookies=NULL) {
-      record_request(client, params)
+      record_request(client, params, ip, cookies)
       # authorization
       subject <- tryCatch( authorize(client, params, ip, cookies), error = function(e) e)
       if (inherits(subject, "error")) {
@@ -204,8 +197,6 @@ Experiment <- setRefClass("Experiment",
           if (subject$status=="Finished") return(special_page("Experiment finished"))
           stage <- stages[[subject$period]]
           client <- client
-          # self_url <- function() ""
-          # stage$.set_handler_env(environment())
           assign("period", subject$period, envir=env)
           assign("id", subject$id, envir=env)
           result <- stage$handle_request(subject$id, subject$period, params)
@@ -268,6 +259,11 @@ Experiment <- setRefClass("Experiment",
       ## run server
       status <<- "Waiting"
       server$start(session_name=session_name)
+      
+      if (! is.null(on_ready)) {
+        environment(on_ready) <- env
+        on_ready()
+      }
       return(invisible(TRUE))
     },
     
@@ -378,10 +374,17 @@ setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
 #' @param name the character name of the experiment, used in creating
 #'        folders.
 #' @param client_refresh numeric. How often should waiting clients refresh
-#'        thier pages?
+#'        their pages?
 #' @param clients_in_url logical. If \code{TRUE}, client names can be specified 
 #'        in the URL as e.g. experiment/client_name. Useful for testing, should
 #'        be turned off in production!
+#' @param seats_file path of the file where seat information is stored. See
+#'        \code{\link{identify_seats}} for details.
+#' @param on_ready a user-defined function, to be called when \code{\link{ready}} 
+#'        is called. Use \code{on_ready} to initialize your data. In this
+#'        way your experiment will be replay-safe, since \code{replay} calls
+#'        \code{ready} automatically. The function will be called in the 
+#'        experiment's environment.
 #' @return an object of class Experiment.
 #' 
 #' @details 
@@ -401,7 +404,8 @@ setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
 #' \code{
 #'   with(environment(expt), mydf <- data.frame(id=character(0), profit=character(0)))
 #' }
-#' This will keep your experiments replay-safe.
+#' This will keep your experiments replay-safe. To initialize your data,
+#' use \code{on_ready}.
 #' 
 #' @examples
 #' expt <- experiment(name='testing', port=12345, N=4)

@@ -1,7 +1,7 @@
 
 test_that("Command line server works remotely", {
   cls <- CommandLineServer$new(port=12345, 
-    pass_request = function(name, params) return(params["foo"]))
+    pass_request = function(name, params, ip, client) return(params["foo"]))
   cls$start()
   tmp <- socketConnection(port=12345)
   cat("test foo:bar\n", file=tmp)
@@ -15,7 +15,7 @@ test_that("Command line server works remotely", {
 
 test_that("RookServer works", {
   rs <- RookServer$new(name="jim", clients_in_url=FALSE,
-        pass_request = function(name, params) return(params["foo"]))
+        pass_request = function(name, params, ip, cookies) return(params["foo"]))
   rs$start()
   fake_env <- new.env()
   fake_env$QUERY_STRING="foo=bar"
@@ -147,3 +147,21 @@ test_that("Experiment environments work", {
   expect_that(get("foo", envir=environment(expt)), equals("baz"))
 })
 unlink(dir(pattern="betr-201.*"), recursive=TRUE)
+
+test_that("Experiment replay works", {
+  init_data <- function () {foo <<- 0; mypar <<- ""; warning("got here")}
+  expt <- experiment(N=1, server="RookServer", autostart=TRUE, on_ready=init_data)
+  s1 <- stage(handler=function(id, period, params) {foo <<- foo + 1; mypar <<- params$mypar})
+  add_stage(expt, s1)
+  ready(expt)
+  expt$handle_request("jim", list(mypar="a"), "127.0.0.1", list(cookie1="b"))
+  expect_that(with(environment(expt), foo), equals(1))
+  expect_that(with(environment(expt), mypar), is_identical_to("a"))
+  Sys.sleep(5)
+  expt$handle_request("jim", list(mypar="b"), "127.0.0.1", list(cookie1="b"))
+  expect_that(with(environment(expt), foo), equals(2))
+  expect_that(with(environment(expt), mypar), is_identical_to("b"))
+  replay(expt, maxtime=2)
+  expect_that(with(environment(expt), foo), equals(1))
+  expect_that(with(environment(expt), mypar), is_identical_to("a"))
+})

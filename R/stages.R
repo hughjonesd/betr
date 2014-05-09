@@ -107,10 +107,10 @@ TextStage <- setRefClass("TextStage", contains="AbstractStage",
 text_stage <- function (...) TextStage$new(...)
 
 file_or_brew <- function(fb, env=parent.frame()) {
+  fbn <- if (class(fb)=="file") summary(fb)$description else fb
   # WTF does brew() not just return a string?
-  if (grepl("\\.brew$", summary(fb)$description)) {
-    # don't use fb directly - work around brew bug
-    capture.output(brew(summary(fb)$description, envir=env))
+  if (grepl("\\.brew$", fbn)) {
+    capture.output(brew(fbn, envir=env))
   } else {
     readLines(fb)
   }    
@@ -307,7 +307,7 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
 #'        \code{ready} is a vector containing the ids of participants who have been 
 #'        marked as ready. The participant will
 #'        move on to \code{results} only when the function returns \code{TRUE}. If
-#'        it is a list of vectors, then the participant will move on only when 
+#'        \code{wait_for} is a list of vectors, then the participant will move on only when 
 #'        all participants in the same vector are ready. For example, 
 #'        \code{wait_for=list(1:4,5:8,9:12,13:16)} requires that participant
 #'        IDs 1 to 4 are all ready before participant 1 can move to \code{results}.

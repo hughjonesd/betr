@@ -23,7 +23,7 @@ TODO
 
 * use addTaskCallback and friends to print something out at end of repl loops?
 
-* replay()
+* replay() DONE
 * autocreate fake participants using request records
 * More generally, framework for faking participants
   - Say, replay(realtime=1, clients=NA, exclude=NA) 
