@@ -17,7 +17,7 @@ Imports:
     tools
 Collate:
     'FixedRhttpd.R'
-    'servers.R'
     'stages.R'
+    'servers.R'
     'betr.R'
     'utils.R'

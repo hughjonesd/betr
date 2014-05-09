@@ -588,6 +588,19 @@ session_name <- function(experiment) experiment$get_session_name()
 #'   \item Any other item will be evaluated in the global environment
 #' } 
 #' 
+#' Note that replay creates a new session. This means that you cannot do
+#' 
+#' \code{
+#' replay(expt, maxtime=30)
+#' replay(expt, maxtime=120)
+#' }
+#' 
+#' : the first replay will have created a new session with only the commands 
+#' from the first 30 seconds. (NB also: the timings will have been changed to reflect
+#' the replay speed. This is probably a bug.) If you want to move backward and forward
+#' within a session, use \code{replay(expt, folder="xxx")} where xxx is a specific 
+#' session.
+#' 
 #' @examples
 #' start(expt)
 #' # something goes wrong after 2 minutes
