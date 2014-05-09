@@ -103,14 +103,12 @@ RookServer <- setRefClass("RookServer", contains="Server",
     
     call = function (env) {
       req <- Rook::Request$new(env)
-      
-      if (session_name %in% names(req$cookies())) {
-        client <- req$cookies()[[session_name]]
-      } else {
-        ip <- req$ip()
-        if (length(ip) == 0) ip <- "127.0.0.1" # work around Rook bug
+      ip <- req$ip()
+      if (length(ip) == 0) ip <- "127.0.0.1" # work around Rook bug
+      cookies <- req$cookies()
+      if (session_name %in% names(cookies))
+        client <- cookies[[session_name]] else 
         client <- paste0(ip, "-", paste(sample(LETTERS, 10), collapse=''))
-      }
       if (clients_in_url) {
         # always overrides cookie
         poss_client <- sub(paste0(".*", name, "/(.*)"), "\\1", req$path())
@@ -118,7 +116,8 @@ RookServer <- setRefClass("RookServer", contains="Server",
       }    
       params <- req$params()
       
-      result <- .pass_request(client, params)
+      result <- .pass_request(client, params, ip, cookies)
+      
       if (inherits(result, "Response")) {
         result$set_cookie(session_name, client)
         result$finish()
@@ -177,19 +176,14 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
         pattern="(command|request)-[0-9\\.]+")
       if (length(comreq) == 0) stop("Found no commands or requests in ", file.path(folder, "record"))
       comreq <- data.frame(name=comreq, type=sub("(command|request).*", "\\1", comreq),
-        time=sub("(command|request)-([0-9\\.]+)", "\\2", comreq), command_name=NA, client=NA,
+        time=sub("(command|request)-([0-9\\.]+)", "\\2", comreq), 
         stringsAsFactors=FALSE)
-      paramlist <- list()
       comreq$time <- as.numeric(comreq$time)
       comreq <- comreq[order(comreq$time),]
       comreq <- comreq[comreq$time <= maxtime,]
+      cr.data <- list()
       for (i in 1:nrow(comreq)) {
-        txt <- readLines(file.path(folder, "record", comreq$name[i]), warn=FALSE)
-        txt <- sub("^\\s+", "", txt)
-        txt <- sub("\\s+$", "", txt)
-        if (comreq$type[i]=="command") comreq$command_name[i] <- txt[1] else
-          comreq$client[i] <- txt[1]
-        paramlist[[i]] <- if (length(txt)>1) tail(txt, -1) else NA
+        cr.data[[i]] <- dget(file.path(folder, "record", comreq$name[i]))
       }
             
       reltimes <- diff(c(0, comreq$time))
@@ -200,22 +194,17 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
           if(speed=="realtime") Sys.sleep(reltimes[i])
           if (is.numeric(speed)) Sys.sleep(speed)
         }
-        fields <- paramlist[[i]]
-        pnames <- sub("([^:]*):.*", "\\1", fields)
-        params <- sub("[^:]*:(.*)", "\\1", fields)
-        names(params) <- pnames
-        params <- as.list(params)
         if (ask) {
           r <- "xxx"
           skip <- FALSE
           while (! r %in% c("n", "", "c", "q", "s")) {
             r <- readline("replay > ")
             switch(r, s={skip <- TRUE}, c={ask <<- FALSE}, q={skip <- TRUE; ask <<- FALSE}, d={
-                if (comreq$type[i]=="request") cat("Request from client:", comreq$client[i]) else
-                  cat("Command:", comreq$command_name[i])
+                if (comreq$type[i]=="request") cat("Request from client:", cr.data[[i]]$client) else
+                  cat("Command:", cr.data[[i]]$command)
                 cat("\nTime from start:", comreq$time[i], "\n")
                 cat("Params:\n")
-                cat(str(params), "\n")
+                cat(str(cr.data[[i]]$params), "\n")
               },
               h=,
               "?"=cat("[n]ext command/request, [s]kip command/request, [c]ontinue to end, [q]uit, [d]etails, [?h]elp, or enter R expression\n"),
@@ -226,8 +215,8 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
         }
         if (skip) next
         switch(comreq$type[i], 
-          command= pass_command(comreq$command_name[i], params),
-          request= .pass_request(comreq$client[i], params)
+          command= pass_command(comreq$command_name[i], cr.data[[i]]$params),
+          request= .pass_request(cr.data[[i]]$client, cr.data[[i]]$params, cr.data[[i]]$ip, cr.data[[i]]$cookies)
         ) 
       }
     },

@@ -21,6 +21,7 @@ Experiment <- setRefClass("Experiment",
     server="Server",
     .oldserver="Server",
     subjects="data.frame",
+    seats="data.frame",
     requests="list",
     commands="list",
     start_time="POSIXct",
@@ -30,7 +31,7 @@ Experiment <- setRefClass("Experiment",
   methods=list(
     initialize = function(..., auth=TRUE, port, autostart=FALSE, 
       allow_latecomers=FALSE, N=Inf, server="RookServer", name="betr", 
-      client_refresh=10, clients_in_url=FALSE) {
+      client_refresh=10, clients_in_url=FALSE, seats_file="betr-SEATS.txt") {
       stages <<- list()
       env <<- new.env(parent=.GlobalEnv)
       initialize_subjects()
@@ -43,12 +44,16 @@ Experiment <- setRefClass("Experiment",
               clients_in_url=clients_in_url, name=name)
         sclass <- if (is.character(server)) get(server) else server
         if (missing(port) && sclass$className %in% 
-            c("RookServer", "CommandLineServer"))
+              c("RookServer", "CommandLineServer"))
           server_args$port <- 35538
         server <<- do.call(sclass$new, server_args)
       }
       requests <<- commands <<- list()
       .command_names <<- c("start", "pause", "restart", "next_period")
+      seats <- data.frame(seat=numeric(0), IP=character(0), cookie=character(0))
+      err <- try(seats <<- read.table(seats_file, header=TRUE, 
+            colClasses=c("integer", "character", "character")))    
+      if (class(err)=="try-error") warning("Problem reading seats file ", seats_file)
       callSuper(..., auth=auth, autostart=autostart, clients_in_url=clients_in_url,
             allow_latecomers=allow_latecomers, N=N, client_refresh=client_refresh,
             name=name)
@@ -56,7 +61,7 @@ Experiment <- setRefClass("Experiment",
     },
     
     initialize_subjects = function() {
-      subjects <<- data.frame(client=character(0), id=numeric(0), 
+      subjects <<- data.frame(client=character(0), id=numeric(0), seat=character(0),
         period=numeric(0), status=factor(, levels=c("Running", "Waiting", 
           "Finished")), stringsAsFactors=FALSE)
     },
@@ -92,8 +97,9 @@ Experiment <- setRefClass("Experiment",
       sprintf("<html><head></head><body>%s</body></html>", message)
     },
     
-    authorize = function(client, params) {
+    authorize = function(client, params, ip, cookies) {
       if (client %in% subjects$client) return(subjects[subjects$client==client,])
+      
       # we have a new client:
       if (nrow(subjects) >= N) stop("Too many participants")
       if (! status %in% c("Started", "Waiting")) stop("Not accepting participants")
@@ -107,10 +113,18 @@ Experiment <- setRefClass("Experiment",
           "', should be character or function")
       )
       if (! ok) stop("Client unauthorized")
+      
       id <- if(nrow(subjects)) max(subjects$id)+1 else 1
-      subjects <<- rbind(subjects, data.frame(id=id, period=0, client=client, 
-            status=factor("Running", levels=c("Running", "Waiting", "Finished")), 
-            stringsAsFactors=FALSE))
+      seat <- NA
+      if (! is.null(cookies) && "betr-seat" %in% cookies) 
+        seat <- seats$seat[seats$cookie==cookies[["betr-seat"]] else 
+        if (! is.null(ip)) 
+          seat <- seats$seat[seats$IP==ip] else
+          warning("Seat not found for client ", client)
+      subjects <<- rbind(subjects, data.frame( client=client, id=id, seat=seat, 
+            period=0, status=factor("Running", levels=c("Running", "Waiting", 
+            "Finished")), stringsAsFactors=FALSE))
+          
       if (status=="Started") next_period(subjects[subjects$client==client,])
       # if we reach N, trigger a change of state
       if (nrow(subjects)==N && autostart) {
@@ -146,14 +160,18 @@ Experiment <- setRefClass("Experiment",
       close(tmp)
     },
     
-    record_request = function(client, params) {
-      request <- list(client=client, params=params, 
+    record_request = function(client, params, ip=NULL, cookies=NULL) {
+      request <- list(client=client, params=params, ip=ip, cookies=cookies,
         time=Sys.time() - start_time)
       requests <<- append(requests, request)
       tmp <- file(file.path(session_name, "record", 
             paste0("request-", as.character(request$time))), open="w")
-      cat(client, "\n", paste(mapply(paste, names(params), params,
-            MoreArgs=list(sep=":")), collapse="\n"), file=tmp)
+      cat(client, "\n", ip, "\n", 
+            paste(mapply(paste, names(params), params, MoreArgs=list(sep=":")), 
+            collapse="\n"), "\n\n",
+            paste(mapply(paste, names(cookies), cookies, MoreArgs=list(sep=":")), 
+            collapse="\n"), 
+            sep="", file=tmp)
       close(tmp)
     },
     
@@ -167,10 +185,10 @@ Experiment <- setRefClass("Experiment",
       }
     },
     
-    handle_request = function(client, params) {
+    handle_request = function(client, params, ip=NULL, cookies=NULL) {
       record_request(client, params)
       # authorization
-      subject <- tryCatch( authorize(client, params), error = function(e) e)
+      subject <- tryCatch( authorize(client, params, ip, cookies), error = function(e) e)
       if (inherits(subject, "error")) {
         return(special_page(conditionMessage(subject)))
       }
