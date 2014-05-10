@@ -26,7 +26,7 @@ It is always safe to call \code{next_stage} on a participant who
 }
 \seealso{
 Other stages: \code{\link{NEXT}}, \code{\link{WAIT}},
-  \code{\link{stage}}; \code{\link{period}};
-  \code{\link{structured_stage}}
+  \code{\link{stage}}; \code{\link{calculation}};
+  \code{\link{period}}; \code{\link{structured_stage}}
 }
 

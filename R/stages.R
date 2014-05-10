@@ -400,6 +400,60 @@ Period <- setRefClass("Period", contains="AbstractStage",
 period <- function (...) Period$new(...)
 
 
+Calculation <- setRefClass("Calculation", contains="AbstractStage",
+  fields = list(
+    fn = "function",
+    done = "logical",
+    run = "character"
+  ),
+  methods = list(
+    initialize = function(fn, run="once") {
+      callSuper(fn=fn, run=run, done=FALSE) 
+    },
+    
+    handle_request = function(id, period, params) {
+      if (! done || run=="all") {
+        fn(id, period)
+        done <<- TRUE
+      }
+      return(NEXT)
+    }
+  )
+)
+
+
+#' Perform a calculation, either once or for each subject
+#' 
+#' @param fn a function which should take two arguments, \code{id} and 
+#' \code{period}.
+#' @param run either "once" or "all".
+#' 
+#' @details 
+#' The function will be run when the first subject reaches this stage. If
+#' \code{run} is \code{"all"} then it will be run again every time another
+#' subject reaches the stage.
+#' 
+#' @examples
+#' expt <- experiment(N=4)
+#' s1 <- text_stage(text="<html><body><form action=''>
+#'      Enter a contribution:<input name='contrib' type='text'>
+#'      <input type='submit' value='Next'></form></body></html>")
+#'      
+#' # go ahead individually:
+#' add_stage(expt, s1, new_period(), times=2) 
+#' 
+#' # wait for everyone:
+#' add_stage(expt, s1, new_period("all"), times=2) 
+#' 
+#' # players 1 and 2 wait for each other, so do 3 and 4:
+#' add_stage(expt, s1, new_period(groups), times=2) 
+#' 
+#' @return A Stage object of class Calculation
+#' @family stages
+#' @export
+calculation <- function (fn, run="once") Calculation$new(fn, run) 
+
+
 #' @rdname stage
 #' @export
 NEXT <- -1
