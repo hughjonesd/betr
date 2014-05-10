@@ -10,16 +10,12 @@ BUGS
 TODO
 ----
 
-* how to allow for different possible Ns, and general framework for when to start
-* consider putting WAIT and waiting_page in Stage not Experiment
 * elegant, easy-to-use assignment to subjects
   - do we merge expt$subjects and experiment's actual data?
   - probably if it is easy...
   - subjects(id) and subjects(id)<- methods?
 * in general what if we pass lots of stuff in to user-defined functions
   which just take (...)?
-
-* easy interface to brew
 
 * use addTaskCallback and friends to print something out at end of repl loops?
 

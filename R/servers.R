@@ -1,4 +1,5 @@
 #' @import Rook
+#' @import yaml
 #' @import svSocket
 
 
@@ -188,7 +189,7 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
       comreq <- comreq[comreq$time <= maxtime,]
       cr.data <- list()
       for (i in 1:nrow(comreq)) {
-        cr.data[[i]] <- dget(file.path(folder, "record", comreq$name[i]))
+        cr.data[[i]] <- yaml.load_file(file.path(folder, "record", comreq$name[i]))
       }
             
       reltimes <- diff(c(0, comreq$time))

@@ -1,3 +1,5 @@
+#' @import yaml
+
 #' @include servers.R
 #' @include stages.R
 
@@ -165,7 +167,7 @@ Experiment <- setRefClass("Experiment",
         time=Sys.time() - start_time)
       commands <<- append(commands, command)
       command$time <- NULL
-      dput(command, file=file.path(session_name, "record", paste0("command-", 
+      cat(as.yaml(command), file=file.path(session_name, "record", paste0("command-", 
             as.character(command$time))))
     },
     
@@ -173,7 +175,7 @@ Experiment <- setRefClass("Experiment",
       request <- list(client=client, params=params, ip=ip, cookies=cookies)
       requests <<- append(requests, request)
       tm <- Sys.time() - start_time
-      dput(request, file=file.path(session_name, "record", 
+      cat(as.yaml(request), file=file.path(session_name, "record", 
             paste0("request-", as.character(tm))))
     },
     
