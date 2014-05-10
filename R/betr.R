@@ -578,14 +578,21 @@ nperiods <- function(experiment) experiment$nperiods()
 #' @param ask ask before replaying each command or request
 #' 
 #' @details
-#' betr records requests and commands in a folder named <experiment name>-YYYY-MM-DD-HHMMSS,
-#' where the date and time record when \code{\link{ready}} was called. Within this folder,
-#' the subfolder 'record' holds details. If \code{folder} is not given, the default is either
-#' the current session name, or the most recently accessed folder matching the format above.
+#' betr records requests and commands in a folder named <experiment
+#' name>-YYYY-MM-DD-HHMMSS, where the date and time record when
+#' \code{\link{ready}} was called. Within this folder, the subfolder 'record'
+#' holds details. If \code{folder} is not given, the default is either the
+#' current session name, or the most recently accessed folder matching the 
+#' format above. 
 #' 
-#' Before replay, the experiment will be stopped (if it is already started); the subject table
-#' will be reinitialized and \code{\link{ready}} will be called. This has the effect of
-#' calling any user-defined \code{on_ready} function.
+#' Each file in the folder records a single command or request. The filename
+#' records the time after experiment start that the command/request was processed.
+#' Details are stored in the file using the YAML format, which is quite 
+#' self-explanatory and easy to edit.
+#' 
+#' Before replay, the experiment will be stopped (if it is already started); the
+#' subject table will be reinitialized and \code{\link{ready}} will be called. 
+#' This has the effect of calling any user-defined \code{on_ready} function.
 #' 
 #' \code{speed} can be numeric or "realtime". A numeric gives the number of seconds
 #' to wait before executing each command or request. "realtime" means, go at the speed of the
