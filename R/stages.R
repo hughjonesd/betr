@@ -329,17 +329,18 @@ structured_stage <- function (...) StructuredStage$new(...)
 Period <- setRefClass("Period", contains="AbstractStage",
   fields = list(
     wait_for = "ANY",
-    ready = "integer"
+    ready = "numeric"
   ),
   methods = list(
     initialize = function(wait_for="none") {
-     callSuper(wait_for=wait_for, ready=integer(0)) 
+     callSuper(wait_for=wait_for, ready=numeric(0)) 
     },
     
     handle_request = function(id, period, params) {
       if (! id %in% ready) ready <<- c(ready, id)
-      ids <- if (wait_for=="all") 1:expt$N else if (wait_for=="none") 
-            integer(0) else which(wait_for==wait_for[id])
+      ids <- if (length(wait_for)==1 && wait_for=="all") 1:expt$N else 
+            if (length(wait_for)==1 && wait_for=="none") numeric(0) else 
+            which(wait_for==wait_for[id])
       if (all(ids %in% ready)) {
         expt$next_period(id)
         return(NEXT)

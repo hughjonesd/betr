@@ -130,29 +130,81 @@ test_that("StructuredStages work", {
         info="Errors in process not being caught")
 })
 
+Sys.sleep(1)
+test_that("Periods work", {
+  init_data <- function() {
+    myperiods <<- rep(NA,4) 
+    seen <<- matrix(FALSE, nrow=4, ncol=4)
+  }
+  expt <- experiment(N=4, server="RookServer", autostart=FALSE, on_ready=init_data)
+  s1 <- stage(handler=function(id, period, params) {
+    myperiods[id] <<- period
+    sn <- seen[id, period]
+    seen[id, period] <<- TRUE
+    if (sn) return(NEXT) else return("some html")
+  })
+  add_stage(expt, period(), s1, times=2)
+  expect_that(nperiods(expt), equals(2))
+  add_stage(expt, period("all"), s1)
+  add_stage(expt, period(c(1,1,2,2)), s1)
+  
+  ready(expt)
+  expect_that(myperiods, equals(rep(NA, 4)))
+  rfrom <- function(cl) expt$handle_request(cl, list())
+  clients <- paste0("client", 1:4)
+  sapply(clients, rfrom) 
+  start(expt)
+  
+  sapply(clients, rfrom) 
+  expect_that(myperiods, equals(rep(1, 4)))
+  rfrom(clients[1])
+  expect_that(myperiods, equals(c(2,1,1,1)))
+  sapply(clients[2:4], rfrom)
+  expect_that(myperiods, equals(rep(2,4)))   
+  sapply(clients[1:3], rfrom)
+  expect_that(myperiods, equals(rep(2,4)))
+  rfrom(clients[4]) # client 4 completes the set
+  expect_that(myperiods, equals(c(2,2,2,3)))
+  sapply(clients[1:3], rfrom) # now 1-3 let through
+  expect_that(myperiods, equals(rep(3,4)))
+
+  rfrom(clients[1])
+  rfrom(clients[3])
+  expect_that(myperiods, equals(rep(3,4)))
+  rfrom(clients[2])
+  rfrom(clients[1])
+  expect_that(myperiods, equals(c(4,4,3,3)))
+  rfrom(clients[4])
+  expect_that(myperiods, equals(c(4,4,3,4)))
+  rfrom(clients[3])
+  expect_that(myperiods, equals(rep(4,4)))
+})
+
+Sys.sleep(1)
 test_that("Experiment replay works", {
   init_data <- function () foo <<- 0
   expt <- experiment(N=1, server="RookServer", autostart=TRUE, on_ready=init_data)
   s1 <- stage(handler=function(id, period, params) {foo <<- foo + 1})
   add_stage(expt, s1)
-  t1 <- Sys.time()
+  t1 <- Sys.time() # time of expt start
   ready(expt)
   snm <- expt$session_name
   
+  t2 <- as.numeric(Sys.time() - t1) # time first request at least this  
   expt$handle_request("jim", list(mypar="a"))
-  t2 <- as.numeric(Sys.time() - t1)
   expect_that(foo, equals(1))
-  Sys.sleep(4)
+  t3 <- as.numeric(Sys.time()-t1) # min time request 2
   expt$handle_request("jim", list(mypar="b"))
   expect_that(foo, equals(2))
-  Sys.sleep(4)
+  t4 <- as.numeric(Sys.time()-t1) # min time req 3
   expt$handle_request("jim", list(mypar="c"))
   expect_that(foo, equals(3))
-
-  replay(expt, maxtime=t2+6)
+  
+  Sys.sleep(1)
+  replay(expt, maxtime=t4)
   expect_that(foo, equals(2))
   Sys.sleep(1)
-  replay(expt, maxtime=t2+2, folder=snm)
+  replay(expt, maxtime=t3, folder=snm)
   expect_that(foo, equals(1))
   Sys.sleep(1)
   replay(expt, folder=snm) 

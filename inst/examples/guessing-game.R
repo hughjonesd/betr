@@ -1,5 +1,5 @@
 
-mydf <<- data.frame(id=1, period=1:5, guess=NA, correct=NA)
+library(betr)
 expt <- experiment(N=1, autostart=TRUE, clients_in_url=TRUE)
 s1 <- function(id, period, params) {
 
@@ -14,14 +14,19 @@ s1 <- function(id, period, params) {
   me_before <- mydf$id==id & mydf$period == period -1
   if (period > 1) last_guess <- paste('You guessed ', mydf$guess[me_before], 
         '... you were ', if(mydf$correct[me_before]>0) 'right!' else 'wrong!', sep='')
-  return(sprintf(
-    "<html><body>
-    <p color='red'>%s</p>
+  return(paste(header(), sprintf(
+    "<p color='red'>%s</p>
     <p>Pick a number</p>
     <form action='' method='post'><select name='guess'>%s</select>
-    <input type='submit' value='Submit'></form</body></html>",
+    <input type='submit' value='Submit'></form>",
     last_guess,
     paste("<option value='", 1:10,"'>", 1:10, "</option>", sep="", collapse=""
-  )))
+  )), footer()))
 }
-add_stage(expt, s1, times=5)
+add_stage(expt, period(), s1, times=5)
+
+on_ready(expt, function() {
+  mydf <<- experiment_data_frame(expt)
+  mydf$guess <<- NA
+  mydf$correct <<- NA
+})

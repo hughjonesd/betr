@@ -72,6 +72,8 @@ Experiment <- setRefClass("Experiment",
       if (inherits(server, "Server")) server$halt()
     },
     
+    set_on_ready = function(fn) on_ready <<- fn,
+    
     add_stage = function(..., times, each, after) {
       if (status != "Stopped") 
         warning("Adding stage to server while status is ", status, 
@@ -79,26 +81,25 @@ Experiment <- setRefClass("Experiment",
       stgs <- list(...)
       for (i in 1:length(stgs)) {
         if (is.function(stgs[[i]])) stgs[[i]] <- Stage$new(handler=stgs[[i]])
-        stgs[[i]]$expt <- .self
       }
       if (! missing(times)) stgs <- rep(stgs, times=times)
       if (! missing(each)) stgs <- rep(stgs, each=each)
       if (missing(after)) after <- length(stages)
       stgs <- sapply(stgs, function (x) x$copy())
+      sapply(stgs, function (x) x$expt <- .self)
       stages <<- append(stages, stgs, after=after)
     }, 
     
     nperiods = function() {
-      length(stages[sapply(stages, inherits, "Period")]) + 1
+      length(stages[sapply(stages, inherits, "Period")])
     },
     
     waiting_page = function(message="") {
-      sprintf("<html><head><meta http-equiv='refresh' content='%d'></head>
-        <body>%s</body></html>", client_refresh, message)
+      paste0(header(refresh=client_refresh), message, footer())
     },
     
     special_page = function(message) {
-      sprintf("<html><head></head><body>%s</body></html>", message)
+      paste0(header(refresh=client_refresh), message, footer())
     },
     
     authorize = function(client, params, ip, cookies) {
@@ -281,7 +282,6 @@ Experiment <- setRefClass("Experiment",
       }
       status <<- "Started"
       if (nrow(subjects) > 0) {
-        next_period(subjects$id)
         next_stage(subjects)
       } else {
         warning("Experiment started with no participants")
@@ -408,6 +408,22 @@ setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
 #' @export
 experiment <- function (...) Experiment$new(...)
 
+
+#' Set a function to be called whenever \code{ready} is called on an experiment.
+#' 
+#' @param epxt an Experiment object 
+#' @param fn a function, which should be callable no arguments
+#' @usage on_ready(experiment, fn)
+#' @details
+#' See \code{experiment} for more details. 
+#' @examples
+#' expt <- experiment(N=5, autostart=TRUE)
+#' s1 <- stage(function(id, period, params) return("Got to s1!"))
+#' add_stage(expt, s1, times=10) 
+#' on_ready(expt, function() {mydf <<- experiment_data_frame(expt)})
+#' @export
+on_ready <- function (expt, fn) expt$set_on_ready(fn)
+
 #' Add a stage to an experiment
 #' 
 #' @param experiment an Experiment object 
@@ -513,6 +529,7 @@ next_stage <- function(experiment, subjid) {
 #' and the URL where the experiment is serving.
 #' \code{map} shows a map of how subjects are progressing through the stages.
 #' \code{get_url} returns the experiment url.
+#' \code{nperiods} returns the number of \code{\link{period}}s in the experiment
 #' \code{session_name} returns the experiment session name, 
 #' or NA if the experiment status is Stopped.
 #' @param experiment an object of class Experiment
@@ -538,6 +555,11 @@ get_url <- function(experiment) experiment$get_url()
 #' @rdname info
 #' @export
 session_name <- function(experiment) experiment$get_session_name()
+
+
+#' @rdname info
+#' @export
+nperiods <- function(experiment) experiment$nperiods()
 
 
 #' Replay part or all of an experiment

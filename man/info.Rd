@@ -4,6 +4,7 @@
 \alias{get_url}
 \alias{info}
 \alias{map}
+\alias{nperiods}
 \alias{print,Experiment,ANY-method}
 \alias{print,Experiment-method}
 \alias{session_name}
@@ -18,6 +19,8 @@ map(experiment)
 get_url(experiment)
 
 session_name(experiment)
+
+nperiods(experiment)
 }
 \arguments{
 \item{experiment}{an object of class Experiment}
@@ -37,6 +40,7 @@ status (Stopped, Waiting, Started or Paused)
 and the URL where the experiment is serving.
 \code{map} shows a map of how subjects are progressing through the stages.
 \code{get_url} returns the experiment url.
+\code{nperiods} returns the number of \code{\link{period}}s in the experiment
 \code{session_name} returns the experiment session name,
 or NA if the experiment status is Stopped.
 }

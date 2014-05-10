@@ -13,13 +13,14 @@ NULL
 #' @param ids character vector of ids to supply in the URLs opened
 #' @family development tools
 #' @export
-browser_test <- function (experiment, N=ifelse(is.finite(experiment$N), 
+web_test <- function (experiment, N=ifelse(is.finite(experiment$N), 
       experiment$N, 1), clients_in_url=TRUE, ids=paste("client", 1:N, sep="-")) {
   if (experiment$status=="Stopped") warning("Experiment status is Stopped. Try calling ready() first")
   for (i in 1:N) {
     browseURL(paste0(get_url(experiment), if(clients_in_url) paste0("/", ids[[i]])))
   }
 }
+
 
 #' Starts a web server to allow you to identify computer seat numbers
 #' 
@@ -137,4 +138,27 @@ experiment_data_frame <- function(experiment=NULL, N=NULL, periods=NULL) {
     periods <- nperiods(experiment)
   }
   data.frame(id=rep(1:N, each=periods), period=rep(1:periods, N))
+}
+
+
+#' Simple HTML header and footer
+#' 
+#' Convenience functions to print a simple HTML header and footer, optionally
+#' with a title
+#'  
+#' @family development tools
+#' @examples
+#' s1 <- text_stage(text=paste0(header(), "<b>Got here!</b>", footer()))
+#' @export
+header <- function(title="Experiment", refresh=NA) {
+  paste0("<html><head><title>", title, "</title>", 
+        if(!is.na(refresh)) sprintf("<meta http-equiv='refresh' content='%d'>", 
+        refresh) ,"</head><body style='background-color: #CCCCCC; padding: 2% 4%;'>
+        <div style='background-color: white; padding: 3% 3%'>")
+}
+
+#' @rdname header
+#' @export
+footer <- function() {
+  "</div><div align='center' style='padding: 10px 10px;'>betr</div></body></html>"
 }

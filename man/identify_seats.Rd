@@ -37,7 +37,8 @@ if both cookie and IP address match the seat file, betr will use
 the cookie.
 }
 \seealso{
-Other development tools: \code{\link{browser_test}};
-  \code{\link{experiment_data_frame}}
+Other development tools: \code{\link{experiment_data_frame}};
+  \code{\link{footer}}, \code{\link{header}};
+  \code{\link{web_test}}
 }
 

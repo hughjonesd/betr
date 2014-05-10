@@ -19,6 +19,7 @@ Clients will be shown a waiting page until the experiment is continued.
 \seealso{
 Other command line functions: \code{\link{get_url}},
   \code{\link{info}}, \code{\link{map}},
+  \code{\link{nperiods}},
   \code{\link{print,Experiment,ANY-method}},
   \code{\link{print,Experiment-method}},
   \code{\link{session_name}}; \code{\link{next_stage}};

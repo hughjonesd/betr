@@ -19,7 +19,8 @@ add_stage(expt, s1, period(), times=5)
 mydf <- experiment_data_frame(expt)
 }
 \seealso{
-Other development tools: \code{\link{browser_test}};
-  \code{\link{identify_seats}}
+Other development tools: \code{\link{footer}},
+  \code{\link{header}}; \code{\link{identify_seats}};
+  \code{\link{web_test}}
 }
 
