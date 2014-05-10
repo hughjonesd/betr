@@ -16,7 +16,7 @@ vector it gives how many times to repeat each stage.}
 
 \item{each}{how many times to repeat each individual stage}
 
-\item{after}{Add stages after what period}
+\item{after}{Add stages after how many stages (default: at the end)}
 }
 \description{
 Add a stage to an experiment

@@ -22,6 +22,7 @@ NB: by default this opens one window for each participant up to a total of
 \code{N}!
 }
 \seealso{
-Other development tools: \code{\link{identify_seats}}
+Other development tools: \code{\link{experiment_data_frame}};
+  \code{\link{identify_seats}}
 }
 

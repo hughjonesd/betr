@@ -51,7 +51,7 @@ Experiment <- setRefClass("Experiment",
         server <<- do.call(sclass$new, server_args)
       }
       requests <<- commands <<- list()
-      .command_names <<- c("start", "pause", "restart", "next_period")
+      .command_names <<- c("start", "pause", "restart", "next_stage")
       seats <<- data.frame(seat=numeric(0), IP=character(0), cookie=character(0))
       err <- try(seats <<- read.table(seats_file, header=TRUE, 
             colClasses=c("integer", "character", "character")), silent=TRUE)    
@@ -64,7 +64,7 @@ Experiment <- setRefClass("Experiment",
     
     initialize_subjects = function() {
       subjects <<- data.frame(client=character(0), id=numeric(0), seat=character(0),
-        period=numeric(0), status=factor(, levels=c("Running", "Waiting", 
+        period=numeric(0), stage=numeric(0), status=factor(, levels=c("Running", "Waiting", 
           "Finished")), stringsAsFactors=FALSE)
     },
     
@@ -79,6 +79,7 @@ Experiment <- setRefClass("Experiment",
       stgs <- list(...)
       for (i in 1:length(stgs)) {
         if (is.function(stgs[[i]])) stgs[[i]] <- Stage$new(handler=stgs[[i]])
+        stgs[[i]]$expt <- .self
       }
       if (! missing(times)) stgs <- rep(stgs, times=times)
       if (! missing(each)) stgs <- rep(stgs, each=each)
@@ -86,6 +87,10 @@ Experiment <- setRefClass("Experiment",
       stgs <- sapply(stgs, function (x) x$copy())
       stages <<- append(stages, stgs, after=after)
     }, 
+    
+    nperiods = function() {
+      length(stages[sapply(stages, inherits, "Period")]) + 1
+    },
     
     waiting_page = function(message="") {
       sprintf("<html><head><meta http-equiv='refresh' content='%d'></head>
@@ -123,7 +128,7 @@ Experiment <- setRefClass("Experiment",
         } else warning("Seat not found for client ", client)  
       }
       subjects <<- rbind(subjects, data.frame( client=client, id=id, seat=seat, 
-            period=0, status=factor("Running", levels=c("Running", "Waiting", 
+            period=0, stage=0, status=factor("Running", levels=c("Running", "Waiting", 
             "Finished")), stringsAsFactors=FALSE))
           
       if (status=="Started") next_period(subjects[subjects$client==client,])
@@ -134,17 +139,22 @@ Experiment <- setRefClass("Experiment",
       return(subjects[subjects$client==client,])
     },
     
-    next_period = function(subj) {
+    next_stage = function(subj) {
+      if (is.numeric(subj)) subj <- subjects[subjects$id==subj,]
+      done <- subjects$id %in% subj$id & subjects$stage == length(stages)
+      subjects$status[done] <<- "Finished"
+      srows <- subjects$id %in% subj$id & subjects$stage < length(stages)
+      subjects$stage[srows] <<- subjects$stage[srows] + 1
+      subjects$status[srows] <<- "Running" # do I need this?
+    },
+    
+    next_period = function(subjid) {
       if (status != "Started") {
         warning("Experiment status is not 'Running', cannot move subjects on")
         return(invisible(FALSE))
       }
-      if (is.numeric(subj)) subj <- subjects[subjects$id==subj,]
-      done <- subjects$id %in% subj$id & subjects$period == length(stages)
-      subjects$status[done] <<- "Finished"
-      srows <- subjects$id %in% subj$id & subjects$period < length(stages)
+      srows <- subjects$id %in% subjid
       subjects$period[srows] <<- subjects$period[srows] + 1
-      subjects$status[srows] <<- "Running" # do I need this?
       return(invisible(TRUE))
     },
     
@@ -193,11 +203,11 @@ Experiment <- setRefClass("Experiment",
         Waiting = waiting_page("Waiting to start"),
         Started = {
           if (subject$status=="Finished") return(special_page("Experiment finished"))
-          stage <- stages[[subject$period]]
+          stage <- stages[[subject$stage]]
           client <- client
           result <- stage$handle_request(subject$id, subject$period, params)
           if (is.next(result)) {
-            next_period(subject)
+            next_stage(subject)
             # NB we clean the params when the subject moves on. Is this OK?
             return(.handle_request(subjects[subjects$id==subject$id,], client=client))
           } else if (is.wait(result)) {
@@ -271,7 +281,8 @@ Experiment <- setRefClass("Experiment",
       }
       status <<- "Started"
       if (nrow(subjects) > 0) {
-        next_period(subjects)
+        next_period(subjects$id)
+        next_stage(subjects)
       } else {
         warning("Experiment started with no participants")
       }
@@ -405,7 +416,7 @@ experiment <- function (...) Experiment$new(...)
 #'        All stages are repeated if this is a single number; if it is a
 #'        vector it gives how many times to repeat each stage.
 #' @param each how many times to repeat each individual stage
-#' @param after Add stages after what period
+#' @param after Add stages after how many stages (default: at the end)
 #' @usage add_stage(experiment, ..., times, each, after)
 #' @details
 #' If functions are passed in to \code{add_stage}, Stage objects will 
@@ -478,7 +489,7 @@ pause <- function(experiment) experiment$handle_command("pause")
 #' @export
 restart <- function(experiment) experiment$handle_command("restart")
 
-#' Move some clients forward one period
+#' Move some clients forward one stage
 #' 
 #' Manually moves one or more clients forward. This may break your experimental
 #' design so use in emergencies only!
@@ -489,9 +500,9 @@ restart <- function(experiment) experiment$handle_command("restart")
 #' @return TRUE or FALSE, invisibly
 #' @family command line functions
 #' @export
-next_period <- function(experiment, subjid) {
+next_stage <- function(experiment, subjid) {
   warning("Moving subject on manually, this may do bad things to your data")
-  experiment$handle_command("next_period", list(subj=subjid))
+  experiment$handle_command("next_stage", list(subj=subjid))
 }
 
 #' Show basic info about an experiment

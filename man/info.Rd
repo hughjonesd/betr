@@ -45,7 +45,7 @@ expt <- experiment(N=2, port=12345)
 expt # on the command line, calls info()
 }
 \seealso{
-Other command line functions: \code{\link{next_period}};
+Other command line functions: \code{\link{next_stage}};
   \code{\link{pause}}; \code{\link{ready}};
   \code{\link{replay}}; \code{\link{restart}};
   \code{\link{start}}

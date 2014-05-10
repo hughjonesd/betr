@@ -3,7 +3,7 @@
 #' @export AbstractStage
 #' @exportClass AbstractStage
 AbstractStage <- setRefClass("AbstractStage",
-  fields=list(),
+  fields=list(expt="ANY"),
   methods=list(
     initialize = function(...) callSuper(...),
     
@@ -324,6 +324,79 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
 #' @family stages
 #' @export
 structured_stage <- function (...) StructuredStage$new(...)
+
+
+Period <- setRefClass("Period", contains="AbstractStage",
+  fields = list(
+    wait_for = "ANY",
+    ready = "integer"
+  ),
+  methods = list(
+    initialize = function(wait_for="none") {
+     callSuper(wait_for=wait_for, ready=integer(0)) 
+    },
+    
+    handle_request = function(id, period, params) {
+      if (! id %in% ready) ready <<- c(ready, id)
+      ids <- if (wait_for=="all") 1:expt$N else if (wait_for=="none") 
+            integer(0) else which(wait_for==wait_for[id])
+      if (all(ids %in% ready)) {
+        expt$next_period(id)
+        return(NEXT)
+      } else return(WAIT)
+    }
+  )
+)
+
+#' Begin a new period, optionally waiting for other subjects
+#' 
+#' A period may contain one or more stages. When the experiment is started,
+#' all subjects are in period 1. Typically, you will want a new period for each
+#' "repetition" of an experiment. You can then store the data in a data frame
+#' which looks like:
+#' 
+#' \tabular{lll}{
+#' ID \tab period \tab ...  \cr
+#' 1 \tab 1 \tab ... \cr
+#' 1 \tab 2 \tab ... \cr
+#' 1 \tab ... \tab ... \cr
+#' 2 \tab 1 \tab ... \cr
+#' ... \tab ... \tab ... \cr
+#' }
+#' 
+#' @usage period(wait_for=NULL)
+#' @param wait_for 
+#' 
+#' @details 
+#' 
+#' If \code{wait_for} is a vector, then it is assumed to represent
+#' subject groups. So, if \code{wait_for} is \code{vec} then a subject with 
+#' ID \code{x} will wait here until all subjects with IDs 
+#' \code{which(vec==vec[x])} have arrived at this stage. If \code{wait_for} is 
+#' \code{NULL} (the default), individual subjects can move on without waiting.
+#' 
+#' If all relevant subjects are ready, the subject's period counter is
+#' incremented and the subject moves on.
+#' 
+#' @examples
+#' expt <- experiment(N=4)
+#' groups <- c("A", "A", "B", "B")
+#' s1 <- text_stage(text="<html><body><form action=''>
+#'      <input type='submit' value='Next'></form></body></html>")
+#'      
+#' # go ahead individually:
+#' add_stage(expt, s1, new_period(), times=2) 
+#' 
+#' # wait for everyone:
+#' add_stage(expt, s1, new_period("all"), times=2) 
+#' 
+#' # players 1 and 2 wait for each other, so do 3 and 4:
+#' add_stage(expt, s1, new_period(groups), times=2) 
+#' 
+#' @return An object of class NewPeriod
+#' @family stages
+#' @export
+period <- function (...) Period$new(...)
 
 
 #' @rdname stage

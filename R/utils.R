@@ -111,3 +111,30 @@ identify_seats <- function (method="IP", serve=TRUE) {
     return(app)
   }
 }
+
+
+
+#' Create an appropriate data frame for an experiment
+#' 
+#' This is a convenience function. It creates a data frame with \code{N * periods}
+#' rows, with a column \code{id} varying from 1 to \code{N} and a column \code{period} varying
+#' from 1 to \code{periods}. The data frame is sorted by ID, then by period. 
+#' \code{N} and \code{periods} can be specified manually, or you can just pass in 
+#' the \code{\link{experiment}} object and the function will guess for you.
+#' 
+#' @family development tools
+#' @examples
+#' 
+#' expt <- experiment(N=5)
+#' s1 <- text_stage(text="<html><body>got here</body></html>")
+#' add_stage(expt, s1, period(), times=5)
+#' mydf <- experiment_data_frame(expt)
+#' 
+#' @export
+experiment_data_frame <- function(experiment=NULL, N=NULL, periods=NULL) {
+  if (! is.null(experiment)) {
+    N <- experiment$N
+    periods <- nperiods(experiment)
+  }
+  data.frame(id=rep(1:N, each=periods), period=rep(1:periods, N))
+}
