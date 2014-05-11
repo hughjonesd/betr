@@ -231,9 +231,10 @@ Experiment <- setRefClass("Experiment",
     get_url = function() server$get_url(),
         
     info = function(subj=TRUE, map=TRUE) {
-      cat(sprintf("%s\tStatus: %s\tClients: %d/%0.0f\tStages: %d\n", 
+      cat(sprintf("%s\tStatus: %s\tClients: %d/%0.0f\tPeriods: %d\tStages: %d\n", 
             ifelse(status=="Stopped", paste("Name:", name), paste("Session:",
-            session_name)), status, nrow(subjects), N, length(stages)))
+            session_name)), status, nrow(subjects), N, nperiods(), 
+            length(stages)))
       if (status != "Stopped") server$info()
       if (subj && nrow(subjects) > 0) {
         cat("Subjects:\n")
