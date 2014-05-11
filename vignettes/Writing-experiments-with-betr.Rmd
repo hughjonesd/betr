@@ -1,0 +1,72 @@
+Running experiments with betr
+=============================
+
+Rationale
+---------
+
+
+betr is an R package to design, test and run social scientific experiments. It 
+uses the web to serve experiments, but it is suitable either for web- or 
+lab-based experiments. It is designed to make writing, testing, debugging and 
+running experiments as easy as possible.
+
+## Why use betr rather than ...?
+
+Typically, social science experiments are run using computer software. The most
+widely used software by economists is [zTree](www.iew.uzh.ch/ztree/). Others 
+are written in Java, Python, or PHP. So, why use betr? 
+
+The most important advantageis:
+
+* betr is written in R, so you don't need to learn a new programming language
+to use it.
+
+That is true if you know R already. If you don't know R, but are an early-career
+social scientist, then you probably need to learn at least one statistical 
+software package. If you learn R, then you will also be able to use it to run
+experiments in betr.
+
+Some other advantages are:
+
+* Experiments can be written in a full-featured programming languages.
+
+While zTree's language lacks constructs such as functions, with betr you can use
+all the features of R. _No more copy-pasting the same code across different periods._
+
+* betr uses HTML to display experiments to subjects.
+
+HTML is a powerful and flexible display language, so your experiments can be as
+beautiful or as simple as you like.
+
+* Debugging and testing is easy.
+
+Testing experiments by hand can be a pain. Typically, you have to open one window for
+each of your subjects, then type in responses manually. betr lessens that pain
+by allowing automatic replay of sessions. So, you can test manually once, then
+rerun the test automatically. 
+
+* You can run experiments on the web or in the lab.
+
+Obviously, since betr uses HTML, you can serve web-based experiments. In your
+lab, you only need a web browser on clients
+
+
+
+
+An example betr experiment
+--------------------------
+
+Installing betr
+---------------
+
+Writing experiments
+-------------------
+
+Testing experiments
+-------------------
+
+Debugging
+---------
+
+Running your experiment in the lab
+----------------------------------

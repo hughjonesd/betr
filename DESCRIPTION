@@ -9,12 +9,15 @@ Description: A toolkit to run web-based multi-participant experiments
 License: GPL-2
 LazyLoad: yes
 NeedsCompilation: no
+VignetteBuilder: knitr
 Imports:
     svSocket,
     Rook,
     testthat,
     brew,
     tools
+Suggests:
+    knitr
 Collate:
     'FixedRhttpd.R'
     'stages.R'
