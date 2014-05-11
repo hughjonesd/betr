@@ -168,9 +168,10 @@ Experiment <- setRefClass("Experiment",
     
     handle_command = function(command, params) {      
       if (command %in% .command_names) {
-        record_command(command, params) 
         command <- do.call(`$`, list(.self, command)) 
         if (missing(params)) command() else do.call(command, params)
+        record_command(command, params) # needs to be here or "start" won't have 
+                                        # created session
       } else {
         warning("Got unrecognized command: ", command)
       }
