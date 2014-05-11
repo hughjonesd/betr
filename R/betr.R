@@ -300,7 +300,7 @@ Experiment <- setRefClass("Experiment",
     replay = function(folder=NULL, maxtime=NULL, speed=NULL, ask=FALSE) {
       # if folder is null, use my current session_name or guess the most recently modified
       if (is.null(folder)) {
-        if (is.null(session_name)) {
+        if (length(session_name) == 0) {
           dirs <- file.info(list.files(pattern=paste0("^",name, 
             "[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{6}$"), include.dirs=TRUE))
           dirs <- dirs[order(dirs$mtime, decreasing=TRUE),]
