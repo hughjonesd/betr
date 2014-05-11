@@ -320,9 +320,9 @@ Experiment <- setRefClass("Experiment",
       if (is.null(folder)) {
         if (length(session_name) == 0) {
           dirs <- file.info(list.files(pattern=paste0("^",name, 
-            "[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{6}$"), include.dirs=TRUE))
+            "-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{6}$"), include.dirs=TRUE))
           dirs <- dirs[order(dirs$mtime, decreasing=TRUE),]
-          dirs <- dirs[isdir,]
+          dirs <- dirs[dirs$isdir,]
           folder <- rownames(dirs[1,])
         } else folder <- session_name 
       }
