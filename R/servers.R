@@ -229,9 +229,7 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
 
     info = function() cat("Replaying from folder", folder, "\n"),
     
-    halt = function() {
-      
-    },
+    halt = function() {},
     
     get_url = function() {
       return(normalizePath(folder))

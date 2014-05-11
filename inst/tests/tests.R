@@ -41,9 +41,9 @@ test_that("Experiment stages work", {
 
 
 Sys.sleep(1) # new session name
-test_that("Experiment starting, status, pause and restart work", {
+test_that("Experiment starting, status, pause, restart & halt work", {
   expt <- experiment(N=2, server="CommandLineServer")
-  add_stage(expt, period(), function(id, params, list) return("foo"))
+  add_stage(expt, period(), text_stage(text="foo"))
   expect_that(expt$N, equals(2))
   expect_that(expt$status <- "B0rked", throws_error())
   expect_that(show(expt), prints_text("Stopped"))
@@ -69,6 +69,8 @@ test_that("Experiment starting, status, pause and restart work", {
   expect_that(expt$handle_request(client="C", params=list()), 
         equals(expt$special_page("Too many participants")))
   
+  expect_that(expt$handle_request(client="B", params=list()), 
+    equals("foo"))
   pause(expt)
   expect_that(info(expt), prints_text("Paused"))
   expect_that(expt$handle_request(client="B", params=list()), 
@@ -76,9 +78,18 @@ test_that("Experiment starting, status, pause and restart work", {
   restart(expt)
   expect_that(info(expt), prints_text("Started"))
   
-  expect_that(expt$handle_request(client="B", params=list()), 
+  expect_that(expt$handle_request(client="A", params=list()), 
     equals("foo"))
+  expect_that(expt$handle_request(client="B", params=list()), 
+    matches("finished"))
+  expect_that(halt(expt), gives_warning())
+  expect_that(expt$handle_request(client="A", params=list()), 
+    matches("finished"))
   
+  halt(expt)
+  expect_that(show(expt), prints_text("Stopped"))
+  expect_that(expt$handle_request(client="A", params=list()), 
+    throws_error())
 })
 
 
@@ -147,7 +158,8 @@ test_that("Periods work", {
     myperiods <<- rep(NA,4) 
     seen <<- matrix(FALSE, nrow=4, ncol=4)
   }
-  expt <- experiment(N=4, server="RookServer", autostart=FALSE, on_ready=init_data)
+  expt <- experiment(N=4, server="RookServer", autostart=FALSE, 
+        randomize_ids=FALSE, on_ready=init_data)
   s1 <- stage(handler=function(id, period, params) {
     myperiods[id] <<- period
     sn <- seen[id, period]
@@ -197,8 +209,8 @@ test_that("Experiment replay works", {
   expt <- experiment(N=1, server="RookServer", autostart=TRUE, on_ready=init_data)
   s1 <- stage(handler=function(id, period, params) {foo <<- foo + 1})
   add_stage(expt, s1)
-  t1 <- Sys.time() # time of expt start
   ready(expt)
+  t1 <- Sys.time() # time of expt start + a bit
   snm <- expt$session_name
   
   t2 <- as.numeric(Sys.time() - t1) # time first request at least this  

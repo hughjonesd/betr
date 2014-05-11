@@ -317,7 +317,32 @@ mydf
 At the end, you will see an "experiment finished" page in your browser, and
 `info(expt)` will show that your subject has finished the experiment.
 
-To replay your experiment, 
+To stop the experiment serving, run
+
+```{r}
+halt(expt)
+```
+
+Now the server will halt, so clients can no longer connect, and the status
+of the experiment will be "Stopped". 
+
+Lastly, let's replay our experiment. Enter
+
+```{r eval=FALSE}
+replay(expt, ask=TRUE)
+```
+
+The command prompt should show 
+
+> replay>
+
+Enter 'd' to see details of the first request from a client computer. Then enter
+'n' to replay this request. Carry on entering 'd' and 'n'; eventually you will 
+see your 'start' command. Enter 'n' three more times. Now enter `mydf`. You
+will see that your data frame is back as it was in the middle of the experiment.
+You can enter arbitrary R expressions. For a list of other commands, enter 
+'h' or '?'.
+
 Writing experiments
 -------------------
 

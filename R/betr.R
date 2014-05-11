@@ -21,7 +21,7 @@ Experiment <- setRefClass("Experiment",
     .command_names="character",
     autostart="logical",
     allow_latecomers="logical",
-    randomize_subjects="logical",
+    randomize_ids="logical",
     random_ids="numeric",
     auth="ANY",
     server="Server",
@@ -38,7 +38,7 @@ Experiment <- setRefClass("Experiment",
     initialize = function(..., auth=TRUE, port, autostart=FALSE, 
       allow_latecomers=FALSE, N=Inf, server="RookServer", name="betr", 
       client_refresh=10, clients_in_url=FALSE, seats_file="betr-SEATS.txt",
-      on_ready=NULL, randomize_subjects=TRUE) {
+      on_ready=NULL, randomize_ids=TRUE) {
       stages <<- list()
       initialize_subjects()
       status <<- "Stopped"
@@ -56,14 +56,14 @@ Experiment <- setRefClass("Experiment",
       }
       requests <<- commands <<- list()
       .command_names <<- c("start", "pause", "restart", "next_stage")
-      if (randomize_subjects) random_ids <<- sample(1:N)
+      if (randomize_ids) random_ids <<- sample(1:N)
       seats <<- data.frame(seat=numeric(0), IP=character(0), cookie=character(0))
       err <- try(seats <<- read.table(seats_file, header=TRUE, 
             colClasses=c("integer", "character", "character")), silent=TRUE)    
       if (class(err)=="try-error") warning("Problem reading seats file ", seats_file)
       callSuper(..., auth=auth, autostart=autostart, clients_in_url=clients_in_url,
             allow_latecomers=allow_latecomers, N=N, client_refresh=client_refresh,
-            name=name, on_ready=on_ready, randomize_subjects=randomize_subjects)
+            name=name, on_ready=on_ready, randomize_ids=randomize_ids)
       if (is.infinite(N)) warning("No maximum N set for experiment")
     },
     
@@ -125,7 +125,7 @@ Experiment <- setRefClass("Experiment",
       if (! ok) stop("Client unauthorized")
 
       id <- if(nrow(subjects)) length(unique(subjects$id))+1 else 1
-      if (randomize_subjects) id <- random_ids[id]
+      if (randomize_ids) id <- random_ids[id]
       seat <- NA
       if (nrow(seats)>0) {
         if (! is.null(cookies) && "betr-seat" %in% cookies && nrow(seats)>0) {
@@ -261,7 +261,8 @@ Experiment <- setRefClass("Experiment",
 
     ready = function() {
       if (status != "Stopped") {
-        warning("Called ready() on an experiment with status ", status)
+        warning("Called ready() on an experiment with status ", status, 
+              "; ignoring since status is not Stopped.")
         return(invisible(FALSE))
       }
       start_time <<- Sys.time()
@@ -313,6 +314,20 @@ Experiment <- setRefClass("Experiment",
         status <<- "Started"
         return(invisible(TRUE))
       }
+    },
+    
+    halt = function(force=FALSE) {
+      if (status == "Stopped") {
+        warning("Experiment status is Stopped already, cannot halt")
+        return(invisible(FALSE))
+      }
+      if (! force && any(subjects$status != "Finished")) {
+        warning("Not all subjects have status Finished, not halting")
+        return(invisible(FALSE))
+      }
+      server$halt()
+      status <<- "Stopped"      
+      return(invisible(TRUE))
     },
     
     replay = function(folder=NULL, maxtime=NULL, speed=NULL, ask=FALSE) {
@@ -391,7 +406,7 @@ setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
 #'        is called. Use \code{on_ready} to initialize your data. In this
 #'        way your experiment will be replay-safe, since \code{replay} calls
 #'        \code{ready} automatically. 
-#' @param randomize_subjects if \code{TRUE}, subject IDs will be randomized from
+#' @param randomize_ids if \code{TRUE}, subject IDs will be randomized from
 #'        1 to \code{N}. If \code{FALSE} subject IDs will be allocated first-come
 #'        first-served.
 #'        
@@ -529,6 +544,17 @@ next_stage <- function(experiment, subjid) {
   warning("Moving subject on manually, this may do bad things to your data")
   experiment$handle_command("next_stage", list(subj=subjid))
 }
+
+
+#' Halt the experiment, stopping the server
+#' 
+#' @param experiment Object of class Experiment
+#' @param force If TRUE, force the experiment to halt even if participants are
+#'        not finished.
+#' @return TRUE or FALSE, invisibly
+#' @family command line functions
+#' @export
+halt <- function(experiment, force=FALSE) experiment$halt(force)
 
 #' Show basic info about an experiment
 #' 
