@@ -50,9 +50,11 @@ subjects.do{
 
 The same thing in R is just:
 
-```{r eval=FALSE}
+
+```r
 rand_id <- sample(1:N)
 ```
+
 
 * betr uses HTML to display experiments to subjects.
 
@@ -83,11 +85,13 @@ Installing betr
 
 To install betr just run:
 
-```{r eval=FALSE}
-install.packages("devtools") # if not already installed
+
+```r
+install.packages("devtools")  # if not already installed
 library(devtools)
-install_github("betr", "hughjonesd") # for the latest version
+install_github("betr", "hughjonesd")  # for the latest version
 ```
+
 
 An example betr experiment
 --------------------------
@@ -96,48 +100,62 @@ Typically you will define your experiment in a source file. Then, during a
 session, you will run it from the command line. Here's a source file for a
 simple guessing game experiment.
 
-```{r warning=FALSE}
+
+```r
 library(betr)
-expt <- experiment(N=1, clients_in_url=TRUE)
+```
+
+```
+## 
+## Attaching package: 'betr'
+## 
+## The following object is masked from 'package:stats':
+## 
+##     start
+```
+
+```r
+expt <- experiment(N = 1, clients_in_url = TRUE)
 
 s1 <- function(id, period, params) {
-
-  me_now <- mydf$id==id & mydf$period==period
-  gg <- ! missing(params) && 'guess' %in% names(params) 
-  if (gg) {
-    mydf$guess[me_now] <<- params$guess
-    mydf$correct[me_now] <<- if (params$guess == sample(1:10,1)) 1 else 0
-    return(NEXT)
-  }
-  last_guess <- ''
-  me_before <- mydf$id==id & mydf$period == period -1
-  if (period > 1) last_guess <- paste('You guessed ', mydf$guess[me_before], 
-        '... you were ', if(mydf$correct[me_before]>0) 'right!' else 'wrong!', sep='')
-  return(paste(header(), sprintf(
-    "<p color='red'>%s</p>
-    <p>Pick a number</p>
-    <form action='' method='post'><select name='guess'>%s</select>
-    <input type='submit' value='Submit'></form>",
-    last_guess,
-    paste("<option value='", 1:10,"'>", 1:10, "</option>", sep="", collapse=""
-  )), footer()))
+    
+    me_now <- mydf$id == id & mydf$period == period
+    gg <- !missing(params) && "guess" %in% names(params)
+    if (gg) {
+        mydf$guess[me_now] <<- params$guess
+        mydf$correct[me_now] <<- if (params$guess == sample(1:10, 1)) 
+            1 else 0
+        return(NEXT)
+    }
+    last_guess <- ""
+    me_before <- mydf$id == id & mydf$period == period - 1
+    if (period > 1) 
+        last_guess <- paste("You guessed ", mydf$guess[me_before], "... you were ", 
+            if (mydf$correct[me_before] > 0) 
+                "right!" else "wrong!", sep = "")
+    return(paste(header(), sprintf("<p color='red'>%s</p>\n    <p>Pick a number</p>\n    <form action='' method='post'><select name='guess'>%s</select>\n    <input type='submit' value='Submit'></form>", 
+        last_guess, paste("<option value='", 1:10, "'>", 1:10, "</option>", 
+            sep = "", collapse = "")), footer()))
 }
 
-add_stage(expt, period(), s1, times=5)
+add_stage(expt, period(), s1, times = 5)
 
 
 initialize_data_frame <- function() {
-  mydf <<- experiment_data_frame(expt)
-  mydf$guess <<- NA
-  mydf$correct <<- NA
+    mydf <<- experiment_data_frame(expt)
+    mydf$guess <<- NA
+    mydf$correct <<- NA
 }
 on_ready(expt, initialize_data_frame)
 ```
 
+
 Let's look at this bit by bit.
-```{r warning=FALSE}
-expt <- experiment(N=1, clients_in_url=TRUE)
+
+```r
+expt <- experiment(N = 1, clients_in_url = TRUE)
 ```
+
 The call to `experiment` returns an object of class Experiment. `N=1` gives the
 number of participants. We'll come to the other options in a bit.
 
@@ -145,14 +163,16 @@ Next, we define a function called `s1`. In betr, experiments are composed of
 _stages_. `s1` is a simple stage. Ignoring the details, the structure of `s1`
 is like:
 
-```{r warning=FALSE}
+
+```r
 s1 <- function(id, period, params) {
-  # ...
-  return(NEXT)
-  # or ...
-  return("some HTML")
+    # ...
+    return(NEXT)
+    # or ...
+    return("some HTML")
 }
 ```
+
 
 Here's how this works. When a subject makes an HTTP request to betr, the current
 stage is called with the subject's `id` (usually randomly generated), the
@@ -189,9 +209,11 @@ aren't finished, `s1` will then be called again without parameters. `s1` will
 then print out the guessing form so the subject can choose another number.
 
 
-```{r warning=FALSE}
-add_stage(expt, period(), s1, times=5)
+
+```r
+add_stage(expt, period(), s1, times = 5)
 ```
+
 
 To create our experiment we need to add `s1` to it. What about the other thing 
 here, `period()`?
@@ -207,21 +229,25 @@ our experiment's stages are now:
 You should usually start your experiment with a Period to set the period counter 
 to 1.
 
-```{r}
+
+```r
 initialize_data_frame <- function() {
-  mydf <<- experiment_data_frame(expt)
-  mydf$guess <<- NA
-  mydf$correct <<- NA
+    mydf <<- experiment_data_frame(expt)
+    mydf$guess <<- NA
+    mydf$correct <<- NA
 }
 on_ready(expt, initialize_data_frame)
 ```
 
+
 Last of all, we want to prepare a data frame for our experiment. We could just 
 do this by calling
 
-```{r}
+
+```r
 mydf <<- experiment_data_frame(expt)
 ```
+
 
 This would create a new data frame with 5 * 1 = 5 rows -- 5 for the number of
 periods, 1 for the number of subjects -- and with columns `id` and `period`. 
@@ -240,15 +266,23 @@ when it is replayed. Then the replay will populate our data frame just as it was
 
 OK, we've created our experiment. Now, we need to run it. Run the code above, our
 put it in a file called `my_experiment.R` and source it: 
-```{r eval=FALSE}
+
+```r
 source("my_experiment.R")
 ```
+
 You'll see some warnings about "seats" -- don't worry about those for now.
 
 Before we run it, let's take a look at it. On the command line, type
-```{r}
+
+```r
 expt
 ```
+
+```
+## Name: betr	Status: Stopped	Clients: 0/1	Periods: 5	Stages: 10
+```
+
 You should see a line like
 
 > Name: betr  Status: Stopped	Clients: 0/1	Periods: 5	Stages: 10
@@ -259,11 +293,17 @@ _Stages_ are self-explanatory. There are 5 periods because our experiment
 had 5 periods in its stages. There are 10 stages including the 5 periods and
 the 5 `s1` objects. Lastly, the _Status_ tells us whether the experiment is 
 _Stopped_, _Waiting_, _Started_ or _Paused_. Right now it is _Stopped_. Let's
-change that. On the command line, run:
+change that. Run:
 
-```{r, error=FALSE}
+
+```r
 ready(expt)
 ```
+
+```
+## Error: could not find function "startDynamicHelp"
+```
+
 
 Calling `ready` does several things:
 * Starts the web server. Now, subject computers can connect to the experiment;
@@ -271,53 +311,7 @@ Calling `ready` does several things:
 on disk to hold data about it.
 * Calls any function passed to `on_ready`, e.g. initializing your data.
 
-Now, if you enter `expt` again, you should see something like:
 
-> Session: betr-2014-05-11-130421  Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
-> Serving at http://127.0.0.1:10946/custom/betr
-
-The status has changed, and we see the session name. We also have a URL. Clients
-can connect to this to view the experiment. You can do this manually: open your 
-web browser and go to the URL _http://127.0.0.1:10946/custom/betr/client-1_. Or,
-for a convenient shortcut, enter:
-```{r eval=FALSE}
-web_test(expt)
-```
-on the R command line. You should see a page saying "Waiting to start". It will 
-refresh regularly. 
-
-Before we start, let's see a bit more information about our experiment. Type:
-
-```{r}
-info(expt)
-```
-
-This shows the same info as before, plus a list of subjects -- just one.
-
-To start the experiment, type:
-
-```{r eval=FALSE}
-start(expt)
-```
-
-Now, when your browser page refreshes, you will see the first period of the 
-guessing game. Complete a couple of guesses (good luck!). Use `info(expt)`
-to watch your subject progressing. You can also look directly at your 
-experimental data frame:
-```{r eval=FALSE}
-mydf
-```
->  id period guess correct
->1  1      1     1       0
->2  1      2     6       0
->3  1      3     1       0
->4  1      4  <NA>      NA
->5  1      5  <NA>      NA
-
-At the end, you will see an "experiment finished" page in your browser, and
-`info(expt)` will show that your subject has finished the experiment.
-
-To replay your experiment, 
 Writing experiments
 -------------------
 
