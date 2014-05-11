@@ -53,7 +53,7 @@ add_stage(expt, s1, new_period(groups), times=2)
 }
 \seealso{
 Other stages: \code{\link{NEXT}}, \code{\link{WAIT}},
-  \code{\link{stage}}; \code{\link{calculation}};
+  \code{\link{stage}}; \code{\link{program}};
   \code{\link{structured_stage}}; \code{\link{text_stage}}
 }
 

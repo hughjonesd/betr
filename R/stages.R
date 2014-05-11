@@ -400,38 +400,42 @@ Period <- setRefClass("Period", contains="AbstractStage",
 period <- function (...) Period$new(...)
 
 
-Calculation <- setRefClass("Calculation", contains="AbstractStage",
+Program <- setRefClass("Program", contains="AbstractStage",
   fields = list(
     fn = "function",
-    done = "logical",
+    ready = "numeric",
     run = "character"
   ),
   methods = list(
-    initialize = function(fn, run="once") {
-      callSuper(fn=fn, run=run, done=FALSE) 
+    initialize = function(fn, run) {
+      if (! run %in% c("first", "last", "all")) 
+            stop("run must be first, last or all, was ", run)
+      callSuper(fn=fn, run=run, ready=numeric(0)) 
     },
     
     handle_request = function(id, period, params) {
-      if (! done || run=="all") {
-        fn(id, period)
-        done <<- TRUE
-      }
+      ready <<- c(ready, id)
+      if (length(ready) == 1 && run == "first" || run == "all" || 
+            length(ready) == expt$N && run ==" last") fn(id, period)    
       return(NEXT)
     }
   )
 )
 
 
-#' Perform a calculation, either once or for each subject
+#' Call a function, either once or for each subject
 #' 
 #' @param fn a function which should take two arguments, \code{id} and 
 #' \code{period}.
-#' @param run either "once" or "all".
+#' @param run "first", "last", or "all".
 #' 
 #' @details 
-#' The function will be run when the first subject reaches this stage. If
-#' \code{run} is \code{"all"} then it will be run again every time another
-#' subject reaches the stage.
+#' If
+#' \code{run} is \code{"all"} then the function \code{fn}will be run every time a
+#' subject reaches the stage. If \code{run} is \code{"first"} then \code{fn}
+#' will be run when the first subject reaches the stage. If \code{run} is 
+#' \code{"last"} then \code{fn} will be run when the last subject reaches
+#' the stage.
 #' 
 #' @examples
 #' expt <- experiment(N=4)
@@ -439,19 +443,12 @@ Calculation <- setRefClass("Calculation", contains="AbstractStage",
 #'      Enter a contribution:<input name='contrib' type='text'>
 #'      <input type='submit' value='Next'></form></body></html>")
 #'      
-#' # go ahead individually:
-#' add_stage(expt, s1, new_period(), times=2) 
-#' 
-#' # wait for everyone:
-#' add_stage(expt, s1, new_period("all"), times=2) 
-#' 
-#' # players 1 and 2 wait for each other, so do 3 and 4:
-#' add_stage(expt, s1, new_period(groups), times=2) 
-#' 
-#' @return A Stage object of class Calculation
+#' s2 <- program      
+#'      
+#' @return A Stage object of class Program
 #' @family stages
 #' @export
-calculation <- function (fn, run="once") Calculation$new(fn, run) 
+program <- function (fn, run) Calculation$new(fn, run) 
 
 
 #' @rdname stage
