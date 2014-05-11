@@ -154,6 +154,31 @@ test_that("StructuredStages work", {
 
 
 Sys.sleep(1)
+test_that("Checkpoints work", {  
+  expt <- experiment(N=4, server="RookServer", autostart=FALSE, 
+    randomize_ids=FALSE)
+  s1 <- text_stage("foo")
+  s2 <- text_stage("bar")
+  add_stage(expt, period(), s1, checkpoint(), s2, checkpoint(c(1,2,1,2)),
+        s1)
+  ready(expt)
+  
+  rfrom <- function(cl) expt$handle_request(cl, list())
+  clients <- paste0("client-", 1:4)
+  sapply(clients, rfrom)
+  start(expt)
+  sapply(clients, rfrom)
+  expect_that(rfrom(clients[1]), matches("Waiting"))
+  sapply(clients[2:3], rfrom)
+  expect_that(rfrom(clients[4]), equals("bar"))
+  expect_that(sapply(clients[1:3], rfrom), matches("bar"))
+  expect_that(sapply(clients[1:2], rfrom), matches("Waiting"))
+  expect_that(rfrom(clients[3]), equals("foo"))
+  expect_that(rfrom(clients[4]), equals("foo"))
+  expect_that(sapply(clients[1:2], rfrom), matches("foo"))  
+})
+
+Sys.sleep(1)
 test_that("Programs work", {
   first <- NA
   seen <- numeric(0)
