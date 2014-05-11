@@ -325,23 +325,72 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
 #' @export
 structured_stage <- function (...) StructuredStage$new(...)
 
-
-Period <- setRefClass("Period", contains="AbstractStage",
+CheckPoint <- setRefClass("CheckPoint", contains="AbstractStage",
   fields = list(
     wait_for = "ANY",
     ready = "numeric"
   ),
   methods = list(
-    initialize = function(wait_for="none") {
-     callSuper(wait_for=wait_for, ready=numeric(0)) 
+    initialize = function(wait_for="all") {
+      callSuper(wait_for=wait_for, ready=numeric(0)) 
+    },
+    
+    check_ready = function(id) {
+      ids <- if (length(wait_for)==1 && wait_for=="all") 1:expt$N else 
+        if (length(wait_for)==1 && wait_for=="none") numeric(0) else 
+          which(wait_for==wait_for[id])
+      return(all(ids %in% ready))
     },
     
     handle_request = function(id, period, params) {
       if (! id %in% ready) ready <<- c(ready, id)
-      ids <- if (length(wait_for)==1 && wait_for=="all") 1:expt$N else 
-            if (length(wait_for)==1 && wait_for=="none") numeric(0) else 
-            which(wait_for==wait_for[id])
-      if (all(ids %in% ready)) {
+      if (check_ready(id)) return(NEXT) else return(WAIT)
+    }
+  )
+)
+
+
+#' Make subjects wait for other subjects.
+#' 
+#' @param wait_for "all", "none" or a vector of length N
+#' 
+#' @details 
+#' 
+#' If \code{wait_for} is a vector, then it is assumed to represent
+#' subject groups. So, if \code{wait_for} is \code{vec} then a subject with 
+#' ID \code{x} will wait here until all subjects with IDs 
+#' \code{which(vec==vec[x])} have arrived at this stage. If \code{wait_for} is 
+#' "all", then subjects must wait till all subjects in the experiment have
+#' arrived. If \code{wait_for} is "none" then checkpoint does nothing.
+#' 
+#' A typical use of this might be \code{mydf$groups[order(mydf$id),]}
+#' 
+#' If all relevant subjects are ready, the subject moves on.
+#' 
+#' @examples
+#' expt <- experiment(N=4)
+#' groups <- c("A", "A", "B", "B")
+#' s1 <- text_stage(text="<html><body><form action=''>
+#'      <input type='submit' value='Next'></form></body></html>")
+#'      
+#' # wait for everyone:
+#' add_stage(expt, period(), s1, checkpoint(), s1) 
+#' 
+#' # players 1 and 2 wait for each other, so do 3 and 4:
+#' add_stage(expt, period(), s1, checkpoint(c(1, 1, 2, 2)), s1) 
+#' 
+#' @return An object of class CheckPoint
+#' @family stages
+#' @export
+checkpoint <- function (...) CheckPoint$new(...)
+
+Period <- setRefClass("Period", contains="CheckPoint",
+  fields = list(
+  ),
+  methods = list(
+    handle_request = function(id, period, params) {
+      if (! id %in% ready) ready <<- c(ready, id)
+      if (check_ready(id)) {
         expt$next_period(id)
         return(NEXT)
       } else return(WAIT)
@@ -370,11 +419,7 @@ Period <- setRefClass("Period", contains="AbstractStage",
 #' 
 #' @details 
 #' 
-#' If \code{wait_for} is a vector, then it is assumed to represent
-#' subject groups. So, if \code{wait_for} is \code{vec} then a subject with 
-#' ID \code{x} will wait here until all subjects with IDs 
-#' \code{which(vec==vec[x])} have arrived at this stage. If \code{wait_for} is 
-#' \code{NULL} (the default), individual subjects can move on without waiting.
+#' I\code{wait_for} is interpreted just as in \code{\link{checkpoint}}.
 #' 
 #' If all relevant subjects are ready, the subject's period counter is
 #' incremented and the subject moves on.
@@ -397,7 +442,7 @@ Period <- setRefClass("Period", contains="AbstractStage",
 #' @return An object of class NewPeriod
 #' @family stages
 #' @export
-period <- function (...) Period$new(...)
+period <- function (wait_for="none") Period$new(wait_for=wait_for)
 
 
 Program <- setRefClass("Program", contains="AbstractStage",

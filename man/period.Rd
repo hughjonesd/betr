@@ -27,11 +27,7 @@ ID \tab period \tab ...  \cr
 ... \tab ... \tab ... \cr
 }
 
-If \code{wait_for} is a vector, then it is assumed to represent
-subject groups. So, if \code{wait_for} is \code{vec} then a subject with
-ID \code{x} will wait here until all subjects with IDs
-\code{which(vec==vec[x])} have arrived at this stage. If \code{wait_for} is
-\code{NULL} (the default), individual subjects can move on without waiting.
+I\code{wait_for} is interpreted just as in \code{\link{checkpoint}}.
 
 If all relevant subjects are ready, the subject's period counter is
 incremented and the subject moves on.
@@ -53,7 +49,8 @@ add_stage(expt, s1, new_period(groups), times=2)
 }
 \seealso{
 Other stages: \code{\link{NEXT}}, \code{\link{WAIT}},
-  \code{\link{stage}}; \code{\link{program}};
-  \code{\link{structured_stage}}; \code{\link{text_stage}}
+  \code{\link{stage}}; \code{\link{checkpoint}};
+  \code{\link{program}}; \code{\link{structured_stage}};
+  \code{\link{text_stage}}
 }
 

@@ -35,7 +35,8 @@ s2 <- program
 }
 \seealso{
 Other stages: \code{\link{NEXT}}, \code{\link{WAIT}},
-  \code{\link{stage}}; \code{\link{period}};
-  \code{\link{structured_stage}}; \code{\link{text_stage}}
+  \code{\link{stage}}; \code{\link{checkpoint}};
+  \code{\link{period}}; \code{\link{structured_stage}};
+  \code{\link{text_stage}}
 }
 
