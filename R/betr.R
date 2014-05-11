@@ -296,7 +296,7 @@ Experiment <- setRefClass("Experiment",
     },
     
     pause = function() {
-      if (status != "Running") {
+      if (status != "Started") {
         warning("Experiment not running, cannot pause")
         return(invisible(FALSE))
       } else {

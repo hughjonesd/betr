@@ -41,9 +41,9 @@ test_that("Experiment stages work", {
 
 
 Sys.sleep(1) # new session name
-test_that("Experiment starting and status works", {
+test_that("Experiment starting, status, pause and restart work", {
   expt <- experiment(N=2, server="CommandLineServer")
-  
+  add_stage(expt, period(), function(id, params, list) return("foo"))
   expect_that(expt$N, equals(2))
   expect_that(expt$status <- "B0rked", throws_error())
   expect_that(show(expt), prints_text("Stopped"))
@@ -68,6 +68,17 @@ test_that("Experiment starting and status works", {
   expect_that(show(expt), prints_text("Started"))
   expect_that(expt$handle_request(client="C", params=list()), 
         equals(expt$special_page("Too many participants")))
+  
+  pause(expt)
+  expect_that(info(expt), prints_text("Paused"))
+  expect_that(expt$handle_request(client="B", params=list()), 
+    equals(expt$waiting_page("Experiment paused")))
+  restart(expt)
+  expect_that(info(expt), prints_text("Started"))
+  
+  expect_that(expt$handle_request(client="B", params=list()), 
+    equals("foo"))
+  
 })
 
 
