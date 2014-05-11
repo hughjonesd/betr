@@ -167,12 +167,11 @@ Experiment <- setRefClass("Experiment",
     
     record_command = function(command, params) {
       if (missing(params)) params <- NULL
-      command <- list(name=command, params=params, 
-        time=Sys.time() - start_time)
+      command <- list(name=command, params=params)
       commands <<- append(commands, command)
-      command$time <- NULL
+      tm=Sys.time() - start_time
       cat(as.yaml(command), file=file.path(session_name, "record", paste0("command-", 
-            as.character(command$time))))
+            as.character(tm))))
     },
     
     record_request = function(client, params, ip=NULL, cookies=NULL) {
@@ -185,10 +184,9 @@ Experiment <- setRefClass("Experiment",
     
     handle_command = function(command, params) {      
       if (command %in% .command_names) {
+        record_command(command, params)
         command <- do.call(`$`, list(.self, command)) 
         if (missing(params)) command() else do.call(command, params)
-        record_command(command, params) # needs to be here or "start" won't have 
-                                        # created session
       } else {
         warning("Got unrecognized command: ", command)
       }
