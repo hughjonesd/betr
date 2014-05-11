@@ -50,7 +50,7 @@ subjects.do{
 
 The same thing in R is just:
 
-```{r eval=FALSE}
+```{splus eval=FALSE}
 rand_id <- sample(1:N)
 ```
 
@@ -83,7 +83,7 @@ Installing betr
 
 To install betr just run:
 
-```{r eval=FALSE}
+```{splus eval=FALSE}
 install.packages("devtools") # if not already installed
 library(devtools)
 install_github("betr", "hughjonesd") # for the latest version
@@ -96,7 +96,7 @@ Typically you will define your experiment in a source file. Then, during a
 session, you will run it from the command line. Here's a source file for a
 simple guessing game experiment.
 
-```{r warning=FALSE}
+```{splus warning=FALSE}
 library(betr)
 expt <- experiment(N=1, clients_in_url=TRUE)
 
@@ -135,7 +135,7 @@ on_ready(expt, initialize_data_frame)
 ```
 
 Let's look at this bit by bit.
-```{r warning=FALSE}
+```{splus warning=FALSE}
 expt <- experiment(N=1, clients_in_url=TRUE)
 ```
 The call to `experiment` returns an object of class Experiment. `N=1` gives the
@@ -145,7 +145,7 @@ Next, we define a function called `s1`. In betr, experiments are composed of
 _stages_. `s1` is a simple stage. Ignoring the details, the structure of `s1`
 is like:
 
-```{r warning=FALSE}
+```{splus warning=FALSE}
 s1 <- function(id, period, params) {
   # ...
   return(NEXT)
@@ -189,7 +189,7 @@ aren't finished, `s1` will then be called again without parameters. `s1` will
 then print out the guessing form so the subject can choose another number.
 
 
-```{r warning=FALSE}
+```{splus warning=FALSE}
 add_stage(expt, period(), s1, times=5)
 ```
 
@@ -207,7 +207,7 @@ our experiment's stages are now:
 You should usually start your experiment with a Period to set the period counter 
 to 1.
 
-```{r}
+```{splus}
 initialize_data_frame <- function() {
   mydf <<- experiment_data_frame(expt)
   mydf$guess <<- NA
@@ -219,7 +219,7 @@ on_ready(expt, initialize_data_frame)
 Last of all, we want to prepare a data frame for our experiment. We could just 
 do this by calling
 
-```{r}
+```{splus}
 mydf <<- experiment_data_frame(expt)
 ```
 
@@ -240,13 +240,13 @@ when it is replayed. Then the replay will populate our data frame just as it was
 
 OK, we've created our experiment. Now, we need to run it. Run the code above, our
 put it in a file called `my_experiment.R` and source it: 
-```{r eval=FALSE}
+```{splus eval=FALSE}
 source("my_experiment.R")
 ```
 You'll see some warnings about "seats" -- don't worry about those for now.
 
 Before we run it, let's take a look at it. On the command line, type
-```{r}
+```{splus}
 expt
 ```
 You should see a line like
@@ -261,7 +261,7 @@ the 5 `s1` objects. Lastly, the _Status_ tells us whether the experiment is
 _Stopped_, _Waiting_, _Started_ or _Paused_. Right now it is _Stopped_. Let's
 change that. On the command line, run:
 
-```{r, error=FALSE}
+```{splus error=FALSE}
 ready(expt)
 ```
 
@@ -280,7 +280,7 @@ The status has changed, and we see the session name. We also have a URL. Clients
 can connect to this to view the experiment. You can do this manually: open your 
 web browser and go to the URL _http://127.0.0.1:10946/custom/betr/client-1_. Or,
 for a convenient shortcut, enter:
-```{r eval=FALSE}
+```{splus eval=FALSE}
 web_test(expt)
 ```
 on the R command line. You should see a page saying "Waiting to start". It will 
@@ -288,7 +288,7 @@ refresh regularly.
 
 Before we start, let's see a bit more information about our experiment. Type:
 
-```{r}
+```{splus}
 info(expt)
 ```
 
@@ -296,7 +296,7 @@ This shows the same info as before, plus a list of subjects -- just one.
 
 To start the experiment, type:
 
-```{r eval=FALSE}
+```{splus eval=FALSE}
 start(expt)
 ```
 
@@ -304,7 +304,7 @@ Now, when your browser page refreshes, you will see the first period of the
 guessing game. Complete a couple of guesses (good luck!). Use `info(expt)`
 to watch your subject progressing. You can also look directly at your 
 experimental data frame:
-```{r eval=FALSE}
+```{splus eval=FALSE}
 mydf
 ```
 >  id period guess correct
@@ -319,7 +319,7 @@ At the end, you will see an "experiment finished" page in your browser, and
 
 To stop the experiment serving, run
 
-```{r}
+```{splus}
 halt(expt)
 ```
 
@@ -328,7 +328,7 @@ of the experiment will be "Stopped".
 
 Lastly, let's replay our experiment. Enter
 
-```{r eval=FALSE}
+```{splus eval=FALSE}
 replay(expt, ask=TRUE)
 ```
 
