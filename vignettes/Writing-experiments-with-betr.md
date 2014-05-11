@@ -77,6 +77,21 @@ Things can go wrong in the lab. In a betr session, all client and experimenter
 interactions are stored on disk, so even if your server computer crashes, you can 
 replay back to where you left off and restart the experiment.
 
+* No need for session management, databases, cookies, etc. 
+
+Languages like PHP are designed to respond to a single request, perhaps store some
+information in a database, print out a 
+web page, then die. When they get a new request, they start again, look
+for session information to remember where they were, get info from the 
+database.... This does not really suit the paradigm of an experiment where you 
+want users to go through steps simultaneously in a carefully defined order. 
+The resulting session and database management can be a hassle. 
+
+betr takes a different approach: a single persistent server process handles all 
+requests from start to finish.
+There's no need to talk to a database: data is held in memory. At any time you 
+can see exactly where your subjects are, using simple R commands.
+And your experiment can be written in a single source file. 
 
 Installing betr
 ---------------
@@ -273,8 +288,8 @@ on disk to hold data about it.
 
 Now, if you enter `expt` again, you should see something like:
 
-> Session: betr-2014-05-11-130421  Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
-> Serving at http://127.0.0.1:10946/custom/betr
+> Session: betr-2014-05-11-130421  Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10  
+> Serving at http://127.0.0.1:10946/custom/betr  
 
 The status has changed, and we see the session name. We also have a URL. Clients
 can connect to this to view the experiment. You can do this manually: open your 
@@ -307,12 +322,12 @@ experimental data frame:
 ```{splus eval=FALSE}
 mydf
 ```
->  id period guess correct
->1  1      1     1       0
->2  1      2     6       0
->3  1      3     1       0
->4  1      4  <NA>      NA
->5  1      5  <NA>      NA
+>  id period guess correct  
+>1  1      1     1       0  
+>2  1      2     6       0  
+>3  1      3     1       0  
+>4  1      4  <NA>      NA  
+>5  1      5  <NA>      NA  
 
 At the end, you will see an "experiment finished" page in your browser, and
 `info(expt)` will show that your subject has finished the experiment.
