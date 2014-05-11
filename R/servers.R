@@ -220,7 +220,7 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
         }
         if (skip) next
         switch(comreq$type[i], 
-          command= pass_command(comreq$command_name[i], cr.data[[i]]$params),
+          command= pass_command(cr.data[[i]]$command, cr.data[[i]]$params),
           request= .pass_request(cr.data[[i]]$client, cr.data[[i]]$params, cr.data[[i]]$ip, cr.data[[i]]$cookies)
         ) 
       }
