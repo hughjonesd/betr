@@ -280,25 +280,22 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
 #' as-is.
 #' 
 #'  If \code{form} is a function, it should take four arguments, as follows: 
-#'        \code{function(id, period, params, error)}. 
-#'        
-#'  \code{params} and \code{error} may both be missing. 
+#'  \code{function(id, period, params, error)}. \code{params} and \code{error}
+#'  may both be missing.
 #'  
 #'  If \code{result} is a function, it should take three arguments, like 
-#'        \code{function(id, period, params)}. 
-#'        
-#'  \code{params} may be missing.
+#'  \code{function(id, period, params)}. \code{params} may be missing.
 #'  
 #' If \code{wait_for} is a function, it should be of the form 
-#'        \code{function(id, period, params, ready)}. 
+#'        \code{function(id, period, params, ready)}. \code{ready} is a vector
+#'        containing the ids of participants who have been marked as ready. The
+#'        participant will move on to \code{results} only when the function
+#'        returns \code{TRUE}. 
 #'        
-#'        \code{ready} is a vector containing the ids of participants who have been 
-#'        marked as ready. The participant will
-#'        move on to \code{results} only when the function returns \code{TRUE}. If
-#'        \code{wait_for} is a list of vectors, then the participant will move on only when 
-#'        all participants in the same vector are ready. For example, 
-#'        \code{wait_for=list(1:4,5:8,9:12,13:16)} requires that participant
-#'        IDs 1 to 4 are all ready before participant 1 can move to \code{results}.
+#'  If \code{wait_for} is a list of vectors, then the participant will move on
+#'  only when all participants in the same vector are ready. For example,
+#'  \code{wait_for=list(1:4,5:8,9:12,13:16)} requires that participant IDs 1 to
+#'  4 are all ready before participant 1 can move to \code{results}.
 #' @examples
 #' s1 <- structured_stage(
 #'   form = function(id, period, params, error) {
@@ -445,55 +442,75 @@ Period <- setRefClass("Period", contains="CheckPoint",
 period <- function (wait_for="none") Period$new(wait_for=wait_for)
 
 
+# Form <- setRefClass("Form", contains="StructuredStage")
+
 Program <- setRefClass("Program", contains="AbstractStage",
   fields = list(
-    fn = "function",
+    fn = "ANY",
     ready = "numeric",
-    run = "character"
+    run = "ANY"
   ),
   methods = list(
-    initialize = function(fn, run) {
-      if (! run %in% c("first", "last", "all")) 
-            stop("run must be first, last or all, was ", run)
-      callSuper(fn=fn, run=run, ready=numeric(0)) 
+    initialize = function(run=NULL, fn=NULL, ...) {
+      callSuper(fn=fn, run=run, ready=numeric(0), ...) 
     },
     
     handle_request = function(id, period, params) {
-      ready <<- c(ready, id)
+      if (! id %in% ready) ready <<- c(ready, id)
       if (length(ready) == 1 && run == "first" || run == "all" || 
-            length(ready) == expt$N && run ==" last") fn(id, period)    
+            length(ready) == expt$N && run == "last") fn(id, period)    
       return(NEXT)
     }
   )
 )
 
 
-#' Call a function, either once or for each subject
+#' Run a function, either once or for each subject
 #' 
+#' @param run "first", "last", or "all".
 #' @param fn a function which should take two arguments, \code{id} and 
 #' \code{period}.
-#' @param run "first", "last", or "all".
 #' 
 #' @details 
 #' If
-#' \code{run} is \code{"all"} then the function \code{fn}will be run every time a
-#' subject reaches the stage. If \code{run} is \code{"first"} then \code{fn}
+#' \code{run} is \code{"all"} then the function \code{fn} will be run every time 
+#' a subject reaches the stage. If \code{run} is \code{"first"} then \code{fn}
 #' will be run when the first subject reaches the stage. If \code{run} is 
 #' \code{"last"} then \code{fn} will be run when the last subject reaches
 #' the stage.
 #' 
 #' @examples
-#' expt <- experiment(N=4)
-#' s1 <- text_stage(text="<html><body><form action=''>
+#' 
+#' expt <- experiment(N=16, on_ready=function() {
+#'  mpcr <<- 1.5
+#'  mydf <<- experiment_data_frame(expt)
+#'  mydf$contrib <<- NA
+#'  mydf$profit <<- NA
+#'  mydf$group <<- rep(rep(1:4, each=4), nperiods(expt))
+#' })
+#' 
+#' s1 <- function(id, period, params) {
+#'  if (! is.null(params) && 'contrib' %in% names(params)) {
+#'    mydf$contrib[mydf$id==id & mydf$period==period] <<- params$contrib
+#'    return(NEXT)
+#'  } else {
+#'    return("<html><body><form action=''>
 #'      Enter a contribution:<input name='contrib' type='text'>
 #'      <input type='submit' value='Next'></form></body></html>")
-#'      
-#' s2 <- program      
+#'  }
+#' }
+#' 
+#' s2 <- program("last", function(id, period) {
+#'  mydf$profit <<- with(mydf[mydf$period==period,] 
+#'        ave(contrib, group, FUN=function(x) 50 - x + mpcr * mean(x)))
+#' })
+#' 
+#' add_stage(expt, period(), s1, checkpoint(mydf$group), s2, s3, times=10)
 #'      
 #' @return A Stage object of class Program
 #' @family stages
 #' @export
-program <- function (fn, run) Calculation$new(fn, run) 
+program <- function (run, fn) Program$new(run, fn) 
 
 
 #' @rdname stage

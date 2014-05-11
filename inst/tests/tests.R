@@ -152,6 +152,31 @@ test_that("StructuredStages work", {
         info="Errors in process not being caught")
 })
 
+
+Sys.sleep(1)
+test_that("Programs work", {
+  first <- NA
+  seen <- numeric(0)
+  last <- NA
+  expt <- experiment(N=3, server="RookServer", autostart=FALSE, 
+    randomize_ids=FALSE)
+  s1 <- program("first", function (id, period) first <<- id)
+  s2 <- program("all", function(id, period) seen <<- c(seen, id))
+  s3 <- program("last", function(id, period) last <<- id)
+  add_stage(expt, period(), s1, s2, s3)
+  ready(expt)
+    
+  rfrom <- function(cl) expt$handle_request(cl, list())
+  clients <- paste0("client-", 1:3)
+  sapply(clients, rfrom)
+  start(expt)
+  rfrom(clients[1])
+  expect_that(first, equals(1))
+  sapply(clients[2:3], rfrom)
+  expect_that(last, equals(3))
+  expect_that(seen, equals(1:3))
+})
+  
 Sys.sleep(1)
 test_that("Periods work", {
   init_data <- function() {
