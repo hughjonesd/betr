@@ -21,6 +21,8 @@ Experiment <- setRefClass("Experiment",
     .command_names="character",
     autostart="logical",
     allow_latecomers="logical",
+    randomize_subjects="logical",
+    random_ids="numeric",
     auth="ANY",
     server="Server",
     .oldserver="Server",
@@ -36,7 +38,7 @@ Experiment <- setRefClass("Experiment",
     initialize = function(..., auth=TRUE, port, autostart=FALSE, 
       allow_latecomers=FALSE, N=Inf, server="RookServer", name="betr", 
       client_refresh=10, clients_in_url=FALSE, seats_file="betr-SEATS.txt",
-      on_ready=NULL) {
+      on_ready=NULL, randomize_subjects=TRUE) {
       stages <<- list()
       initialize_subjects()
       status <<- "Stopped"
@@ -54,13 +56,14 @@ Experiment <- setRefClass("Experiment",
       }
       requests <<- commands <<- list()
       .command_names <<- c("start", "pause", "restart", "next_stage")
+      if (randomize_subjects) random_ids <<- sample(1:N)
       seats <<- data.frame(seat=numeric(0), IP=character(0), cookie=character(0))
       err <- try(seats <<- read.table(seats_file, header=TRUE, 
             colClasses=c("integer", "character", "character")), silent=TRUE)    
       if (class(err)=="try-error") warning("Problem reading seats file ", seats_file)
       callSuper(..., auth=auth, autostart=autostart, clients_in_url=clients_in_url,
             allow_latecomers=allow_latecomers, N=N, client_refresh=client_refresh,
-            name=name, on_ready=on_ready)
+            name=name, on_ready=on_ready, randomize_subjects=randomize_subjects)
       if (is.infinite(N)) warning("No maximum N set for experiment")
     },
     
@@ -121,7 +124,8 @@ Experiment <- setRefClass("Experiment",
       )
       if (! ok) stop("Client unauthorized")
 
-      id <- if(nrow(subjects)) max(subjects$id)+1 else 1
+      id <- if(nrow(subjects)) length(unique(subjects$id))+1 else 1
+      if (randomize_subjects) id <- random_ids[id]
       seat <- NA
       if (nrow(seats)>0) {
         if (! is.null(cookies) && "betr-seat" %in% cookies && nrow(seats)>0) {
@@ -387,6 +391,9 @@ setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
 #'        is called. Use \code{on_ready} to initialize your data. In this
 #'        way your experiment will be replay-safe, since \code{replay} calls
 #'        \code{ready} automatically. 
+#' @param randomize_subjects if \code{TRUE}, subject IDs will be randomized from
+#'        1 to \code{N}. If \code{FALSE} subject IDs will be allocated first-come
+#'        first-served.
 #'        
 #' @return an object of class Experiment.
 #' 
