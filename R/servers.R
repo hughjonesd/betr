@@ -206,7 +206,7 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
             r <- readline("replay > ")
             switch(r, s={skip <- TRUE}, c={ask <<- FALSE}, q={skip <- TRUE; ask <<- FALSE}, d={
                 if (comreq$type[i]=="request") cat("Request from client:", cr.data[[i]]$client) else
-                  cat("Command:", cr.data[[i]]$command)
+                  cat("Command:", cr.data[[i]]$name)
                 cat("\nTime from start:", comreq$time[i], "\n")
                 cat("Params:\n")
                 cat(str(cr.data[[i]]$params), "\n")
@@ -220,7 +220,7 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
         }
         if (skip) next
         switch(comreq$type[i], 
-          command= pass_command(cr.data[[i]]$command, cr.data[[i]]$params),
+          command= pass_command(cr.data[[i]]$name, cr.data[[i]]$params),
           request= .pass_request(cr.data[[i]]$client, cr.data[[i]]$params, cr.data[[i]]$ip, cr.data[[i]]$cookies)
         ) 
       }
