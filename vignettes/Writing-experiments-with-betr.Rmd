@@ -361,6 +361,8 @@ You can enter arbitrary R expressions. For a list of other commands, enter
 Writing experiments
 -------------------
 
+### programs, checkpoints, text stages and forms
+
 Testing experiments
 -------------------
 
