@@ -63,20 +63,22 @@ TextStage <- setRefClass("TextStage", contains="AbstractStage",
   fields=list(
     text="character",
     file="character",
-    shown="numeric"
+    shown="numeric",
+    wait="logical"
   ),
   methods=list(
-    initialize = function(text, file, ...) {
+    initialize = function(text, file, wait=FALSE, ...) {
       if (! missing(text) && ! missing(file)) 
             stop("Only one of body or file should be defined")
       if (! missing(text)) text <<- text
       if (! missing(file)) file <<- file
+      wait <<- wait
       callSuper(shown=numeric(0), ...)
     },
     
     handle_request = function(id, period, params) {
-      if (id %in% shown) return(NEXT)
-      shown <<- c(shown, id)
+      if (id %in% shown && ! wait) return(NEXT)
+      if (! id %in% shown) shown <<- c(shown, id)
       if (length(text)>0) return(text)
       # don't crash if a file is missing?
       tryCatch(html <- file_or_brew(file), error= function(e) warning(e))
@@ -89,13 +91,16 @@ TextStage <- setRefClass("TextStage", contains="AbstractStage",
 #' 
 #' A text stage presents some HTML once to each subject.
 #' 
-#' @param file A filepath. If the file ends in ".brew" then it is passed to 
-#'        \code{brew} for processing. Otherwise it is shown to the subject as-is.
 #' @param text A character vector of HTML. Only one of \code{file} and
 #'        \code{text} should be passed.
+#' @param file A filepath. If the file ends in ".brew" then it is passed to 
+#'        \code{brew} for processing. Otherwise it is shown to the subject as-is.
+#'        
 #' @return An object of class TextStage. When called the first time, this will
 #'         display the HTML in \code{file} or \code{text} to the participant. 
-#'         Subsequent calls will return \code{NEXT}. 
+#'         If çode{wait} is \code{FALSE} (the default), subsequent calls
+#'         will return \code{NEXT}. If \code{wait} is \code{TRUE}, subsequent
+#'         calls return the same page.
 #' @details It is always safe to call \code{next_stage} on a participant who
 #'          is at a TextStage.
 #' @family stages  
@@ -322,6 +327,20 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
 #' @export
 structured_stage <- function (...) StructuredStage$new(...)
 
+Form <- setRefClass("Form", contains="StructuredStage",
+  fields = list(
+    fields       = "ANY",
+    check        = "ANY",
+    data_frame   = "character"
+  ),
+  methods = list(
+    initialize = function(form=form, fields=NULL, check=NULL, data_frame=NULL, timeout=NULL) {
+      callSuper(fields=fields, check=check, data_frame=data_frame, timeout=timeout)
+    }
+  )
+)
+
+
 CheckPoint <- setRefClass("CheckPoint", contains="AbstractStage",
   fields = list(
     wait_for = "ANY",
@@ -411,7 +430,7 @@ Period <- setRefClass("Period", contains="CheckPoint",
 #' ... \tab ... \tab ... \cr
 #' }
 #' 
-#' @usage period(wait_for=NULL)
+#' @usage period(wait_for="none")
 #' @param wait_for 
 #' 
 #' @details 
@@ -428,21 +447,21 @@ Period <- setRefClass("Period", contains="CheckPoint",
 #'      <input type='submit' value='Next'></form></body></html>")
 #'      
 #' # go ahead individually:
-#' add_stage(expt, s1, new_period(), times=2) 
+#' add_stage(expt, period(), s1) 
 #' 
 #' # wait for everyone:
-#' add_stage(expt, s1, new_period("all"), times=2) 
+#' add_stage(expt, period("all"), s1) 
 #' 
 #' # players 1 and 2 wait for each other, so do 3 and 4:
-#' add_stage(expt, s1, new_period(groups), times=2) 
+#' add_stage(expt, period(groups), s1) 
 #' 
-#' @return An object of class NewPeriod
+#' @return An object of class Period
 #' @family stages
 #' @export
 period <- function (wait_for="none") Period$new(wait_for=wait_for)
 
 
-# Form <- setRefClass("Form", contains="StructuredStage")
+
 
 Program <- setRefClass("Program", contains="AbstractStage",
   fields = list(
@@ -510,7 +529,7 @@ Program <- setRefClass("Program", contains="AbstractStage",
 #' @return A Stage object of class Program
 #' @family stages
 #' @export
-program <- function (run, fn) Program$new(run, fn) 
+program <- function (run, fn) {list(run,fn);Program$new(run, fn)} # list() to catch errors
 
 
 #' @rdname stage
