@@ -327,18 +327,99 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
 #' @export
 structured_stage <- function (...) StructuredStage$new(...)
 
+
+all_of <- function(...) {
+  subchecks <- list(...)
+  function(ftitle, val, ...) {
+    results <- lapply(subchecks, function(sc) sc(ftitle, val, ...))
+    nulls <- sapply(results, is.null)
+    if (all(nulls)) return(NULL) 
+    results <- results[!nulls]
+    if (length(results)==1) return(results[[1]])
+    return(c(paste0(ftitle, " has multiple errors:"), unlist(results)))
+  }
+}
+
+is_at_least <- function(min) {
+  function(ftitle, val, ...) {
+    val <- as.numeric(val)
+    if (is.na(val) || ! val >= min) paste0(ftitle, 
+      " must be at least ", min) else NULL
+  }
+}
+
+
+is_at_most <- function(max) {
+  function(ftitle, val, ...) {
+    val <- as.numeric(val)
+    if (is.na(val) || ! val <= max) paste0(ftitle, 
+      " must be no more than ", max) else NULL
+  }
+}
+
+is_whole_number <- function() {
+  function(ftitle, val, ...) {
+    val <- as.numeric(val)
+    tol = .Machine$double.eps^0.5  
+    if (is.na(val) || abs(val - round(val)) >= tol) paste0(ftitle, 
+          " must be a whole number") else NULL
+  }
+}
+
+is_between <- function(min, max) {
+  function(ftitle, val, ...) {
+    val <- as.numeric(val)
+    if (is.na(val) || ! (val >= min && val <= max)) paste0(ftitle, 
+        " must be between ", min, " and ", max) else NULL
+  }
+}
+
+length_between <- function(min, max) {
+  function(ftitle, val, ...) {
+    nc <- nchar(val)
+    if (! (nc >= min && nc <= max)) paste0(ftitle, 
+      " must be between ", min, " and ", max, " characters long") else NULL
+  }
+}
+
+length_at_least <- function(min) {
+  function(ftitle, val, ...) {
+    nc <- nchar(val)
+    if (! (nc >= min )) paste0(ftitle, 
+      " must be at least ", min, " characters long") else NULL
+  }
+}
+
+
+form_processor <- function(fields, data_frame) {
+  return(function (id, period, params) {
+    for (f in fields) {
+      fname <- names(f)
+      err <- try(f(fname, params[[fname]], id, period, params), silent=TRUE)
+      if (! is.null(err)) errs <- append(errs, err)
+    }
+    selrow <- with(.GlobalEnv[[data_frame]], id==id & period==period)
+    .GlobalEnv[[data_frame]][selrow, fname] <- params[[fname]])
+  })
+}
+
 Form <- setRefClass("Form", contains="StructuredStage",
   fields = list(
-    fields       = "ANY",
-    check        = "ANY",
-    data_frame   = "character"
+    fields       = "list",
+    data_frame   = "character",
+    timeout      = "numeric"
   ),
   methods = list(
-    initialize = function(form=form, fields=NULL, check=NULL, data_frame=NULL, timeout=NULL) {
-      callSuper(fields=fields, check=check, data_frame=data_frame, timeout=timeout)
+    initialize = function(form=form, fields=NULL, data_frame=NULL, timeout=0) {
+      fields <<- fields
+      data_frame <<- data_frame
+      fp <- form_processor(fields, data_frame)
+      callSuper(process=fp, timeout=timeout)
     }
   )
 )
+
+form <- function (...) Form$new(...)
 
 
 CheckPoint <- setRefClass("CheckPoint", contains="AbstractStage",
