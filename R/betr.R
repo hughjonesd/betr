@@ -237,7 +237,7 @@ Experiment <- setRefClass("Experiment",
       if (status != "Stopped") server$info()
       if (subj && nrow(subjects) > 0) {
         cat("Subjects:\n")
-        print(subjects)
+        print(subjects[order(subjects$id),])
       }
       if (map) .self$map()
     },
@@ -541,7 +541,7 @@ restart <- function(experiment) experiment$handle_command("restart")
 #' @family command line functions
 #' @export
 next_stage <- function(experiment, subjid) {
-  warning("Moving subject on manually, this may do bad things to your data")
+  warning("Moving subject on manually")
   experiment$handle_command("next_stage", list(subj=subjid))
 }
 

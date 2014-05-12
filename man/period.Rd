@@ -3,13 +3,13 @@
 \alias{period}
 \title{Begin a new period, optionally waiting for other subjects}
 \usage{
-period(wait_for=NULL)
+period(wait_for="none")
 }
 \arguments{
 \item{wait_for}{}
 }
 \value{
-An object of class NewPeriod
+An object of class Period
 }
 \description{
 A period may contain one or more stages. When the experiment is started,
@@ -39,13 +39,13 @@ s1 <- text_stage(text="<html><body><form action=''>
      <input type='submit' value='Next'></form></body></html>")
 
 # go ahead individually:
-add_stage(expt, s1, new_period(), times=2)
+add_stage(expt, period(), s1)
 
 # wait for everyone:
-add_stage(expt, s1, new_period("all"), times=2)
+add_stage(expt, period("all"), s1)
 
 # players 1 and 2 wait for each other, so do 3 and 4:
-add_stage(expt, s1, new_period(groups), times=2)
+add_stage(expt, period(groups), s1)
 }
 \seealso{
 Other stages: \code{\link{NEXT}}, \code{\link{WAIT}},
