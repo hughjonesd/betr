@@ -328,6 +328,23 @@ StructuredStage <- setRefClass("StructuredStage", contains="AbstractStage",
 structured_stage <- function (...) StructuredStage$new(...)
 
 
+#' Functions which return functions that can check a form input for errors.
+#' 
+#' These functions return functions which can be passed to the \code{fields}
+#' list of a \code{\link[form_stage]{FormStage}} object. The created functions 
+#' check their inputs and return \code{NULL} or an error message.
+#' 
+#' \code{all_of} checks each of the functions it is passed.
+#' 
+#' @examples
+#' f1 <- is_whole_number()
+#' f1("pi", 3.141)
+#'
+#' 
+#' 
+#' @return A function for checking a form input
+#' @family checks
+#' @export
 all_of <- function(...) {
   subchecks <- list(...)
   function(ftitle, val, ...) {
@@ -340,6 +357,8 @@ all_of <- function(...) {
   }
 }
 
+#' @rdname all_of
+#' @export
 is_at_least <- function(min) {
   function(ftitle, val, ...) {
     val <- as.numeric(val)
@@ -349,6 +368,9 @@ is_at_least <- function(min) {
 }
 
 
+
+#' @rdname all_of
+#' @export
 is_at_most <- function(max) {
   function(ftitle, val, ...) {
     val <- as.numeric(val)
@@ -357,6 +379,8 @@ is_at_most <- function(max) {
   }
 }
 
+#' @rdname all_of
+#' @export
 is_whole_number <- function() {
   function(ftitle, val, ...) {
     val <- as.numeric(val)
@@ -366,6 +390,8 @@ is_whole_number <- function() {
   }
 }
 
+#' @rdname all_of
+#' @export
 is_between <- function(min, max) {
   function(ftitle, val, ...) {
     val <- as.numeric(val)
@@ -374,6 +400,8 @@ is_between <- function(min, max) {
   }
 }
 
+#' @rdname all_of
+#' @export
 length_between <- function(min, max) {
   function(ftitle, val, ...) {
     nc <- nchar(val)
@@ -382,6 +410,9 @@ length_between <- function(min, max) {
   }
 }
 
+
+#' @rdname all_of
+#' @export
 length_at_least <- function(min) {
   function(ftitle, val, ...) {
     nc <- nchar(val)
@@ -390,36 +421,137 @@ length_at_least <- function(min) {
   }
 }
 
-
-form_processor <- function(fields, data_frame) {
+form_processor <- function(fields, titles) {
   return(function (id, period, params) {
-    for (f in fields) {
-      fname <- names(f)
-      err <- try(f(fname, params[[fname]], id, period, params), silent=TRUE)
-      if (! is.null(err)) errs <- append(errs, err)
-    }
-    selrow <- with(.GlobalEnv[[data_frame]], id==id & period==period)
-    .GlobalEnv[[data_frame]][selrow, fname] <- params[[fname]])
+    
   })
 }
 
-Form <- setRefClass("Form", contains="StructuredStage",
+FormStage <- setRefClass("FormStage", contains="AbstractStage",
   fields = list(
     fields       = "list",
+    titles       = "ANY",
     data_frame   = "character",
-    timeout      = "numeric"
+    timeout      = "numeric",
+    seenonce     = "numeric",
+    timestamps   = "POSIXct"
   ),
   methods = list(
-    initialize = function(form=form, fields=NULL, data_frame=NULL, timeout=0) {
+    initialize = function(form_page=NULL, fields=NULL, titles=NULL, data_frame=NULL, 
+          timeout=NULL, ...) {
       fields <<- fields
+      titles <<- titles
       data_frame <<- data_frame
-      fp <- form_processor(fields, data_frame)
-      callSuper(process=fp, timeout=timeout)
+      seenonce <<- numeric(0)
+      timeout <<- timeout
+      timestamps <<- as.POSIXct(NA)
+      callSuper(...)
+    },
+    
+    handle_request = function(id, period, params) {
+      if (! is.null(timeout) && ! is.na(timestamps[id]) && Sys.time() > 
+            timestamps[id] + timeout) return(NEXT) # timed out
+      if (id %in% seenonce) {
+        errs <- character(0)
+        for (f in fields) {
+          fname <- names(f)
+          ftitle <- if(is.null(titles)) fname else titles[[fname]]
+          err <- f(ftitle, params[[fname]], id, period, params)
+          if (! is.null(err)) errs <- append(errs, err)
+        }
+        if (length(errs) == 0) {
+          selrow <- with(.GlobalEnv[[data_frame]], id==id & period==period)
+          .GlobalEnv[[data_frame]][selrow, fname] <- params[[fname]]
+          return(NEXT)
+        } else {
+            error <- paste(errs, collapse="<br />") 
+            if (inherits(form_page, "file")) res <- file_or_brew(form_page, error)
+            if (is.character(form_page)) res <- form_page     
+        }
+      } else {
+        seenonce <<- c(seenonce, id)
+        res <- ffbc(form_page, error=NULL) 
+      }
+      res <- gsub("<%\\s*error\\s*%>", error, res) # for case of not brew
+      res <- rookify(res)
+      if (! is.null(timeout)) {
+        if (is.na(timestamps[id])) {
+          timestamps[id] <<- Sys.time() 
+          new_timeout <- timeout
+        } else {
+          new_timeout <- timeout - (Sys.time() - timestamps[id])
+        }
+        res$header("Refresh", as.numeric(new_timeout))
+      }
+      
+      return(res)
     }
   )
 )
 
-form <- function (...) Form$new(...)
+
+#' Print out a form and store the subject's inputs in a data frame, after
+#' checking for errors
+#' 
+#' @param form_page Some text, or a file object
+#' @param fields A list of fields, like 
+#'        \code{list(field_name=check_function, ...)}
+#' @param titles A list of field titles, like \code{list(field_name=title,...)}
+#' @param data_frame The quoted string name of the data frame to be updated.
+#'        This should exist in the global environment.
+#' @param timeout An optional timeout value in seconds
+
+#' 
+#' @details 
+#' 
+#' When the subject first arrives, the text or file \code{form_page} is 
+#' displayed. After the form is submitted, it is checked for errors, as follows:
+#' each member of the list \code{fields} is called as a function, with arguments
+#' \code{(field_title, value, id, period, params)}. Here
+#' 
+#' \itemize{
+#'    \item \code{field_title} is the field name itself (the name of the 
+#'          corresponding list element) unless a list of titles was supplied.
+#'    \item \code{value} is the value of the corresponding field in the form
+#'          submitted by the user. This will be a length 1 character string.
+#'    \item \code{id} and \code{period} are self-explanatory
+#'    \item \code{params} is the full list of parameters
+#' } 
+#' 
+#' If the function returns \code{NULL} the field is OK. If the function
+#' returns a character vector, this is treated as a vector of error messages.
+#' If there are any error messages, \code{form_page} is redisplayed. If there
+#' are no error messages, the data frame named in \code{data_frame} is updated: 
+#' in the row with \code{id==id && period==period}, the columns
+#' named by \code{fields} get the values passed in by the user. 
+#' 
+#' If the form times out before the user has submitted, the data frame is not 
+#' updated. 
+#' 
+#' \code{\link{is_whole_number}} and similar functions return functions suitable
+#' for use in the fields list.
+#' 
+#' @examples
+#' 
+#' mydf <- data.frame(id=rep(1:5, each=5), period=rep(1:5, times=5), 
+#'      username=NA_character_, password=NA_character_)
+#' 
+#' s1 <- form_stage(form_page=myform, data_frame="mydf",
+#'  fields=list(
+#'    username=length_between(8, 15),
+#'    password=all_of(length_at_least(8), function(name, val, ...) {
+#'      if (val=='password') return("Password should not be 'password'")
+#'      if (grepl('&[A-Za-z0-9]$', val)) return("Password should contain at 
+#'            least one non-numeric character")
+#'      return(NULL)
+#'      })
+#' ))
+#' 
+#' 
+#' @return An object of class FormStage
+#' @family stages
+#' @export
+form_stage <- function (...) FormStage$new(...)
 
 
 CheckPoint <- setRefClass("CheckPoint", contains="AbstractStage",

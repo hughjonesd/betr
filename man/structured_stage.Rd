@@ -126,7 +126,7 @@ s1 <- structured_stage(
 \seealso{
 Other stages: \code{\link{NEXT}}, \code{\link{WAIT}},
   \code{\link{stage}}; \code{\link{checkpoint}};
-  \code{\link{period}}; \code{\link{program}};
-  \code{\link{text_stage}}
+  \code{\link{form_stage}}; \code{\link{period}};
+  \code{\link{program}}; \code{\link{text_stage}}
 }
 

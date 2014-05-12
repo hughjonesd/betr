@@ -372,7 +372,7 @@ You can enter arbitrary R expressions. For a list of other commands, enter
 Writing experiments
 -------------------
 
-### programs, checkpoints, text stages and forms
+### Programs, checkpoints, text stages and forms
 
 So far our experiment is rather trivial: guessing a random number. Let's change
 it to have multiple subjects, each matched in groups, and getting paid if they 
@@ -396,7 +396,7 @@ initialize <- function() {
   set.seed(seed)
   mydf <<- experiment_data_frame(expt)
   mydf$guess <<- NA
-  mydf$correct <<- NA
+#   mydf$correct <<- NA
   mydf$group <<- rep(rep(1:Ngroups, each=groupsize), nperiods(expt))
 }
 
@@ -412,7 +412,8 @@ edited easily.
 * When the file is sourced, a random seed is set. The seed will be stored when 
 `ready` is called. So, if the experiment is replayed, exactly the same random 
 numbers will be generated. (We should have done this for the previous guessing 
-game!)
+game!) Of course, you want to use a different seed for each session. One way to
+ensure this would be `seed <- readline("Please enter a large random integer: ")`.
 
 * The column `mydf$group` records each subject's group. In this case, subject ids
 1-2 are in group 1, subject ids 3-4 are in group 2, and so on. This is not
@@ -493,11 +494,12 @@ myform <- c(
   "<input type='submit' value='Submit'></form>", 
   footer()
 )
-guess_stage <- form(form_page=myform, fields=list(
+guess_s <- form_stage(form_page=myform, fields=list(
       guess=all_of(is_whole_number(), is_between(1, 10))
       ), data_frame="mydf")
 
 ```
+
 
 
 If we have multiple users in groups, we can't let them all run through the 
