@@ -1,6 +1,8 @@
 #' @import Rook
 #' @import yaml
 #' @import svSocket
+#' @import tools
+
 
 
 if (getRversion() < "2.15.0") paste0 <- function(...) paste(..., sep="")
@@ -136,20 +138,12 @@ RookServer <- setRefClass("RookServer", contains="Server",
     },
     start = function (session_name=paste0(name, Sys.time())) {
       session_name <<- session_name
-      if (is.null(rhttpd)) {
-#         try({
-#           startDynamicHelp(FALSE) # RStudio hack
-#           options(help.ports=port)
-#           #startDynamicHelp(TRUE)
-#         }, silent=TRUE)
-        rhttpd <<- Rhttpd$new()
-      }
+      if (is.null(rhttpd)) rhttpd <<- Rhttpd$new()
       rhttpd$add(app=.self, name=name) # dupes ignored
       rhttpd$start(port=port)
     },
     
     halt = function () {
-      # rhttpd$remove("betr") # needed?
       try(rhttpd$stop(), silent=TRUE) # error from startDynamicHelp  
     },
     

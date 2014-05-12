@@ -9,7 +9,7 @@ FixedRhttpd$methods(start=function (listen = "127.0.0.1", port = getOption("help
   }
   if (grepl("rstudio", base::.Platform$GUI, ignore.case = TRUE)) {
     warning("Temporarily disabling RStudio's dynamic help")
-    try(startDynamicHelp(FALSE), silent=TRUE)
+    try(tools::startDynamicHelp(FALSE), silent=TRUE)
   }
   if (!missing(listen) && listen != "127.0.0.1") {
     listen <- "127.0.0.1"
