@@ -494,7 +494,7 @@ myform <- c(
   footer()
 )
 guess_stage <- form(form_page=myform, fields=list(
-      guess=integer_between(1, 10)
+      guess=all_of(is_whole_number(), is_between(1, 10))
       ), data_frame="mydf")
 
 ```

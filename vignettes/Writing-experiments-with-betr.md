@@ -342,7 +342,7 @@ expt
 ```
 
 ```
-## Session: betr-2014-05-12-103323	Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
+## Session: betr-2014-05-12-153829	Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr
 ```
 
@@ -361,9 +361,6 @@ refresh regularly.
 
 
 
-```
-## [1] "<html><head><title>Experiment</title><meta http-equiv='refresh' content='10'></head><body style='background-color: #CCCCCC; padding: 2% 4%;'>\n        <div style='background-color: white; padding: 3% 3%'>Waiting to start</div><div align='center' style='padding: 10px 10px;'>betr</div></body></html>"
-```
 
 
 Before we start, let's see a bit more information about our experiment. Type:
@@ -374,7 +371,7 @@ info(expt)
 ```
 
 ```
-## Session: betr-2014-05-12-103323	Status: Waiting	Clients: 1/1	Periods: 5	Stages: 10
+## Session: betr-2014-05-12-153829	Status: Waiting	Clients: 1/1	Periods: 5	Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr 
 ## Subjects:
 ##     client id seat period stage  status
@@ -454,6 +451,150 @@ Writing experiments
 -------------------
 
 ### programs, checkpoints, text stages and forms
+
+So far our experiment is rather trivial: guessing a random number. Let's change
+it to have multiple subjects, each matched in groups, and getting paid if they 
+all choose the same random number -- i.e., a coordination game.
+
+We'll set up our data frame much as before:
+
+
+```splus
+library(betr)
+N <- 8
+groupsize <- 2
+reward <- 5  # reward in $
+seed <- 1312341  # don't forget to change this every session!!!
+
+seed <- as.integer(seed)
+if (N%%groupsize > 0) stop("N must be an exact multiple of groupsize")
+Ngroups <- N/groupsize
+
+
+initialize <- function() {
+    set.seed(seed)
+    mydf <<- experiment_data_frame(expt)
+    mydf$guess <<- NA
+    mydf$correct <<- NA
+    mydf$group <<- rep(rep(1:Ngroups, each = groupsize), nperiods(expt))
+}
+
+expt <- experiment(N = N, clients_in_url = TRUE, on_ready = initialize)
+```
+
+```
+## Warning: cannot open file 'betr-SEATS.txt': No such file or directory
+## Warning: Problem reading seats file betr-SEATS.txt
+```
+
+
+A couple of small points. 
+
+* Parameters for the experiment are set at the top of the file so they can be
+edited easily.
+
+* When the file is sourced, a random seed is set. The seed will be stored when 
+`spluseady` is called. So, if the experiment is replayed, exactly the same random 
+numbers will be generated. (We should have done this for the previous guessing 
+game!)
+
+* The column `mydf$group` records each subject's group. In this case, subject ids
+1-2 are in group 1, subject ids 3-4 are in group 2, and so on. This is not
+randomized, but by default, betr randomizes IDs across subjects, so we are fine. 
+If you wanted to explicitly randomize you could just add the following line to 
+`initialize`:
+
+
+```splus
+mydf$group <- sample(mydf$group)
+```
+
+
+If you wanted to redraw groups each round, you could do something like:
+
+
+```splus
+groups <- rep(1:Ngroups, each = groupsize)
+for (i in 1:nperiods(expt)) mydf$group[mydf$period == i] <- sample(groups)
+```
+
+
+* Notice as before that when we assign to `mydf`, we use the global assignment 
+operator `<<-`.
+
+Let's add some instructions to our experiment. To do this, we'll use a new
+kind of Stage:
+
+
+```splus
+ins <- text_stage(text = c(header(), "You will be matched in groups of size", 
+    groupsize, ". If you each guess the same number, you will get a reward of $", 
+    reward, ". <form action=''><input type='Submit' value='OK'></form>", footer()))
+add_stage(expt, ins)
+```
+
+
+`text_stage` creates very simple stages: they display some text to the user, then
+return `NEXT`. At the bottom of our text, we add an HTML form with a single submit
+button. When the subject clicks this, he or she will move on to the next stage.
+
+The functions `header()` and `footer()` create some simple HTML to start and
+finish the web page. They are there for convenience. 
+
+We don't always want the user to be able to move on. Sometimes we would rather 
+make them wait until the experimenter moves them on. Doing this is simple:
+
+
+```splus
+ins2 <- text_stage(text = c(header(), "Please wait for the experiment to begin!", 
+    footer()), wait = TRUE)
+add_stage(expt, ins2)
+```
+
+
+Now the user can't move on because there is no submit button. In addition,
+even if the browser were refreshed, the text will simply redisplay because
+of the `wait=TRUE` option. To move all subjects on manually from the command
+line:
+
+
+```splus
+next_stage(expt, 1:N)
+```
+
+
+Here `1:N` gives the subject ids as shown by `info(expt)`. Moving subjects
+on manually might risk losing data, but as this stage is just displaying some 
+text, we're fine.
+
+Next we need to let subjects pick a number. Last time we did this with a 
+function which either displayed an HTML form, or stored the subject's guess.
+We can do this even more simply using a new kind of Stage.
+
+
+```splus
+myform <- c(header(), "<% errors %>", "<form action='' method='POST'><select name='guess'>", 
+    paste0("<option>", 1:10, "</option>"), "</select>", "<input type='submit' value='Submit'></form>", 
+    footer())
+guess_stage <- form(form_page = myform, fields = list(guess = all_of(is_whole_number(), 
+    is_between(1, 10))), data_frame = "mydf")
+```
+
+```
+## Error: non trovo la funzione "form"
+```
+
+
+
+If we have multiple users in groups, we can't let them all run through the 
+experiment at the same time. They have to wait for each other. For this we need 
+a new kind of Stage called a CheckPoint.
+
+
+To do this we need to learn some more about the different kinds of Stages. So
+far you've met two kinds: simple functions which return `NEXT`, `WAIT` or some
+HTML; and Period objects created using `period`. 
+
 
 Testing experiments
 -------------------
