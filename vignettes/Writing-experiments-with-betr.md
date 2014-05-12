@@ -50,9 +50,11 @@ subjects.do{
 
 The same thing in R is just:
 
-```{splus eval=FALSE}
+
+```splus
 rand_id <- sample(1:N)
 ```
+
 
 * betr uses HTML to display experiments to subjects.
 
@@ -98,11 +100,13 @@ Installing betr
 
 To install betr just run:
 
-```{splus eval=FALSE}
-install.packages("devtools") # if not already installed
+
+```splus
+install.packages("devtools")  # if not already installed
 library(devtools)
-install_github("betr", "hughjonesd") # for the latest version
+install_github("betr", "hughjonesd")  # for the latest version
 ```
+
 
 An example betr experiment
 --------------------------
@@ -111,48 +115,62 @@ Typically you will define your experiment in a source file. Then, during a
 session, you will run it from the command line. Here's a source file for a
 simple guessing game experiment.
 
-```{splus warning=FALSE}
+
+```splus
 library(betr)
-expt <- experiment(N=1, clients_in_url=TRUE)
+```
+
+```
+## 
+## Attaching package: 'betr'
+## 
+## The following object is masked from 'package:stats':
+## 
+##     start
+```
+
+```splus
+expt <- experiment(N = 1, clients_in_url = TRUE)
 
 s1 <- function(id, period, params) {
-
-  me_now <- mydf$id==id & mydf$period==period
-  gg <- ! missing(params) && 'guess' %in% names(params) 
-  if (gg) {
-    mydf$guess[me_now] <<- params$guess
-    mydf$correct[me_now] <<- if (params$guess == sample(1:10,1)) 1 else 0
-    return(NEXT)
-  }
-  last_guess <- ''
-  me_before <- mydf$id==id & mydf$period == period -1
-  if (period > 1) last_guess <- paste('You guessed ', mydf$guess[me_before], 
-        '... you were ', if(mydf$correct[me_before]>0) 'right!' else 'wrong!', sep='')
-  return(paste(header(), sprintf(
-    "<p color='red'>%s</p>
-    <p>Pick a number</p>
-    <form action='' method='post'><select name='guess'>%s</select>
-    <input type='submit' value='Submit'></form>",
-    last_guess,
-    paste("<option value='", 1:10,"'>", 1:10, "</option>", sep="", collapse=""
-  )), footer()))
+    
+    me_now <- mydf$id == id & mydf$period == period
+    gg <- !missing(params) && "guess" %in% names(params)
+    if (gg) {
+        mydf$guess[me_now] <<- params$guess
+        mydf$correct[me_now] <<- if (params$guess == sample(1:10, 1)) 
+            1 else 0
+        return(NEXT)
+    }
+    last_guess <- ""
+    me_before <- mydf$id == id & mydf$period == period - 1
+    if (period > 1) 
+        last_guess <- paste("You guessed ", mydf$guess[me_before], "... you were ", 
+            if (mydf$correct[me_before] > 0) 
+                "right!" else "wrong!", sep = "")
+    return(paste(header(), sprintf("<p color='red'>%s</p>\n    <p>Pick a number</p>\n    <form action='' method='post'><select name='guess'>%s</select>\n    <input type='submit' value='Submit'></form>", 
+        last_guess, paste("<option value='", 1:10, "'>", 1:10, "</option>", 
+            sep = "", collapse = "")), footer()))
 }
 
-add_stage(expt, period(), s1, times=5)
+add_stage(expt, period(), s1, times = 5)
 
 
 initialize_data_frame <- function() {
-  mydf <<- experiment_data_frame(expt)
-  mydf$guess <<- NA
-  mydf$correct <<- NA
+    mydf <<- experiment_data_frame(expt)
+    mydf$guess <<- NA
+    mydf$correct <<- NA
 }
 on_ready(expt, initialize_data_frame)
 ```
 
+
 Let's look at this bit by bit.
-```{splus warning=FALSE}
-expt <- experiment(N=1, clients_in_url=TRUE)
+
+```splus
+expt <- experiment(N = 1, clients_in_url = TRUE)
 ```
+
 The call to `experiment` returns an object of class Experiment. `N=1` gives the
 number of participants. We'll come to the other options in a bit.
 
@@ -160,14 +178,16 @@ Next, we define a function called `s1`. In betr, experiments are composed of
 _stages_. `s1` is a simple stage. Ignoring the details, the structure of `s1`
 is like:
 
-```{splus warning=FALSE}
+
+```splus
 s1 <- function(id, period, params) {
-  # ...
-  return(NEXT)
-  # or ...
-  return("some HTML")
+    # ...
+    return(NEXT)
+    # or ...
+    return("some HTML")
 }
 ```
+
 
 Here's how this works. When a subject makes an HTTP request to betr, the current
 stage is called with the subject's `id` (usually randomly generated), the
@@ -204,9 +224,11 @@ aren't finished, `s1` will then be called again without parameters. `s1` will
 then print out the guessing form so the subject can choose another number.
 
 
-```{splus warning=FALSE}
-add_stage(expt, period(), s1, times=5)
+
+```splus
+add_stage(expt, period(), s1, times = 5)
 ```
+
 
 To create our experiment we need to add `s1` to it. What about the other thing 
 here, `period()`?
@@ -222,21 +244,25 @@ our experiment's stages are now:
 You should usually start your experiment with a Period to set the period counter 
 to 1.
 
-```{splus}
+
+```splus
 initialize_data_frame <- function() {
-  mydf <<- experiment_data_frame(expt)
-  mydf$guess <<- NA
-  mydf$correct <<- NA
+    mydf <<- experiment_data_frame(expt)
+    mydf$guess <<- NA
+    mydf$correct <<- NA
 }
 on_ready(expt, initialize_data_frame)
 ```
 
+
 Last of all, we want to prepare a data frame for our experiment. We could just 
 do this by calling
 
-```{splus}
+
+```splus
 mydf <<- experiment_data_frame(expt)
 ```
+
 
 This would create a new data frame with 5 * 1 = 5 rows -- 5 for the number of
 periods, 1 for the number of subjects -- and with columns `id` and `period`. 
@@ -255,18 +281,24 @@ when it is replayed. Then the replay will populate our data frame just as it was
 
 OK, we've created our experiment. Now, we need to run it. Run the code above, our
 put it in a file called `my_experiment.R` and source it: 
-```{splus eval=FALSE}
+
+```splus
 source("my_experiment.R")
 ```
+
 You'll see some warnings about "seats" -- don't worry about those for now.
 
 Before we run it, let's take a look at it. On the command line, type
-```{splus}
+
+```splus
 expt
 ```
-You should see a line like
 
-> Name: betr  Status: Stopped	Clients: 0/1	Periods: 5	Stages: 10
+```
+## Name: betr	Status: Stopped	Clients: 0/1	Periods: 5	Stages: 10
+```
+
+
 
 This gives you basic information about the experiment. _Clients_ tells you how
 many clients have connected, out of the experiment's N. _Periods_ and 
@@ -276,76 +308,136 @@ the 5 `s1` objects. Lastly, the _Status_ tells us whether the experiment is
 _Stopped_, _Waiting_, _Started_ or _Paused_. Right now it is _Stopped_. Let's
 change that. On the command line, run:
 
-```{splus error=FALSE}
+
+
+
+
+```splus
 ready(expt)
 ```
 
-Calling `ready` does several things:
+```
+## starting httpd help server ... done
+```
+
+```
+## 
+## Server started on host 127.0.0.1 and port 35538 . App urls are:
+## 
+## 	http://127.0.0.1:35538/custom/betr
+```
+
+
+Calling `spluseady` does several things:
 * Starts the web server. Now, subject computers can connect to the experiment;
 * Creates a new experiment session, with a date and time, and creates a folder
 on disk to hold data about it.
 * Calls any function passed to `on_ready`, e.g. initializing your data.
 
-Now, if you enter `expt` again, you should see something like:
+Now, `expt` will report more information:
 
-> Session: betr-2014-05-11-130421  Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10  
-> Serving at http://127.0.0.1:10946/custom/betr  
+
+```splus
+expt
+```
+
+```
+## Session: betr-2014-05-12-103323	Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
+## Serving at http://127.0.0.1:35538/custom/betr
+```
+
 
 The status has changed, and we see the session name. We also have a URL. Clients
 can connect to this to view the experiment. You can do this manually: open your 
 web browser and go to the URL _http://127.0.0.1:10946/custom/betr/client-1_. Or,
 for a convenient shortcut, enter:
-```{splus eval=FALSE}
+
+```splus
 web_test(expt)
 ```
+
 on the R command line. You should see a page saying "Waiting to start". It will 
 refresh regularly. 
 
+
+
+```
+## [1] "<html><head><title>Experiment</title><meta http-equiv='refresh' content='10'></head><body style='background-color: #CCCCCC; padding: 2% 4%;'>\n        <div style='background-color: white; padding: 3% 3%'>Waiting to start</div><div align='center' style='padding: 10px 10px;'>betr</div></body></html>"
+```
+
+
 Before we start, let's see a bit more information about our experiment. Type:
 
-```{splus}
+
+```splus
 info(expt)
 ```
+
+```
+## Session: betr-2014-05-12-103323	Status: Waiting	Clients: 1/1	Periods: 5	Stages: 10
+## Serving at http://127.0.0.1:35538/custom/betr 
+## Subjects:
+##     client id seat period stage  status
+## 1 client-1  1   NA      0     0 Running
+## Period progression:
+```
+
 
 This shows the same info as before, plus a list of subjects -- just one.
 
 To start the experiment, type:
 
-```{splus eval=FALSE}
+
+```splus
 start(expt)
 ```
+
+
+
+
 
 Now, when your browser page refreshes, you will see the first period of the 
 guessing game. Complete a couple of guesses (good luck!). Use `info(expt)`
 to watch your subject progressing. You can also look directly at your 
 experimental data frame:
-```{splus eval=FALSE}
+
+```splus
 mydf
 ```
->  id period guess correct  
->1  1      1     1       0  
->2  1      2     6       0  
->3  1      3     1       0  
->4  1      4  <NA>      NA  
->5  1      5  <NA>      NA  
+
+```
+##   id period guess correct
+## 1  1      1     6       0
+## 2  1      2     2       0
+## 3  1      3  <NA>      NA
+## 4  1      4  <NA>      NA
+## 5  1      5  <NA>      NA
+```
+
 
 At the end, you will see an "experiment finished" page in your browser, and
 `info(expt)` will show that your subject has finished the experiment.
 
+
+
 To stop the experiment serving, run
 
-```{splus}
+
+```splus
 halt(expt)
 ```
+
 
 Now the server will halt, so clients can no longer connect, and the status
 of the experiment will be "Stopped". 
 
 Lastly, let's replay our experiment. Enter
 
-```{splus eval=FALSE}
-replay(expt, ask=TRUE)
+
+```splus
+replay(expt, ask = TRUE)
 ```
+
 
 The command prompt should show 
 
@@ -360,6 +452,8 @@ You can enter arbitrary R expressions. For a list of other commands, enter
 
 Writing experiments
 -------------------
+
+### programs, checkpoints, text stages and forms
 
 Testing experiments
 -------------------

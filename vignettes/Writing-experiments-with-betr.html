@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>Writing experiments with betr</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: rgb(88, 72, 246)
+   }
+
+   pre .number {
+     color: rgb(0, 0, 205);
+   }
+
+   pre .comment {
+     color: rgb(76, 136, 107);
+   }
+
+   pre .keyword {
+     color: rgb(0, 0, 255);
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: rgb(3, 106, 7);
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
+
+
+
+
+</head>
+
+<body>
+<h1>Writing experiments with betr</h1>
+
+<h2>Rationale</h2>
+
+<p>betr is an R package to design, test and run social scientific experiments. It 
+uses the web to serve experiments, but it is suitable either for web- or 
+lab-based experiments. It is designed to make writing, testing, debugging and 
+running experiments as easy as possible.</p>
+
+<h2>Why use betr?</h2>
+
+<p>Typically, social science experiments are run using computer software. The most
+widely used software by economists is <a href="www.iew.uzh.ch/ztree/">zTree</a>. Others 
+are written in Java, Python, or PHP. So, why use betr? </p>
+
+<p>The most important advantageis:</p>
+
+<ul>
+<li>betr is written in R, so you don&#39;t need to learn a new programming language
+to use it.</li>
+</ul>
+
+<p>That is true if you know R already. If you don&#39;t know R, but are an early-career
+social scientist, then you probably need to learn at least one statistical 
+software package. If you learn R, then you will also be able to use it to run
+experiments in betr.</p>
+
+<p>Some other advantages are:</p>
+
+<ul>
+<li>Experiments can be written in a full-featured programming languages.</li>
+</ul>
+
+<p>While zTree&#39;s language lacks constructs such as functions, with betr you can use
+all the features of R. <em>No more copy-pasting the same code across different periods.</em>
+R built-ins are also useful for writing experiments. Here&#39;s a standard way
+to randomize over your subjects in zTree:</p>
+
+<pre><code>subjects.do{
+  randomizer = random();
+}
+subjects.do{
+  rand_id = count ( randomizer &gt;= : randomizer );
+}
+</code></pre>
+
+<p>The same thing in R is just:</p>
+
+<pre><code class="r">rand_id &lt;- sample(1:N)
+</code></pre>
+
+<ul>
+<li>betr uses HTML to display experiments to subjects.</li>
+</ul>
+
+<p>HTML is a powerful and flexible display language, so your experiments can be as
+beautiful or as simple as you like.</p>
+
+<ul>
+<li>Debugging and testing is easy.</li>
+</ul>
+
+<p>Testing experiments by hand can be a pain. Typically, you have to open one window for
+each of your subjects, then type in responses manually. betr lessens that pain
+by allowing automatic replay of sessions. So, you can test manually once, then
+rerun the test automatically. </p>
+
+<ul>
+<li>You can run experiments on the web or in the lab.</li>
+</ul>
+
+<p>Obviously, since betr uses HTML, you can serve web-based experiments. In your
+lab, you only need a web browser on client machines.</p>
+
+<ul>
+<li>Error recovery is easy and safe.</li>
+</ul>
+
+<p>Things can go wrong in the lab. In a betr session, all client and experimenter 
+interactions are stored on disk, so even if your server computer crashes, you can 
+replay back to where you left off and restart the experiment.</p>
+
+<ul>
+<li>No need for session management, databases, cookies, etc. </li>
+</ul>
+
+<p>Languages like PHP are designed to respond to a single request, perhaps store some
+information in a database, print out a 
+web page, then die. When they get a new request, they start again, look
+for session information to remember where they were, get info from the 
+database&hellip;. This does not really suit the paradigm of an experiment where you 
+want users to go through steps simultaneously in a carefully defined order. 
+The resulting session and database management can be a hassle. </p>
+
+<p>betr takes a different approach: a single persistent server process handles all 
+requests from start to finish.
+There&#39;s no need to talk to a database: data is held in memory. At any time you 
+can see exactly where your subjects are, using simple R commands.
+And your experiment can be written in a single source file. </p>
+
+<h2>Installing betr</h2>
+
+<p>To install betr just run:</p>
+
+<pre><code class="r">install.packages(&quot;devtools&quot;)  # if not already installed
+library(devtools)
+install_github(&quot;betr&quot;, &quot;hughjonesd&quot;)  # for the latest version
+</code></pre>
+
+<h2>An example betr experiment</h2>
+
+<p>Typically you will define your experiment in a source file. Then, during a 
+session, you will run it from the command line. Here&#39;s a source file for a
+simple guessing game experiment.</p>
+
+<pre><code class="r">library(betr)
+</code></pre>
+
+<pre><code>## 
+## Attaching package: &#39;betr&#39;
+## 
+## The following object is masked from &#39;package:stats&#39;:
+## 
+##     start
+</code></pre>
+
+<pre><code class="r">expt &lt;- experiment(N = 1, clients_in_url = TRUE)
+
+s1 &lt;- function(id, period, params) {
+
+    me_now &lt;- mydf$id == id &amp; mydf$period == period
+    gg &lt;- !missing(params) &amp;&amp; &quot;guess&quot; %in% names(params)
+    if (gg) {
+        mydf$guess[me_now] &lt;&lt;- params$guess
+        mydf$correct[me_now] &lt;&lt;- if (params$guess == sample(1:10, 1)) 
+            1 else 0
+        return(NEXT)
+    }
+    last_guess &lt;- &quot;&quot;
+    me_before &lt;- mydf$id == id &amp; mydf$period == period - 1
+    if (period &gt; 1) 
+        last_guess &lt;- paste(&quot;You guessed &quot;, mydf$guess[me_before], &quot;... you were &quot;, 
+            if (mydf$correct[me_before] &gt; 0) 
+                &quot;right!&quot; else &quot;wrong!&quot;, sep = &quot;&quot;)
+    return(paste(header(), sprintf(&quot;&lt;p color=&#39;red&#39;&gt;%s&lt;/p&gt;\n    &lt;p&gt;Pick a number&lt;/p&gt;\n    &lt;form action=&#39;&#39; method=&#39;post&#39;&gt;&lt;select name=&#39;guess&#39;&gt;%s&lt;/select&gt;\n    &lt;input type=&#39;submit&#39; value=&#39;Submit&#39;&gt;&lt;/form&gt;&quot;, 
+        last_guess, paste(&quot;&lt;option value=&#39;&quot;, 1:10, &quot;&#39;&gt;&quot;, 1:10, &quot;&lt;/option&gt;&quot;, 
+            sep = &quot;&quot;, collapse = &quot;&quot;)), footer()))
+}
+
+add_stage(expt, period(), s1, times = 5)
+
+
+initialize_data_frame &lt;- function() {
+    mydf &lt;&lt;- experiment_data_frame(expt)
+    mydf$guess &lt;&lt;- NA
+    mydf$correct &lt;&lt;- NA
+}
+on_ready(expt, initialize_data_frame)
+</code></pre>
+
+<p>Let&#39;s look at this bit by bit.</p>
+
+<pre><code class="r">expt &lt;- experiment(N = 1, clients_in_url = TRUE)
+</code></pre>
+
+<p>The call to <code>experiment</code> returns an object of class Experiment. <code>N=1</code> gives the
+number of participants. We&#39;ll come to the other options in a bit.</p>
+
+<p>Next, we define a function called <code>s1</code>. In betr, experiments are composed of
+<em>stages</em>. <code>s1</code> is a simple stage. Ignoring the details, the structure of <code>s1</code>
+is like:</p>
+
+<pre><code class="r">s1 &lt;- function(id, period, params) {
+    # ...
+    return(NEXT)
+    # or ...
+    return(&quot;some HTML&quot;)
+}
+</code></pre>
+
+<p>Here&#39;s how this works. When a subject makes an HTTP request to betr, the current
+stage is called with the subject&#39;s <code>id</code> (usually randomly generated), the
+subject&#39;s current <code>period</code>, and any parameters from the request &ndash; e.g.
+data from a form filled in by the subject.</p>
+
+<p>The stage can then do one of three things:</p>
+
+<ol>
+<li>Return some HTML to the subject.
+The subject stays on the same stage. For example, if you return
+an HTML form, the same stage will be called when the subject fills in the form
+and hits <em>Submit</em>.</li>
+<li>Return the special constant <code>NEXT</code>.
+The subject is then advanced to the next stage, which is immediately
+called without parameters.</li>
+<li>Return the special constant <code>WAIT</code>.
+The subject is shown a &ldquo;waiting page&rdquo;. After a defined
+time interval, this will autorefresh and the stage will again be called.</li>
+</ol>
+
+<p>In <code>s1</code>, the stage looks at whether there is a parameter called <code>guess</code>. If there
+is, the stage records the subject&#39;s guess in the data frame <code>mydf</code>. It also
+decides whether the subject guessed right, and records this in <code>mydf$correct</code>. </p>
+
+<ul>
+<li><p>Notice one difference with zTree: whereas zTree records all data in tables called
+<em>subjects</em>, <em>globals</em> etc., in betr you are free to record your data how you like.
+A typical way is to create a data frame with 1 row per subject per period.</p></li>
+<li><p>Notice also that <code>mydf</code> is assigned to using the operator <code>&lt;&lt;-</code> rather than
+the more usual operator <code>&lt;-</code>. This makes sure that assignment happens in the 
+global environment, rather than just in the function&#39;s local environment.</p></li>
+</ul>
+
+<p>Having recorded the data, <code>s1</code> returns <code>NEXT</code> and moves the subject on. If we
+aren&#39;t finished, <code>s1</code> will then be called again without parameters. <code>s1</code> will
+then print out the guessing form so the subject can choose another number.</p>
+
+<pre><code class="r">add_stage(expt, period(), s1, times = 5)
+</code></pre>
+
+<p>To create our experiment we need to add <code>s1</code> to it. What about the other thing 
+here, <code>period()</code>?
+In fact, <code>period()</code> creates another kind of stage, called (guess what?) a 
+Period. This stage is very simple: it simply increments the period counter by 1,
+then returns <code>NEXT</code>. </p>
+
+<p>Lastly, the <code>times=5</code> argument repeats the whole sequence of stages 5 times. So
+our experiment&#39;s stages are now:</p>
+
+<blockquote>
+<p>period, s1, period, s1, period, s1, period, s1, period, s1</p>
+</blockquote>
+
+<p>You should usually start your experiment with a Period to set the period counter 
+to 1.</p>
+
+<pre><code class="r">initialize_data_frame &lt;- function() {
+    mydf &lt;&lt;- experiment_data_frame(expt)
+    mydf$guess &lt;&lt;- NA
+    mydf$correct &lt;&lt;- NA
+}
+on_ready(expt, initialize_data_frame)
+</code></pre>
+
+<p>Last of all, we want to prepare a data frame for our experiment. We could just 
+do this by calling</p>
+
+<pre><code class="r">mydf &lt;&lt;- experiment_data_frame(expt)
+</code></pre>
+
+<p>This would create a new data frame with 5 * 1 = 5 rows &ndash; 5 for the number of
+periods, 1 for the number of subjects &ndash; and with columns <code>id</code> and <code>period</code>. 
+(There&#39;s no magic about <code>experiment_data_frame</code>: you could just do 
+<code>mydf &lt;- data.frame(id=1, period=1:5)</code>.)</p>
+
+<p>However, we want to make sure that our experiment is <em>replay-safe</em>. If we 
+replay our experiment, either during testing or to recover from a problem in a
+session, our experiment will be rerun from the start. But if our data has 
+already been written, then this might affect how things work. To make sure
+that replay will work exactly the same, we create a function 
+<code>initialize_data_frame</code> that creates a fresh empty dataset. We then pass
+this to the experiment using <code>on_ready(expt, initialize_data_frame)</code>. Our
+function will be called whenever the experiment is made ready, including
+when it is replayed. Then the replay will populate our data frame just as it was.</p>
+
+<p>OK, we&#39;ve created our experiment. Now, we need to run it. Run the code above, our
+put it in a file called <code>my_experiment.R</code> and source it: </p>
+
+<pre><code class="r">source(&quot;my_experiment.R&quot;)
+</code></pre>
+
+<p>You&#39;ll see some warnings about &ldquo;seats&rdquo; &ndash; don&#39;t worry about those for now.</p>
+
+<p>Before we run it, let&#39;s take a look at it. On the command line, type</p>
+
+<pre><code class="r">expt
+</code></pre>
+
+<pre><code>## Name: betr   Status: Stopped Clients: 0/1    Periods: 5  Stages: 10
+</code></pre>
+
+<p>This gives you basic information about the experiment. <em>Clients</em> tells you how
+many clients have connected, out of the experiment&#39;s N. <em>Periods</em> and 
+<em>Stages</em> are self-explanatory. There are 5 periods because our experiment
+had 5 periods in its stages. There are 10 stages including the 5 periods and
+the 5 <code>s1</code> objects. Lastly, the <em>Status</em> tells us whether the experiment is 
+<em>Stopped</em>, <em>Waiting</em>, <em>Started</em> or <em>Paused</em>. Right now it is <em>Stopped</em>. Let&#39;s
+change that. On the command line, run:</p>
+
+<pre><code class="r">ready(expt)
+</code></pre>
+
+<pre><code>## starting httpd help server ... done
+</code></pre>
+
+<pre><code>## 
+## Server started on host 127.0.0.1 and port 35538 . App urls are:
+## 
+##  http://127.0.0.1:35538/custom/betr
+</code></pre>
+
+<p>Calling <code>ready</code> does several things:</p>
+
+<ul>
+<li>Starts the web server. Now, subject computers can connect to the experiment;</li>
+<li>Creates a new experiment session, with a date and time, and creates a folder
+on disk to hold data about it.</li>
+<li>Calls any function passed to <code>on_ready</code>, e.g. initializing your data.</li>
+</ul>
+
+<p>Now, <code>expt</code> will report more information:</p>
+
+<pre><code class="r">expt
+</code></pre>
+
+<pre><code>## Session: betr-2014-05-12-103323  Status: Waiting Clients: 0/1    Periods: 5  Stages: 10
+## Serving at http://127.0.0.1:35538/custom/betr
+</code></pre>
+
+<p>The status has changed, and we see the session name. We also have a URL. Clients
+can connect to this to view the experiment. You can do this manually: open your 
+web browser and go to the URL <em><a href="http://127.0.0.1:10946/custom/betr/client-1">http://127.0.0.1:10946/custom/betr/client-1</a></em>. Or,
+for a convenient shortcut, enter:</p>
+
+<pre><code class="r">web_test(expt)
+</code></pre>
+
+<p>on the R command line. You should see a page saying &ldquo;Waiting to start&rdquo;. It will 
+refresh regularly. </p>
+
+<pre><code>## [1] &quot;&lt;html&gt;&lt;head&gt;&lt;title&gt;Experiment&lt;/title&gt;&lt;meta http-equiv=&#39;refresh&#39; content=&#39;10&#39;&gt;&lt;/head&gt;&lt;body style=&#39;background-color: #CCCCCC; padding: 2% 4%;&#39;&gt;\n        &lt;div style=&#39;background-color: white; padding: 3% 3%&#39;&gt;Waiting to start&lt;/div&gt;&lt;div align=&#39;center&#39; style=&#39;padding: 10px 10px;&#39;&gt;betr&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;&quot;
+</code></pre>
+
+<p>Before we start, let&#39;s see a bit more information about our experiment. Type:</p>
+
+<pre><code class="r">info(expt)
+</code></pre>
+
+<pre><code>## Session: betr-2014-05-12-103323  Status: Waiting Clients: 1/1    Periods: 5  Stages: 10
+## Serving at http://127.0.0.1:35538/custom/betr 
+## Subjects:
+##     client id seat period stage  status
+## 1 client-1  1   NA      0     0 Running
+## Period progression:
+</code></pre>
+
+<p>This shows the same info as before, plus a list of subjects &ndash; just one.</p>
+
+<p>To start the experiment, type:</p>
+
+<pre><code class="r">start(expt)
+</code></pre>
+
+<p>Now, when your browser page refreshes, you will see the first period of the 
+guessing game. Complete a couple of guesses (good luck!). Use <code>info(expt)</code>
+to watch your subject progressing. You can also look directly at your 
+experimental data frame:</p>
+
+<pre><code class="r">mydf
+</code></pre>
+
+<pre><code>##   id period guess correct
+## 1  1      1     6       0
+## 2  1      2     2       0
+## 3  1      3  &lt;NA&gt;      NA
+## 4  1      4  &lt;NA&gt;      NA
+## 5  1      5  &lt;NA&gt;      NA
+</code></pre>
+
+<p>At the end, you will see an &ldquo;experiment finished&rdquo; page in your browser, and
+<code>info(expt)</code> will show that your subject has finished the experiment.</p>
+
+<p>To stop the experiment serving, run</p>
+
+<pre><code class="r">halt(expt)
+</code></pre>
+
+<p>Now the server will halt, so clients can no longer connect, and the status
+of the experiment will be &ldquo;Stopped&rdquo;. </p>
+
+<p>Lastly, let&#39;s replay our experiment. Enter</p>
+
+<pre><code class="r">replay(expt, ask = TRUE)
+</code></pre>
+
+<p>The command prompt should show </p>
+
+<blockquote>
+<p>replay&gt;</p>
+</blockquote>
+
+<p>Enter &#39;d&#39; to see details of the first request from a client computer. Then enter
+&#39;n&#39; to replay this request. Carry on entering &#39;d&#39; and &#39;n&#39;; eventually you will 
+see your &#39;start&#39; command. Enter &#39;n&#39; three more times. Now enter <code>mydf</code>. You
+will see that your data frame is back as it was in the middle of the experiment.
+You can enter arbitrary R expressions. For a list of other commands, enter 
+&#39;h&#39; or &#39;?&#39;.</p>
+
+<h2>Writing experiments</h2>
+
+<h3>programs, checkpoints, text stages and forms</h3>
+
+<h2>Testing experiments</h2>
+
+<h2>Debugging</h2>
+
+<h2>Running your experiment in the lab</h2>
+
+<h3>SEATS</h3>
+
+<h3>Apache/Rapache/Rook</h3>
+
+</body>
+
+</html>
+
