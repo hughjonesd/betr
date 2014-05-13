@@ -4,7 +4,7 @@
 \title{Print out a form and store the subject's inputs in a data frame, after
 checking for errors}
 \usage{
-form_stage(...)
+form_stage(form_page, fields = NULL, titles = NULL, data_frame)
 }
 \arguments{
 \item{form_page}{Some text, or a file object}
@@ -15,9 +15,7 @@ form_stage(...)
 \item{titles}{A list of field titles, like \code{list(field_name=title,...)}}
 
 \item{data_frame}{The quoted string name of the data frame to be updated.
-This should exist in the global environment.}
-
-\item{timeout}{An optional timeout value in seconds}
+       This should exist in the global environment.}
 }
 \value{
 An object of class FormStage
@@ -47,9 +45,6 @@ If there are any error messages, \code{form_page} is redisplayed. If there
 are no error messages, the data frame named in \code{data_frame} is updated:
 in the row with \code{id==id && period==period}, the columns
 named by \code{fields} get the values passed in by the user.
-
-If the form times out before the user has submitted, the data frame is not
-updated.
 
 \code{\link{is_whole_number}} and similar functions return functions suitable
 for use in the fields list.
