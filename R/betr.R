@@ -74,7 +74,7 @@ Experiment <- setRefClass("Experiment",
     },
     
     finalize = function(...) {
-      if (inherits(server, "Server")) server$halt()
+      if (status != "Stopped") halt(force=TRUE)
     },
     
     set_on_ready = function(fn) on_ready <<- fn,
@@ -477,6 +477,7 @@ on_ready <- function (expt, fn) expt$set_on_ready(fn)
 add_stage <- function (experiment, ...) 
       experiment$add_stage(...)
 
+setGeneric("start") 
 #' Start the experiment running.
 #' 
 #' Experiments can be in status Stopped, Waiting, Started, or Paused.
@@ -486,10 +487,16 @@ add_stage <- function (experiment, ...)
 #' When the experiment starts, all subjects are moved to the first stage.
 #' @param experiment Object of class Experiment
 #' @param force Start the experiment even if there are fewer than N participants
+#' @details 
+#' Note that \code{start} is an S3 generic to avoid clashes with \code{start} in
+#' the stats package.
 #' @return TRUE or FALSE, invisibly
 #' @family command line functions
+#' @method start experiment
+#' @examples
+#' start(expt)
 #' @export
-start <- function(experiment, force=FALSE) experiment$handle_command("start",
+start.experiment <- function(experiment, force=FALSE) experiment$handle_command("start",
       list(force=force))
 
 

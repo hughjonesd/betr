@@ -26,6 +26,6 @@ Other command line functions: \code{\link{get_url}},
   \code{\link{session_name}}; \code{\link{next_stage}};
   \code{\link{pause}}; \code{\link{ready}};
   \code{\link{replay}}; \code{\link{restart}};
-  \code{\link{start}}
+  \code{\link{start.experiment}}
 }
 
