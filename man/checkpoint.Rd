@@ -6,7 +6,7 @@
 checkpoint(...)
 }
 \arguments{
-\item{wait_for}{"all", "none" or a vector of length N}
+\item{wait_for}{"all", "none", "ever" or a vector of length N}
 }
 \value{
 An object of class CheckPoint
@@ -15,12 +15,15 @@ An object of class CheckPoint
 Make subjects wait for other subjects.
 }
 \details{
+If \code{wait_for} is "all", then subjects must wait till all subjects in the
+experiment have arrived. If \code{wait_for} is "none" then checkpoint does
+nothing. If \code{wait_for} is "ever" then subjects wait forever (or until
+moved on manually by the experimenter, using \code{\link{next_stage}}).
+
 If \code{wait_for} is a vector, then it is assumed to represent
 subject groups. So, if \code{wait_for} is \code{vec} then a subject with
 ID \code{x} will wait here until all subjects with IDs
-\code{which(vec==vec[x])} have arrived at this stage. If \code{wait_for} is
-"all", then subjects must wait till all subjects in the experiment have
-arrived. If \code{wait_for} is "none" then checkpoint does nothing.
+\code{which(vec==vec[x])} have arrived at this stage.
 
 A typical use of this might be \code{mydf$groups[order(mydf$id),]}
 

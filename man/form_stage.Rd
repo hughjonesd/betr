@@ -7,7 +7,8 @@ checking for errors}
 form_stage(form_page, fields = NULL, titles = NULL, data_frame)
 }
 \arguments{
-\item{form_page}{Some text, or a file object}
+\item{form_page}{Some text, or a file object. If the file name ends in
+'.brew' then it will be passed through \code{\link{brew}}.}
 
 \item{fields}{A list of fields, like
 \code{list(field_name=check_function, ...)}}
@@ -41,7 +42,11 @@ each member of the list \code{fields} is called as a function, with arguments
 
 If the function returns \code{NULL} the field is OK. If the function
 returns a character vector, this is treated as a vector of error messages.
-If there are any error messages, \code{form_page} is redisplayed. If there
+If there are any error messages, \code{form_page} is redisplayed. For
+convenience, the ' string "<% errors %>" will be replaced by the error
+messages (whether or not you use \code{\link{brew}} is used).
+
+  If there
 are no error messages, the data frame named in \code{data_frame} is updated:
 in the row with \code{id==id && period==period}, the columns
 named by \code{fields} get the values passed in by the user.
