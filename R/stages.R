@@ -437,7 +437,6 @@ length_at_least <- function(min) {
 #' @exportClass FormStage
 FormStage <- setRefClass("FormStage", contains="AbstractStage",
   fields = list(
-    form_page    = "ANY",
     fields       = "list",
     form_page    = "ANY",
     titles       = "ANY",
