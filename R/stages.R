@@ -429,16 +429,18 @@ form_processor <- function(fields, titles) {
 
 FormStage <- setRefClass("FormStage", contains="AbstractStage",
   fields = list(
+    form_page    = "ANY",
     fields       = "list",
     titles       = "ANY",
     data_frame   = "character",
-    timeout      = "numeric",
+    timeout      = "ANY",
     seenonce     = "numeric",
     timestamps   = "POSIXct"
   ),
   methods = list(
     initialize = function(form_page=NULL, fields=NULL, titles=NULL, data_frame=NULL, 
           timeout=NULL, ...) {
+      form_page <<- form_page
       fields <<- fields
       titles <<- titles
       data_frame <<- data_frame
