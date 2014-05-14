@@ -493,11 +493,11 @@ setGeneric("start")
 #' the stats package.
 #' @return TRUE or FALSE, invisibly
 #' @family command line functions
-#' @method start experiment
+#' @method start Experiment
 #' @examples
 #' start(expt)
 #' @export
-start.experiment <- function(experiment, force=FALSE) experiment$handle_command("start",
+start.Experiment <- function(experiment, force=FALSE) experiment$handle_command("start",
       list(force=force))
 
 
