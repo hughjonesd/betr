@@ -96,6 +96,7 @@ Experiment <- setRefClass("Experiment",
     }, 
     
     nperiods = function() {
+      if (length(stages)==0) return(0) # avoid zero-length error
       length(stages[sapply(stages, inherits, "Period")])
     },
     
