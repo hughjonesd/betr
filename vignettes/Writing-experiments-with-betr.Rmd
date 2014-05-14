@@ -496,7 +496,7 @@ created by the `form_stage` function.
 ```{r}
 myform <- c(
   header(), "<p style='color:red;'><% errors %></p>",
-  "<p>Pick a number:</p>"
+  "<p>Pick a number:</p>",
   "<form action='' method='POST'><select name='guess'>",
   paste0('<option>', 1:10, '</option>'), 
   "</select>",
