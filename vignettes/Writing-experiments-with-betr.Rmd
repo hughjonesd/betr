@@ -386,6 +386,7 @@ We'll set up our data frame much as before:
 ```{r}
 library(betr)
 N <- 8
+nreps <- 4
 groupsize <- 2
 reward <- 5 # reward in $
 seed <- 1312341 # don't forget to change this every session!!!
@@ -397,10 +398,10 @@ Ngroups <- N/groupsize
 
 initialize <- function() {
   set.seed(seed)
-  mydf <<- experiment_data_frame(expt)
+  mydf <<- experiment_data_frame(N=N, periods=nreps)
   mydf$guess <<- NA
 #   mydf$correct <<- NA
-  mydf$group <<- rep(rep(1:Ngroups, each=groupsize), nperiods(expt))
+  mydf$group <<- rep(rep(1:Ngroups, each=groupsize), nreps)
 }
 
 expt <- experiment(N=N, clients_in_url=TRUE, on_ready=initialize)
@@ -506,7 +507,6 @@ myform <- c(
 guess_s <- form_stage(form_page=myform, fields=list(
       guess=all_of(is_whole_number(), is_between(1, 10))
       ), data_frame="mydf")
-
 ```
 
 A form stage prints out an HTML form for the subject. When the form is submitted,
@@ -561,6 +561,7 @@ experiment at their own speed. They have to wait for each other. For this we nee
 another kind of Stage called a CheckPoint.
 
 ```{r}
+initialize() # creates mydf so we can use mydf$group
 grp <- mydf$group[mydf$period==1]
 grp <- grp[order(mydf$id[mydf$period==1])]
 check_s <-checkpoint(wait_for=grp)
@@ -591,11 +592,13 @@ on to the next stage.
 
 ```{r}
 calculate_profit <- function(id, period) {
-  mydf$guess <<- as.numeric(mydf$guess) 
-  mygroup <- mydf$group[mydf$id==id & mydf$period==period]
-  myguesses <- mydf$guess[mydf$group==mygroup & mydf$period==period]
-  profit <- if (min(myguesses)==max(myguesses)) reward else 0
-  mydf$profit[mygroup] <<- profit
+  mydf$guess <<- as.numeric(mydf$guess)
+  me_now <- mydf$id == id & mydf$period == period
+  
+  mygroup <- mydf$group[me_now]
+  myguesses <- mydf$guess[mydf$group == mygroup & mydf$period == period]
+  profit <- if (min(myguesses) == max(myguesses)) reward else 0
+  mydf$profit[me_now] <<- profit
   
 }
 calc_s <- program(run="all", fn=calculate_profit)
@@ -614,7 +617,15 @@ arrives, respectively.
 
 ### Putting it together
 
+Lastly, we'll add our stages to the experiment - not forgetting a period counter
+using `period()`.
 
+```{r}
+add_stage(expt, period(), guess_s, check_s, calc_s, times=nreps)
+```
+
+The basic pattern here is: form stage, checkpoint, program. You can use this 
+simple pattern in many experiments.
 
 Testing experiments
 -------------------
