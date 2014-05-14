@@ -361,9 +361,19 @@ all_of <- function(...) {
 #' @export
 is_at_least <- function(min) {
   function(ftitle, val, ...) {
+    if (! is.null(hv <- has_value(ftitle, val, ...))) return(hv)
     val <- as.numeric(val)
-    if (is.na(val) || ! val >= min) paste0(ftitle, 
+    if (! val >= min) paste0(ftitle, 
       " must be at least ", min) else NULL
+  }
+}
+
+#' @rdname all_of
+#' @export
+has_value <- function() {
+  function(ftitle, val, ...) {
+    if (is.null(val) || is.na(val) || nchar(val)==0 ) paste0("Please enter a
+          value for ", ftitle) else NULL
   }
 }
 
@@ -374,7 +384,7 @@ is_at_least <- function(min) {
 is_at_most <- function(max) {
   function(ftitle, val, ...) {
     val <- as.numeric(val)
-    if (is.na(val) || ! val <= max) paste0(ftitle, 
+    if (is.null(val) || is.na(val) || ! val <= max) paste0(ftitle, 
       " must be no more than ", max) else NULL
   }
 }
@@ -385,7 +395,7 @@ is_whole_number <- function() {
   function(ftitle, val, ...) {
     val <- as.numeric(val)
     tol = .Machine$double.eps^0.5  
-    if (is.na(val) || abs(val - round(val)) >= tol) paste0(ftitle, 
+    if (is.null(val) || is.na(val) || abs(val - round(val)) >= tol) paste0(ftitle, 
           " must be a whole number") else NULL
   }
 }
@@ -395,7 +405,7 @@ is_whole_number <- function() {
 is_between <- function(min, max) {
   function(ftitle, val, ...) {
     val <- as.numeric(val)
-    if (is.na(val) || ! (val >= min && val <= max)) paste0(ftitle, 
+    if (is.null(val) || is.na(val) || ! (val >= min && val <= max)) paste0(ftitle, 
         " must be between ", min, " and ", max) else NULL
   }
 }
@@ -404,6 +414,7 @@ is_between <- function(min, max) {
 #' @export
 length_between <- function(min, max) {
   function(ftitle, val, ...) {
+    if (min > 0 && ! is.null(hv <- has_value(ftitle, val, ...))) return(hv)
     nc <- nchar(val)
     if (! (nc >= min && nc <= max)) paste0(ftitle, 
       " must be between ", min, " and ", max, " characters long") else NULL
@@ -416,54 +427,46 @@ length_between <- function(min, max) {
 length_at_least <- function(min) {
   function(ftitle, val, ...) {
     nc <- nchar(val)
+    if (min > 0 && ! is.null(hv <- has_value(ftitle, val, ...))) return(hv)
     if (! (nc >= min )) paste0(ftitle, 
       " must be at least ", min, " characters long") else NULL
   }
 }
 
-form_processor <- function(fields, titles) {
-  return(function (id, period, params) {
-    
-  })
-}
-
+#' @export FormStage
+#' @exportClass FormStage
 FormStage <- setRefClass("FormStage", contains="AbstractStage",
   fields = list(
     form_page    = "ANY",
     fields       = "list",
+    form_page    = "ANY",
     titles       = "ANY",
     data_frame   = "character",
-    timeout      = "ANY",
-    seenonce     = "numeric",
-    timestamps   = "POSIXct"
+    seenonce     = "numeric"
   ),
   methods = list(
-    initialize = function(form_page=NULL, fields=NULL, titles=NULL, data_frame=NULL, 
-          timeout=NULL, ...) {
+    initialize = function(form_page=NULL, fields=list(), titles=NULL, 
+          data_frame="", ...) {
       form_page <<- form_page
       fields <<- fields
       titles <<- titles
       data_frame <<- data_frame
       seenonce <<- numeric(0)
-      timeout <<- timeout
-      timestamps <<- as.POSIXct(NA)
       callSuper(...)
     },
     
     handle_request = function(id, period, params) {
-      if (! is.null(timeout) && ! is.na(timestamps[id]) && Sys.time() > 
-            timestamps[id] + timeout) return(NEXT) # timed out
       if (id %in% seenonce) {
         errs <- character(0)
-        for (f in fields) {
-          fname <- names(f)
+        for (f in 1:length(fields)) {
+          fname <- names(fields[f])
+          f <- fields[[f]]
           ftitle <- if(is.null(titles)) fname else titles[[fname]]
           err <- f(ftitle, params[[fname]], id, period, params)
           if (! is.null(err)) errs <- append(errs, err)
         }
         if (length(errs) == 0) {
-          selrow <- with(.GlobalEnv[[data_frame]], id==id & period==period)
-          .GlobalEnv[[data_frame]][selrow, fname] <- params[[fname]]
+          update_data_frame(id, period, params)
           return(NEXT)
         } else {
             error <- paste(errs, collapse="<br />") 
@@ -472,21 +475,18 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
         }
       } else {
         seenonce <<- c(seenonce, id)
+        error=""
         res <- ffbc(form_page, error=NULL) 
       }
-      res <- gsub("<%\\s*error\\s*%>", error, res) # for case of not brew
-      res <- rookify(res)
-      if (! is.null(timeout)) {
-        if (is.na(timestamps[id])) {
-          timestamps[id] <<- Sys.time() 
-          new_timeout <- timeout
-        } else {
-          new_timeout <- timeout - (Sys.time() - timestamps[id])
-        }
-        res$header("Refresh", as.numeric(new_timeout))
-      }
-      
+      res <- gsub("<%\\s*errors\\s*%>", error, res) # for case of not brew      
       return(res)
+    },
+    
+    update_data_frame = function(id, period, params) {
+      myid <- id
+      myperiod <- period
+      selrow <- .GlobalEnv[[data_frame]]$id==id & .GlobalEnv[[data_frame]]$period==period
+      .GlobalEnv[[data_frame]][selrow, names(params)] <- params
     }
   )
 )
@@ -495,14 +495,13 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' Print out a form and store the subject's inputs in a data frame, after
 #' checking for errors
 #' 
-#' @param form_page Some text, or a file object
+#' @param form_page Some text, or a file object. If the file name ends in 
+#'        '.brew' then it will be passed through \code{\link{brew}}.
 #' @param fields A list of fields, like 
 #'        \code{list(field_name=check_function, ...)}
 #' @param titles A list of field titles, like \code{list(field_name=title,...)}
 #' @param data_frame The quoted string name of the data frame to be updated.
 #'        This should exist in the global environment.
-#' @param timeout An optional timeout value in seconds
-
 #' 
 #' @details 
 #' 
@@ -522,13 +521,14 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' 
 #' If the function returns \code{NULL} the field is OK. If the function
 #' returns a character vector, this is treated as a vector of error messages.
-#' If there are any error messages, \code{form_page} is redisplayed. If there
+#' If there are any error messages, \code{form_page} is redisplayed. For 
+#' convenience, the ' string "<% errors %>" will be replaced by the error 
+#' messages (whether or not you use \code{\link{brew}} is used).
+#' 
+#'   If there
 #' are no error messages, the data frame named in \code{data_frame} is updated: 
 #' in the row with \code{id==id && period==period}, the columns
 #' named by \code{fields} get the values passed in by the user. 
-#' 
-#' If the form times out before the user has submitted, the data frame is not 
-#' updated. 
 #' 
 #' \code{\link{is_whole_number}} and similar functions return functions suitable
 #' for use in the fields list.
@@ -553,7 +553,13 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' @return An object of class FormStage
 #' @family stages
 #' @export
-form_stage <- function (...) FormStage$new(...)
+form_stage <- function (form_page, fields=NULL, titles=NULL, data_frame) {
+  if (missing(form_page) || is.null(form_page)) stop("form_page must be specified")
+  if (missing(data_frame) || ! is.character(data_frame)) 
+        stop("data_frame must be a string")
+  FormStage$new(form_page=form_page, fields=fields, titles=titles, 
+        data_frame=data_frame)
+}
 
 
 CheckPoint <- setRefClass("CheckPoint", contains="AbstractStage",
@@ -567,6 +573,7 @@ CheckPoint <- setRefClass("CheckPoint", contains="AbstractStage",
     },
     
     check_ready = function(id) {
+      if (length(wait_for)==1 && wait_for=="ever") return(FALSE)
       ids <- if (length(wait_for)==1 && wait_for=="all") 1:expt$N else 
         if (length(wait_for)==1 && wait_for=="none") numeric(0) else 
           which(wait_for==wait_for[id])
@@ -583,16 +590,19 @@ CheckPoint <- setRefClass("CheckPoint", contains="AbstractStage",
 
 #' Make subjects wait for other subjects.
 #' 
-#' @param wait_for "all", "none" or a vector of length N
+#' @param wait_for "all", "none", "ever" or a vector of length N
 #' 
 #' @details 
+#' 
+#' If \code{wait_for} is "all", then subjects must wait till all subjects in the
+#' experiment have arrived. If \code{wait_for} is "none" then checkpoint does
+#' nothing. If \code{wait_for} is "ever" then subjects wait forever (or until
+#' moved on manually by the experimenter, using \code{\link{next_stage}}).
 #' 
 #' If \code{wait_for} is a vector, then it is assumed to represent
 #' subject groups. So, if \code{wait_for} is \code{vec} then a subject with 
 #' ID \code{x} will wait here until all subjects with IDs 
-#' \code{which(vec==vec[x])} have arrived at this stage. If \code{wait_for} is 
-#' "all", then subjects must wait till all subjects in the experiment have
-#' arrived. If \code{wait_for} is "none" then checkpoint does nothing.
+#' \code{which(vec==vec[x])} have arrived at this stage. 
 #' 
 #' A typical use of this might be \code{mydf$groups[order(mydf$id),]}
 #' 
