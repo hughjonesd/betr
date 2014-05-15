@@ -749,8 +749,13 @@ timed(stage, timeout = 60, on_timeout = function(id, period) {
 Testing experiments
 -------------------
 
+#### Replay options: ask? maxTime?
+#### web_test
+
 Debugging
 ---------
+
+
 
 Running your experiment in the lab
 ----------------------------------
