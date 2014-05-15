@@ -484,13 +484,13 @@ on disk to hold data about it.</li>
 <pre><code class="r">expt
 </code></pre>
 
-<pre><code>## Session: betr-2014-05-16-012750  Status: Waiting Clients: 0/1    Periods: 5  Stages: 10
+<pre><code>## Session: betr-2014-05-16-013554  Status: Waiting Clients: 0/1    Periods: 5  Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr
 </code></pre>
 
 <p>The status has changed, and we see the session name. We also have a URL. Clients
 can connect to this to view the experiment. You can do this manually: open your 
-web browser and go to the URL <em><a href="http://127.0.0.1:10946/custom/betr/client-1">http://127.0.0.1:10946/custom/betr/client-1</a></em>. Or,
+web browser and go to the URL <em><a href="http://127.0.0.1:35538/custom/betr/client-1">http://127.0.0.1:35538/custom/betr/client-1</a></em>. Or,
 for a convenient shortcut, enter:</p>
 
 <pre><code class="r">web_test(expt)
@@ -504,7 +504,7 @@ refresh regularly. </p>
 <pre><code class="r">info(expt)
 </code></pre>
 
-<pre><code>## Session: betr-2014-05-16-012750  Status: Waiting Clients: 1/1    Periods: 5  Stages: 10
+<pre><code>## Session: betr-2014-05-16-013554  Status: Waiting Clients: 1/1    Periods: 5  Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr 
 ## Subjects:
 ##     client id seat period stage  status
@@ -618,13 +618,13 @@ If you wanted to explicitly randomize you could just add the following line to
 <code>initialize</code>:</p></li>
 </ul>
 
-<pre><code class="r">mydf$group &lt;- sample(mydf$group)
+<pre><code class="r">mydf$group &lt;&lt;- sample(mydf$group)
 </code></pre>
 
 <p>If you wanted to redraw groups each round, you could do something like:</p>
 
 <pre><code class="r">groups &lt;- rep(1:Ngroups, each = groupsize)
-for (i in 1:nperiods(expt)) mydf$group[mydf$period == i] &lt;- sample(groups)
+for (i in 1:nperiods(expt)) mydf$group[mydf$period == i] &lt;&lt;- sample(groups)
 </code></pre>
 
 <ul>
@@ -695,18 +695,6 @@ auto-generated one with <code>is_whole_number</code>, <code>is_between</code> an
 functions which return functions!) So, here we require the <code>guess</code> parameter to be
 <em>both</em> a whole number, <em>and</em> between 1 and 10. </p>
 
-<p>If you wanted to do this manually you could have written e.g.:</p>
-
-<pre><code class="r">fields = list(guess = function(ftitle, val, ...) {
-    if (is.null(val) || !is.numeric(val) || abs(val - round(val)) &gt;= .Machine$double.eps || 
-        val &lt; 1 || val &gt; 10) {
-        return(paste0(ftitle, &quot; should be a whole number between 1 and 10&quot;))
-    } else {
-        return(NULL)
-    }
-})
-</code></pre>
-
 <p>If there are errors in your fields, the form will be redisplayed. For convenience,
 the string &ldquo;&lt;% errors %&gt;&rdquo; will be replaced by a list of errors. </p>
 
@@ -718,15 +706,49 @@ updated. Note that:</p>
 <code>&quot;mydf&quot;</code> not <code>mydf</code>. </li>
 <li>The data frame must exist in the global environment</li>
 <li>The data frame is expected to be in the standard form returned by 
-<code>experiment_data_frame</code>, that is:
-id | period | &hellip;
-&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;
-1 | 1 | &hellip;
-1 | 2 | &hellip;
-&hellip; | &hellip; | &hellip;
-2 | 1 | &hellip;
-2 | 1 | &hellip;
-&hellip; | &hellip; | &hellip;</li>
+<code>experiment_data_frame</code>, that is:</li>
+</ul>
+
+<table><thead>
+<tr>
+<th>id</th>
+<th>period</th>
+<th>&hellip;</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>1</td>
+<td>1</td>
+<td>&hellip;</td>
+</tr>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>&hellip;</td>
+</tr>
+<tr>
+<td>&hellip;</td>
+<td>&hellip;</td>
+<td>&hellip;</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>&hellip;</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>&hellip;</td>
+</tr>
+<tr>
+<td>&hellip;</td>
+<td>&hellip;</td>
+<td>&hellip;</td>
+</tr>
+</tbody></table>
+
+<ul>
 <li>Form parameters are character vectors and will be stored in the database as
 such (even if you&#39;ve checked them with e.g. <code>is_whole_number()</code>). </li>
 </ul>

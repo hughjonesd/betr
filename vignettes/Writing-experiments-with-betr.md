@@ -330,14 +330,14 @@ expt
 ```
 
 ```
-## Session: betr-2014-05-16-012750	Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
+## Session: betr-2014-05-16-013554	Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr
 ```
 
 
 The status has changed, and we see the session name. We also have a URL. Clients
 can connect to this to view the experiment. You can do this manually: open your 
-web browser and go to the URL _http://127.0.0.1:10946/custom/betr/client-1_. Or,
+web browser and go to the URL _http://127.0.0.1:35538/custom/betr/client-1_. Or,
 for a convenient shortcut, enter:
 
 ```splus
@@ -359,7 +359,7 @@ info(expt)
 ```
 
 ```
-## Session: betr-2014-05-16-012750	Status: Waiting	Clients: 1/1	Periods: 5	Stages: 10
+## Session: betr-2014-05-16-013554	Status: Waiting	Clients: 1/1	Periods: 5	Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr 
 ## Subjects:
 ##     client id seat period stage  status
@@ -495,7 +495,7 @@ If you wanted to explicitly randomize you could just add the following line to
 
 
 ```splus
-mydf$group <- sample(mydf$group)
+mydf$group <<- sample(mydf$group)
 ```
 
 
@@ -504,7 +504,7 @@ If you wanted to redraw groups each round, you could do something like:
 
 ```splus
 groups <- rep(1:Ngroups, each = groupsize)
-for (i in 1:nperiods(expt)) mydf$group[mydf$period == i] <- sample(groups)
+for (i in 1:nperiods(expt)) mydf$group[mydf$period == i] <<- sample(groups)
 ```
 
 
@@ -586,21 +586,6 @@ auto-generated one with `is_whole_number`, `is_between` and `all_of`. (These are
 functions which return functions!) So, here we require the `guess` parameter to be
 _both_ a whole number, _and_ between 1 and 10. 
 
-If you wanted to do this manually you could have written e.g.:
-
-
-```splus
-fields = list(guess = function(ftitle, val, ...) {
-    if (is.null(val) || !is.numeric(val) || abs(val - round(val)) >= .Machine$double.eps || 
-        val < 1 || val > 10) {
-        return(paste0(ftitle, " should be a whole number between 1 and 10"))
-    } else {
-        return(NULL)
-    }
-})
-```
-
-
 If there are errors in your fields, the form will be redisplayed. For convenience,
 the string "<% errors %>" will be replaced by a list of errors. 
 
@@ -612,8 +597,9 @@ updated. Note that:
 * The data frame must exist in the global environment
 * The data frame is expected to be in the standard form returned by 
   `experiment_data_frame`, that is:
+  
 id | period | ...
------------------
+---|--------|----
 1 | 1 | ...
 1 | 2 | ...
 ... | ... | ...

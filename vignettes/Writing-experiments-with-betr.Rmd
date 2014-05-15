@@ -296,7 +296,7 @@ expt
 
 The status has changed, and we see the session name. We also have a URL. Clients
 can connect to this to view the experiment. You can do this manually: open your 
-web browser and go to the URL _http://127.0.0.1:10946/custom/betr/client-1_. Or,
+web browser and go to the URL _http://127.0.0.1:35538/custom/betr/client-1_. Or,
 for a convenient shortcut, enter:
 ```{r eval=FALSE}
 web_test(expt)
@@ -426,14 +426,14 @@ If you wanted to explicitly randomize you could just add the following line to
 `initialize`:
 
 ```{r eval=FALSE}
-mydf$group <- sample(mydf$group)
+mydf$group <<- sample(mydf$group)
 ```
 
 If you wanted to redraw groups each round, you could do something like:
 
 ```{r eval=FALSE}
 groups <- rep(1:Ngroups, each=groupsize)
-for (i in 1:nperiods(expt)) mydf$group[mydf$period==i] <- sample(groups)
+for (i in 1:nperiods(expt)) mydf$group[mydf$period==i] <<- sample(groups)
 ```
 
 * Notice as before that when we assign to `mydf`, we use the global assignment 
@@ -519,19 +519,6 @@ auto-generated one with `is_whole_number`, `is_between` and `all_of`. (These are
 functions which return functions!) So, here we require the `guess` parameter to be
 _both_ a whole number, _and_ between 1 and 10. 
 
-If you wanted to do this manually you could have written e.g.:
-
-```{r eval=FALSE}
-fields=list(guess=function(ftitle, val, ...) {
-  if (is.null(val) || ! is.numeric(val) || abs(val - round(val)) >= 
-      .Machine$double.eps || val < 1 || val > 10) {
-    return(paste0(ftitle, " should be a whole number between 1 and 10")) 
-  } else {
-    return(NULL)
-  } 
-})
-```
-
 If there are errors in your fields, the form will be redisplayed. For convenience,
 the string "<% errors %>" will be replaced by a list of errors. 
 
@@ -543,8 +530,9 @@ updated. Note that:
 * The data frame must exist in the global environment
 * The data frame is expected to be in the standard form returned by 
   `experiment_data_frame`, that is:
+  
 id | period | ...
------------------
+---|--------|----
 1 | 1 | ...
 1 | 2 | ...
 ... | ... | ...
