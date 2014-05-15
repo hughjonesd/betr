@@ -137,6 +137,7 @@ experiment_data_frame <- function(experiment=NULL, N=NULL, periods=NULL) {
     N <- experiment$N
     periods <- nperiods(experiment)
   }
+  if (periods < 1) stop("Experiment must have at least one period!")
   data.frame(id=rep(1:N, periods), period=rep(1:periods, each=N))
 }
 

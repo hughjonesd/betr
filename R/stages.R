@@ -485,6 +485,8 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
     update_data_frame = function(id, period, params) {
       myid <- id
       myperiod <- period
+      if (! is.data.frame(.GlobalEnv[[data_frame]])) stop("'", data_frame, 
+            "' is not a data frame in the global environment")
       selrow <- .GlobalEnv[[data_frame]]$id==id & .GlobalEnv[[data_frame]]$period==period
       .GlobalEnv[[data_frame]][selrow, names(params)] <- params
     }
