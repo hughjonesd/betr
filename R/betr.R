@@ -94,7 +94,7 @@ Experiment <- setRefClass("Experiment",
       sapply(stgs, function (x) x$expt <- .self)
       stages <<- append(stages, stgs, after=after)
     }, 
-    
+        
     nperiods = function() {
       if (length(stages)==0) return(0) # avoid zero-length error
       length(stages[sapply(stages, inherits, "Period")])
@@ -260,9 +260,15 @@ Experiment <- setRefClass("Experiment",
     map = function() {
       tbl <- table(subjects$period)
       cat("Period progression:\n")
-      for (i in as.character(1:length(stages))) {
-        if (i %in% names(tbl)) cat(i,":", rep("*", tbl[[i]]), "[", tbl[[i]], "]\n",
+      for (i in as.character(1:max(subjects$period))) {
+        if (i %in% names(tbl)) cat(i,": ", rep(".", tbl[[i]]), "[", tbl[[i]], "]\n",
               sep="")
+      }
+    },
+    
+    print_stages = function() {
+      for (i in 1:length(stages)) {
+        cat(i, ": ", class(stages[[i]]), "\n", sep="")
       }
     },
 
@@ -455,7 +461,7 @@ experiment <- function (...) Experiment$new(...)
 #' @export
 on_ready <- function (expt, fn) expt$set_on_ready(fn)
 
-#' Add a stage to an experiment
+#' Add one or more stages to an experiment
 #' 
 #' @param experiment an Experiment object 
 #' @param ... one or more Stage objects, or functions
@@ -578,9 +584,10 @@ halt <- function(experiment, force=FALSE) experiment$halt(force)
 #' and the URL where the experiment is serving.
 #' \code{map} shows a map of how subjects are progressing through the stages.
 #' \code{get_url} returns the experiment url.
-#' \code{nperiods} returns the number of \code{\link{period}}s in the experiment
+#' \code{nperiods} returns the number of \code{\link{period}}s in the experiment.
 #' \code{session_name} returns the experiment session name, 
 #' or NA if the experiment status is Stopped.
+#' \code{print_stages} prints a list of the stages in the experiment.
 #' @param experiment an object of class Experiment
 #' @param subj if TRUE, print the subjects table
 #' @param map if TRUE, also calls \code{map}
@@ -609,6 +616,11 @@ session_name <- function(experiment) experiment$get_session_name()
 #' @rdname info
 #' @export
 nperiods <- function(experiment) experiment$nperiods()
+
+#' @rdname info
+#' @export
+print_stages <- function(experiment) experiment$print_stages()
+
 
 
 #' Replay part or all of an experiment
@@ -684,3 +696,21 @@ nperiods <- function(experiment) experiment$nperiods()
 #' @export
 replay <- function(experiment, folder=NULL, maxtime=Inf, speed=NULL, ask=FALSE) 
   experiment$replay(folder, maxtime, speed, ask)
+
+#' Trace one or more experiment stages
+#' @param experiment an object of class Experiment
+#' @param num numbers of stages to trace
+#' @param ... arguments passed on to the \code{trace} method
+#'        of the Stage object. See \code{\link{setRefClass}}.
+#' 
+#' @examples
+#' \dontrun{
+#' trace_stage(expt, s1, browser)
+#' }
+#' @family command line functions
+#' @export
+trace_stage <- function(experiment, num, ...) for (n in num) experiment$stages[[n]]$trace("handle_request", ...)
+
+#' @rdname trace_stage
+#' @export
+untrace_stage <- function(experiment, num) for (n in num) experiment$stages[[n]]$untrace()

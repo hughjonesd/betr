@@ -10,12 +10,14 @@ text_stage(...)
 \code{text} should be passed.}
 
 \item{file}{A filepath. If the file ends in ".brew" then it is passed to
-       \code{brew} for processing. Otherwise it is shown to the subject as-is.}
+\code{brew} for processing. Otherwise it is shown to the subject as-is.}
+
+\item{wait}{Wait to move on?}
 }
 \value{
 An object of class TextStage. When called the first time, this will
         display the HTML in \code{file} or \code{text} to the participant.
-        If çode{wait} is \code{FALSE} (the default), subsequent calls
+        If \çode{wait} is \code{FALSE} (the default), subsequent calls
         will return \code{NEXT}. If \code{wait} is \code{TRUE}, subsequent
         calls return the same page.
 }

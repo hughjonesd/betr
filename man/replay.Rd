@@ -85,9 +85,10 @@ Other command line functions: \code{\link{get_url}},
   \code{\link{nperiods}},
   \code{\link{print,Experiment,ANY-method}},
   \code{\link{print,Experiment-method}},
-  \code{\link{session_name}}; \code{\link{halt}};
-  \code{\link{next_stage}}; \code{\link{pause}};
-  \code{\link{ready}}; \code{\link{restart}};
-  \code{\link{start.Experiment}}
+  \code{\link{print_stages}}, \code{\link{session_name}};
+  \code{\link{halt}}; \code{\link{next_stage}};
+  \code{\link{pause}}; \code{\link{ready}};
+  \code{\link{restart}}; \code{\link{start.Experiment}};
+  \code{\link{trace_stage}}, \code{\link{untrace_stage}}
 }
 
