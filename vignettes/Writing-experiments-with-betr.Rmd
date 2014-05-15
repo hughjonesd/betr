@@ -658,12 +658,109 @@ timed(stage, timeout=60, on_timeout=function(id, period) {
 })
 ```
 
+Debugging experiments
+---------------------
+
+Code can go wrong. Sooner or later, your experiment will throw an error or, 
+worse still, will do something unexpected without printing an error message.
+Luckily, R has powerful facilities for debugging.
+
+Here's part of a dictator game experiment:
+
+```{r}
+init_df <- function() {
+  mydf <- experiment_data_frame(expt)
+  mydf$give <- NA
+}
+expt <- experiment(N=2, autostart=TRUE, clients_in_url=TRUE, on_ready=init_df)
+dict_form <- c(header(), 
+      "Choose how much to give: <form method='POST' action=''>",
+      "<input type='text' name='give' maxlength='2'>", 
+      "<input type='submit' value='Submit'></form>",footer())
+dict_stage <- form_stage(dict_form, fields=list(give=is_between(0, 10)), 
+      data_frame="mydf")
+add_stage(expt, period(), dict_stage)
+```
+
+If you run this experiment, you'll get an error:
+
+```{r echo=1:2}
+ready(expt)
+web_test(expt) # and submit a number in your browser
+expt$handle_request("client-1", list(give="1"))
+```
+
+
+This tells us what is wrong: `mydf` has not been created in the global 
+environment. At this point, you should look at the code in `init_df`, which
+is supposed to create `mydf` when the experiment is made ready. If you are lucky,
+you'll notice that it is using `<-` instead of `<<-`: `mydf` is being created
+only within the function, not in the global environment. Let's suppose you are
+unlucky and don't know why `mydf` isn't being created. We can check what's
+happening by using the built-in debugger.
+
+```{r eval=FALSE}
+debug(init_df)
+init_df()
+```
+
+The call to `debug` means that when `init_df()` is called, you step into it and
+evaluate it one line at a time. In the debugger, enter 'n' to move on a line. 
+You can also
+enter any other R expression and it will be evaluated. So, enter 'n' until you
+have run `experiment_data_frame`, then enter `mydf`. You'll see that your data
+frame exists and looks OK. Then when you exit the debugger, enter `mydf` again
+-- you will see that `mydf` no longer exists. This will hopefully give you a 
+clue to what is happening: `mydf` is being created OK, but assigned in the wrong
+place. When you've finished debugging, call `undebug(init_df)` to return
+to normal behaviour.
+
+Debugging works while you are running an experiment: the browser will hang,
+waiting for a response, while you step through the debugger.
+
+Often you will want to debug code that is happening inside an experiment stage.
+To do that, call `trace_stage(expt, n, browser)` on your experiment. Here `n` is
+the number of the stage in the experiment. This
+will put you into debug mode whenever this stage is called. For example, in the
+experiment above `trace_stage(expt, 2, browser)` will debug `dict_stage`. Call
+`untrace_stage(expt, 2)` to go back to normal mode.
+
+See `?debug`, `?trace`, `?browser` and `?recover` for more details, as well as
+the method `trace` in `?setRefClass`.
+
+`replay` is often useful for debugging: see the next section.
+
 
 Testing experiments
 -------------------
 
-Debugging
----------
+We've already seen how to test your experiments manually, using 
+`web_test(expt)`. However, if your experiment has 16 participants, this quickly
+becomes laborious. Luckily, we can automate the process using `replay`.
+
+Consider the experiment above. We might want to test several things about it. 
+For example:
+
+1. Does the experiment start and run without throwing an R error?
+2. If subjects get the same number, do they get a profit of $5?
+3. If subjects get a different number, do they get a profit of $0?
+4. If a subject enters a number less than 0 or greater than 10 or not a whole
+number, does the script print an error and ask for input again?
+5. Can subjects see and select a number from 1 to 10 on the HTML page?
+
+Questions 1-4 are relatively easy to test because they are about how the 
+experiment runs in R. Question 5 is a bit harder: it is about how the user
+sees the experiment. We'll start with the first kind of questions.
+
+#### Testing with `replay`
+
+To use `replay` you will first need to test your session manually, using 
+`web_test`. This may be slow, but you need only do it once. Just by doing this,
+you already test question 1 above: you can't run the experiment if it won't run!
+If you get problems, see When you have 
+finished, check that things are how you expected
+
+
 
 Running your experiment in the lab
 ----------------------------------
