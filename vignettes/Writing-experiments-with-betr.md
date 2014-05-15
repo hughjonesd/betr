@@ -316,7 +316,7 @@ ready(expt)
 ```
 
 
-Calling `spluseady` does several things:
+Calling `ready` does several things:
 * Starts the web server. Now, subject computers can connect to the experiment;
 * Creates a new experiment session, with a date and time, and creates a folder
 on disk to hold data about it.
@@ -486,7 +486,7 @@ Note that:
 edited easily.
 
 * When the file is sourced, a random seed is set. The seed will be stored when 
-`spluseady` is called. So, if the experiment is replayed, exactly the same random 
+`ready` is called. So, if the experiment is replayed, exactly the same random 
 numbers will be generated. (We should have done this for the previous guessing 
 game!) Of course, you want to use a different seed for each session. One way to
 ensure this would be `seed <- readline("Please enter a large random integer: ")`.
@@ -688,7 +688,7 @@ Here `calculate_profit` does just what it says. Note that the first line turns
 `mydf$guess` into a numeric variable. Also, note how the first and last lines
 use `<<-` to assign into `mydf` in the _global_ environment.
 
-The `splusun="all"` argument runs the program once for every subject. In effect,
+The `run="all"` argument runs the program once for every subject. In effect,
 profit is calculated several times for every group, but the calculation doesn't 
 change so it doesn't. Other values include `"first"` and `"last"`. These run
 the program only when the first subject arrives, and only when the last subject
@@ -731,7 +731,7 @@ add_stage(expt, period(), timed(guess_s, 30), check_s, calc_s, times = nreps)
 ```
 
 
-Timeouts work by adding a `splusefresh:` header to the http request. Client browsers
+Timeouts work by adding a `Refresh:` header to the http request. Client browsers
 will automatically refresh after the timeout is called. If the timeout expires,
 then the Timed stage returns `NEXT`. You may want to do something extra in this
 case, like set some default values, or record that the subject timed out. You
