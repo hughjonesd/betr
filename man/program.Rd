@@ -56,6 +56,7 @@ add_stage(expt, period(), s1, checkpoint(mydf$group), s2, s3, times=10)
 Other stages: \code{\link{NEXT}}, \code{\link{WAIT}},
   \code{\link{stage}}; \code{\link{checkpoint}};
   \code{\link{form_stage}}; \code{\link{period}};
-  \code{\link{structured_stage}}; \code{\link{text_stage}}
+  \code{\link{structured_stage}}; \code{\link{text_stage}};
+  \code{\link{timed}}
 }
 

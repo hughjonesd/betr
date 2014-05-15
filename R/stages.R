@@ -755,6 +755,84 @@ Program <- setRefClass("Program", contains="AbstractStage",
 #' @export
 program <- function (run, fn) {list(run,fn);Program$new(run, fn)} # list() to catch errors
 
+Timed <- setRefClass("Timed", contains="AbstractStage",
+  fields=list(
+    timeout="numeric",
+    on_timeout="function",
+    stage="AbstractStage",
+    started="numeric",
+    expt=function(x) {
+      if (missing(x)) return(stage$expt)
+      stage$expt <- x
+    }
+  ),
+  methods=list(
+    initialize = function(stage=NULL, timeout=0, on_timeout=function(...) NULL, ...) {
+      if (! is.null(stage)) stage <<- stage
+      timeout <<- timeout
+      on_timeout <<- on_timeout
+      started <<- numeric(0)
+      callSuper(...)
+    },
+    
+    handle_request = function(id, period, params) {
+      if (is.na(started[id])) {
+        started[id] <<- expt$elapsed_time()
+        time_remaining <- timeout
+      } else {
+        time_passed <- expt$elapsed_time() - started[id]
+        if (time_passed > timeout) {
+          on_timeout(id, period)
+          return(NEXT)
+        } else {
+          time_remaining <- timeout - time_passed 
+        }
+      }
+      res <- stage$handle_request(id, period, params)
+      if (! is(res, "Response")) res <- rookify(res)
+      res$header("Refresh", time_remaining)
+      return(res)
+    }
+  )
+)
+
+#' Add a timeout to a stage
+#' 
+#' @param stage A Stage object, or a function
+#' @param timeout timeout length in seconds
+#' @param on_timeout a function to be called if a subject times out.
+#' 
+#' @details 
+#' 
+#' Returns a Stage which contains the original \code{stage}.
+#' If a subject times out, `NEXT` is returned and `on_timeout` is called with
+#' arguments `(id, period)`.
+#' 
+#' Timed stages are implemented using 
+#' \href{http://en.wikipedia.org/wiki/Meta_refresh}{http refresh}. This is not a
+#' standard part of the HTTP specification, so use with caution if you do not 
+#' control which browsers your subjects will be running.
+#' 
+#' @examples
+#' s1 <- form_stage(c(header(), "Enter something", 
+#'      "<form action='' method='POST'><input name='foo'></form>", footer()), 
+#'      fields=list(foo=has_value()), data_frame="mydf")
+#' # set a default value:
+#' s1_timed <- timed(s1, 60, on_timeout=function(id, period) 
+#'      mydf$foo[mydf$id==id & mydf$period==period] <<- "Default value"))
+#' 
+#' @return A Stage object of class Timed
+#' @family stages
+#' @export
+timed <- function (stage, timeout, on_timeout=function(...) NULL) {
+  if (is.function(stage)) {
+    stage <- Stage$new(handler=stage)
+  } 
+  if (! inherits(stage, "AbstractStage")) stop("stage must be a Stage object")
+  if (! is.numeric(timeout) || timeout <= 0) 
+        stop("timeout must be a positive number, was ", timeout)
+  Timed$new(stage=stage, timeout=timeout, on_timeout=on_timeout)
+}
 
 #' @rdname stage
 #' @export

@@ -627,6 +627,36 @@ add_stage(expt, period(), guess_s, check_s, calc_s, times=nreps)
 The basic pattern here is: form stage, checkpoint, program. You can use this 
 simple pattern in many experiments.
 
+### Adding timeouts
+
+Often in lab experiments you want to give subjects only a fixed time to
+answer a question, view instructions etc. In betr, you can do this by adding
+timeouts to stages. The syntax is like:
+
+```{r}
+timed(stage, timeout=60)
+```
+
+where `stage` is the original stage, and `timeout` gives the number of seconds
+before the stage times out. `timed` creates a new stage object of class Timed. 
+So, for example, if we wanted to give subjects 30 seconds to guess a number , we
+could write:
+
+```{r}
+add_stage(expt, period(), timed(guess_s, 30), check_s, calc_s, times=nreps)
+```
+
+Timeouts work by adding a `Refresh:` header to the http request. Client browsers
+will automatically refresh after the timeout is called. If the timeout expires,
+then the Timed stage returns `NEXT`. You may want to do something extra in this
+case, like set some default values, or record that the subject timed out. You
+can do this by adding an `on_timeout` argument to `timed`.
+
+```{r}
+timed(stage, timeout=60, on_timeout=function(id, period))
+```
+
+
 Testing experiments
 -------------------
 
