@@ -484,7 +484,7 @@ on disk to hold data about it.</li>
 <pre><code class="r">expt
 </code></pre>
 
-<pre><code>## Session: betr-2014-05-15-122749  Status: Waiting Clients: 0/1    Periods: 5  Stages: 10
+<pre><code>## Session: betr-2014-05-16-012750  Status: Waiting Clients: 0/1    Periods: 5  Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr
 </code></pre>
 
@@ -504,12 +504,13 @@ refresh regularly. </p>
 <pre><code class="r">info(expt)
 </code></pre>
 
-<pre><code>## Session: betr-2014-05-15-122749  Status: Waiting Clients: 1/1    Periods: 5  Stages: 10
+<pre><code>## Session: betr-2014-05-16-012750  Status: Waiting Clients: 1/1    Periods: 5  Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr 
 ## Subjects:
 ##     client id seat period stage  status
 ## 1 client-1  1   NA      0     0 Running
 ## Period progression:
+## 0: .[1]
 </code></pre>
 
 <p>This shows the same info as before, plus a list of subjects &ndash; just one.</p>
@@ -598,10 +599,6 @@ initialize &lt;- function() {
 }
 
 expt &lt;- experiment(N = N, clients_in_url = TRUE, on_ready = initialize)
-</code></pre>
-
-<pre><code>## Warning: cannot open file &#39;betr-SEATS.txt&#39;: No such file or directory
-## Warning: Problem reading seats file betr-SEATS.txt
 </code></pre>
 
 <p>Note that:</p>
@@ -831,9 +828,146 @@ can do this by adding an <code>on_timeout</code> argument to <code>timed</code>.
 })
 </code></pre>
 
+<h2>Debugging experiments</h2>
+
+<p>Code can go wrong. Sooner or later, your experiment will throw an error or, 
+worse still, will do something unexpected without printing an error message.
+Luckily, R has powerful facilities for debugging.</p>
+
+<p>Here&#39;s part of a dictator game experiment:</p>
+
+<pre><code class="r">init_df &lt;- function() {
+    mydf &lt;- experiment_data_frame(expt)
+    mydf$give &lt;- NA
+}
+expt &lt;- experiment(N = 2, autostart = TRUE, clients_in_url = TRUE, on_ready = init_df)
+dict_form &lt;- c(header(), &quot;Choose how much to give: &lt;form method=&#39;POST&#39; action=&#39;&#39;&gt;&quot;, 
+    &quot;&lt;input type=&#39;text&#39; name=&#39;give&#39; maxlength=&#39;2&#39;&gt;&quot;, &quot;&lt;input type=&#39;submit&#39; value=&#39;Submit&#39;&gt;&lt;/form&gt;&quot;, 
+    footer())
+dict_stage &lt;- form_stage(dict_form, fields = list(give = is_between(0, 10)), 
+    data_frame = &quot;mydf&quot;)
+add_stage(expt, period(), dict_stage)
+</code></pre>
+
+<p>If you run this experiment, you&#39;ll get an error:</p>
+
+<pre><code class="r">ready(expt)
+</code></pre>
+
+<pre><code>## starting httpd help server ... done
+</code></pre>
+
+<pre><code>## 
+## Server started on host 127.0.0.1 and port 35538 . App urls are:
+## 
+##  http://127.0.0.1:35538/custom/betr
+</code></pre>
+
+<pre><code class="r">## web_test(expt)  # and submit a number in your browser
+</code></pre>
+
+<pre><code>## Error: &#39;params&#39; is missing
+</code></pre>
+
+<pre><code>## [1] &quot;&lt;html&gt;&lt;head&gt;&lt;title&gt;Experiment&lt;/title&gt;&lt;meta http-equiv=&#39;refresh&#39; content=&#39;10&#39;&gt;&lt;/head&gt;&lt;body style=&#39;background-color: #CCCCCC; padding: 2% 4%;&#39;&gt;\n        &lt;div style=&#39;background-color: white; padding: 3% 3%&#39;&gt;Waiting to start&lt;/div&gt;&lt;div align=&#39;center&#39; style=&#39;padding: 10px 10px;&#39;&gt;betr&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;&quot;
+</code></pre>
+
+<p>This tells us what is wrong: <code>mydf</code> has not been created in the global 
+environment. At this point, you should look at the code in <code>init_df</code>, which
+is supposed to create <code>mydf</code> when the experiment is made ready. If you are lucky,
+you&#39;ll notice that it is using <code>&lt;-</code> instead of <code>&lt;&lt;-</code>: <code>mydf</code> is being created
+only within the function, not in the global environment. Let&#39;s suppose you are
+unlucky and don&#39;t know why <code>mydf</code> isn&#39;t being created. We can check what&#39;s
+happening by using the built-in debugger.</p>
+
+<pre><code class="r">debug(init_df)
+init_df()
+</code></pre>
+
+<p>The call to <code>debug</code> means that when <code>init_df()</code> is called, you step into it and
+evaluate it one line at a time. In the debugger, enter &#39;n&#39; to move on a line. 
+You can also
+enter any other R expression and it will be evaluated. So, enter &#39;n&#39; until you
+have run <code>experiment_data_frame</code>, then enter <code>mydf</code>. You&#39;ll see that your data
+frame exists and looks OK. Then when you exit the debugger, enter <code>mydf</code> again
+&ndash; you will see that <code>mydf</code> no longer exists. This will hopefully give you a 
+clue to what is happening: <code>mydf</code> is being created OK, but assigned in the wrong
+place. When you&#39;ve finished debugging, call <code>undebug(init_df)</code> to return
+to normal behaviour.</p>
+
+<p>Debugging works while you are running an experiment: the browser will hang,
+waiting for a response, while you step through the debugger.</p>
+
+<p>Often you will want to debug code that is happening inside an experiment stage.
+To do that, call <code>trace_stage(expt, n, browser)</code> on your experiment. Here <code>n</code> is
+the number of the stage in the experiment. This
+will put you into debug mode whenever this stage is called. For example, in the
+experiment above <code>trace_stage(expt, 2, browser)</code> will debug <code>dict_stage</code>. Call
+<code>untrace_stage(expt, 2)</code> to go back to normal mode.</p>
+
+<p>See <code>?debug</code>, <code>?trace</code>, <code>?browser</code> and <code>?recover</code> for more details, as well as
+the method <code>trace</code> in <code>?setRefClass</code>.</p>
+
+<p><code>replay</code> is often useful for debugging: see the next section.</p>
+
 <h2>Testing experiments</h2>
 
-<h2>Debugging</h2>
+<p>We&#39;ve already seen how to test your experiments manually, using 
+<code>web_test(expt)</code>. However, if your experiment has 16 participants, this quickly
+becomes laborious. Luckily, we can automate the process using <code>replay</code>.</p>
+
+<p>Consider the experiment above. We might want to test several things about it. 
+For example:</p>
+
+<ol>
+<li>Does the experiment start and run without throwing an R error?</li>
+<li>If subjects get the same number, do they get a profit of $5?</li>
+<li>If subjects get a different number, do they get a profit of $0?</li>
+<li>If a subject enters a number less than 0 or greater than 10 or not a whole
+number, does the script print an error and ask for input again?</li>
+<li>Can subjects see and select a number from 1 to 10 on the HTML page?</li>
+</ol>
+
+<p>Questions 1-4 are relatively easy to test because they are about how the 
+experiment runs in R. Question 5 is a bit harder: it is about how the user
+sees the experiment. We&#39;ll start with the first kind of questions.</p>
+
+<h4>Testing with <code>replay</code></h4>
+
+<p>To use <code>replay</code> you will first need to test your session manually, using 
+<code>web_test</code>. This may be slow, but you need only do it once. Just by doing this,
+you already test question 1 above: you can&#39;t run the experiment if it won&#39;t run!
+If you get problems, see When you have 
+finished, check that things are how you expected. Then, note down the session
+name (printed by <code>info(expt)</code>). You should find a folder with the corresponding
+session name on your hard drive, in the folder where R started. Note the folder
+name.</p>
+
+<p>Now, make some changes to your code. After you&#39;ve saved the experiment file and
+(perhaps) restarted R, source the file again and enter:</p>
+
+<pre><code class="r">ready(expt)
+replay(expt, folder = &quot;[the folder name you noted earlier]&quot;)
+</code></pre>
+
+<p>This will replay your previous session <em>instantly</em>. Afterwards, you can check again
+that things are still as you expect. You don&#39;t have to include the folder name:
+if you don&#39;t, betr will try to find the most recent folder that looks like a
+session record.</p>
+
+<p>You can automate the process still further by a testing package such as <code>testthat</code>. Here&#39;s a simple example, checking that a data frame has the right number of rows
+and that the <code>give</code> field is always defined.</p>
+
+<pre><code class="r">test_that(&quot;Data frame created OK&quot;, {
+    source(&quot;my-experiment-file.R&quot;)  # defines an experiment myexp
+    replay(myexp, folder = &quot;myexp-2014-05-15-120000&quot;)  # test from 12 pm on 15 May 
+    expect_that(nrow(mydf), equals(32))
+    expect_false(is.na(mydf$give))  # 
+})
+</code></pre>
+
+<p>Automated testing will make it easier to run tests &ndash; which should make your
+experiments more reliable.</p>
 
 <h2>Running your experiment in the lab</h2>
 

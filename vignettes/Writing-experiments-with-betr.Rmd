@@ -383,7 +383,7 @@ HTML; and Period objects created using `period`.
 
 We'll set up our data frame much as before:
 
-```{r coord_game}
+```{r coord_game, warning=FALSE}
 library(betr)
 N <- 8
 nreps <- 4
@@ -667,7 +667,7 @@ Luckily, R has powerful facilities for debugging.
 
 Here's part of a dictator game experiment:
 
-```{r}
+```{r warning=FALSE}
 init_df <- function() {
   mydf <- experiment_data_frame(expt)
   mydf$give <- NA
@@ -684,9 +684,10 @@ add_stage(expt, period(), dict_stage)
 
 If you run this experiment, you'll get an error:
 
-```{r echo=1:2}
+```{r echo=1:2, eval=c(1,3,4), warning=FALSE}
 ready(expt)
 web_test(expt) # and submit a number in your browser
+expt$handle_request("client-1")
 expt$handle_request("client-1", list(give="1"))
 ```
 
@@ -766,7 +767,7 @@ name.
 Now, make some changes to your code. After you've saved the experiment file and
 (perhaps) restarted R, source the file again and enter:
 
-```{r}
+```{r eval=FALSE}
 ready(expt)
 replay(expt, folder="[the folder name you noted earlier]")
 ```

@@ -330,7 +330,7 @@ expt
 ```
 
 ```
-## Session: betr-2014-05-15-122749	Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
+## Session: betr-2014-05-16-012750	Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr
 ```
 
@@ -359,12 +359,13 @@ info(expt)
 ```
 
 ```
-## Session: betr-2014-05-15-122749	Status: Waiting	Clients: 1/1	Periods: 5	Stages: 10
+## Session: betr-2014-05-16-012750	Status: Waiting	Clients: 1/1	Periods: 5	Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr 
 ## Subjects:
 ##     client id seat period stage  status
 ## 1 client-1  1   NA      0     0 Running
 ## Period progression:
+## 0: .[1]
 ```
 
 
@@ -472,11 +473,6 @@ initialize <- function() {
 }
 
 expt <- experiment(N = N, clients_in_url = TRUE, on_ready = initialize)
-```
-
-```
-## Warning: cannot open file 'betr-SEATS.txt': No such file or directory
-## Warning: Problem reading seats file betr-SEATS.txt
 ```
 
 
@@ -745,17 +741,168 @@ timed(stage, timeout = 60, on_timeout = function(id, period) {
 ```
 
 
+Debugging experiments
+---------------------
+
+Code can go wrong. Sooner or later, your experiment will throw an error or, 
+worse still, will do something unexpected without printing an error message.
+Luckily, R has powerful facilities for debugging.
+
+Here's part of a dictator game experiment:
+
+
+```splus
+init_df <- function() {
+    mydf <- experiment_data_frame(expt)
+    mydf$give <- NA
+}
+expt <- experiment(N = 2, autostart = TRUE, clients_in_url = TRUE, on_ready = init_df)
+dict_form <- c(header(), "Choose how much to give: <form method='POST' action=''>", 
+    "<input type='text' name='give' maxlength='2'>", "<input type='submit' value='Submit'></form>", 
+    footer())
+dict_stage <- form_stage(dict_form, fields = list(give = is_between(0, 10)), 
+    data_frame = "mydf")
+add_stage(expt, period(), dict_stage)
+```
+
+
+If you run this experiment, you'll get an error:
+
+
+```splus
+ready(expt)
+```
+
+```
+## starting httpd help server ... done
+```
+
+```
+## 
+## Server started on host 127.0.0.1 and port 35538 . App urls are:
+## 
+## 	http://127.0.0.1:35538/custom/betr
+```
+
+```splus
+## web_test(expt)  # and submit a number in your browser
+```
+
+```
+## Error: 'params' is missing
+```
+
+```
+## [1] "<html><head><title>Experiment</title><meta http-equiv='refresh' content='10'></head><body style='background-color: #CCCCCC; padding: 2% 4%;'>\n        <div style='background-color: white; padding: 3% 3%'>Waiting to start</div><div align='center' style='padding: 10px 10px;'>betr</div></body></html>"
+```
+
+
+
+This tells us what is wrong: `mydf` has not been created in the global 
+environment. At this point, you should look at the code in `init_df`, which
+is supposed to create `mydf` when the experiment is made ready. If you are lucky,
+you'll notice that it is using `<-` instead of `<<-`: `mydf` is being created
+only within the function, not in the global environment. Let's suppose you are
+unlucky and don't know why `mydf` isn't being created. We can check what's
+happening by using the built-in debugger.
+
+
+```splus
+debug(init_df)
+init_df()
+```
+
+
+The call to `debug` means that when `init_df()` is called, you step into it and
+evaluate it one line at a time. In the debugger, enter 'n' to move on a line. 
+You can also
+enter any other R expression and it will be evaluated. So, enter 'n' until you
+have run `experiment_data_frame`, then enter `mydf`. You'll see that your data
+frame exists and looks OK. Then when you exit the debugger, enter `mydf` again
+-- you will see that `mydf` no longer exists. This will hopefully give you a 
+clue to what is happening: `mydf` is being created OK, but assigned in the wrong
+place. When you've finished debugging, call `undebug(init_df)` to return
+to normal behaviour.
+
+Debugging works while you are running an experiment: the browser will hang,
+waiting for a response, while you step through the debugger.
+
+Often you will want to debug code that is happening inside an experiment stage.
+To do that, call `trace_stage(expt, n, browser)` on your experiment. Here `n` is
+the number of the stage in the experiment. This
+will put you into debug mode whenever this stage is called. For example, in the
+experiment above `trace_stage(expt, 2, browser)` will debug `dict_stage`. Call
+`untrace_stage(expt, 2)` to go back to normal mode.
+
+See `?debug`, `?trace`, `?browser` and `?recover` for more details, as well as
+the method `trace` in `?setRefClass`.
+
+`replay` is often useful for debugging: see the next section.
+
 
 Testing experiments
 -------------------
 
-#### Replay options: ask? maxTime?
-#### web_test
+We've already seen how to test your experiments manually, using 
+`web_test(expt)`. However, if your experiment has 16 participants, this quickly
+becomes laborious. Luckily, we can automate the process using `replay`.
 
-Debugging
----------
+Consider the experiment above. We might want to test several things about it. 
+For example:
+
+1. Does the experiment start and run without throwing an R error?
+2. If subjects get the same number, do they get a profit of $5?
+3. If subjects get a different number, do they get a profit of $0?
+4. If a subject enters a number less than 0 or greater than 10 or not a whole
+number, does the script print an error and ask for input again?
+5. Can subjects see and select a number from 1 to 10 on the HTML page?
+
+Questions 1-4 are relatively easy to test because they are about how the 
+experiment runs in R. Question 5 is a bit harder: it is about how the user
+sees the experiment. We'll start with the first kind of questions.
+
+#### Testing with `replay`
+
+To use `replay` you will first need to test your session manually, using 
+`web_test`. This may be slow, but you need only do it once. Just by doing this,
+you already test question 1 above: you can't run the experiment if it won't run!
+If you get problems, see When you have 
+finished, check that things are how you expected. Then, note down the session
+name (printed by `info(expt)`). You should find a folder with the corresponding
+session name on your hard drive, in the folder where R started. Note the folder
+name.
+
+Now, make some changes to your code. After you've saved the experiment file and
+(perhaps) restarted R, source the file again and enter:
 
 
+```splus
+ready(expt)
+replay(expt, folder = "[the folder name you noted earlier]")
+```
+
+
+This will replay your previous session _instantly_. Afterwards, you can check again
+that things are still as you expect. You don't have to include the folder name:
+if you don't, betr will try to find the most recent folder that looks like a
+session record.
+
+You can automate the process still further by a testing package such as `testthat`. Here's a simple example, checking that a data frame has the right number of rows
+and that the `give` field is always defined.
+
+
+```splus
+test_that("Data frame created OK", {
+    source("my-experiment-file.R")  # defines an experiment myexp
+    replay(myexp, folder = "myexp-2014-05-15-120000")  # test from 12 pm on 15 May 
+    expect_that(nrow(mydf), equals(32))
+    expect_false(is.na(mydf$give))  # 
+})
+```
+
+
+Automated testing will make it easier to run tests -- which should make your
+experiments more reliable.
 
 Running your experiment in the lab
 ----------------------------------
