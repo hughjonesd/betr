@@ -100,11 +100,11 @@ Experiment <- setRefClass("Experiment",
       length(stages[sapply(stages, inherits, "Period")])
     },
     
-    get_time = function() {
+    elapsed_time = function() {
       if (status=="Stopped") stop("Called get_time but experiment is Stopped")
       # if we are replaying need to fake time!
       return(as.numeric(Sys.time() - ready_time))
-    }
+    },
     
     waiting_page = function(message="") {
       paste0(header(refresh=client_refresh), message, footer())
