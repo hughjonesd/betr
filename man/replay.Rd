@@ -88,6 +88,6 @@ Other command line functions: \code{\link{get_url}},
   \code{\link{session_name}}; \code{\link{halt}};
   \code{\link{next_stage}}; \code{\link{pause}};
   \code{\link{ready}}; \code{\link{restart}};
-  \code{\link{start.experiment}}
+  \code{\link{start.Experiment}}
 }
 

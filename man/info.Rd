@@ -52,6 +52,6 @@ expt # on the command line, calls info()
 Other command line functions: \code{\link{halt}};
   \code{\link{next_stage}}; \code{\link{pause}};
   \code{\link{ready}}; \code{\link{replay}};
-  \code{\link{restart}}; \code{\link{start.experiment}}
+  \code{\link{restart}}; \code{\link{start.Experiment}}
 }
 

@@ -8,7 +8,7 @@ experiment_data_frame(experiment = NULL, N = NULL, periods = NULL)
 \description{
 This is a convenience function. It creates a data frame with \code{N * periods}
 rows, with a column \code{id} varying from 1 to \code{N} and a column \code{period} varying
-from 1 to \code{periods}. The data frame is sorted by ID, then by period.
+from 1 to \code{periods}. The data frame is sorted by period, then by ID.
 \code{N} and \code{periods} can be specified manually, or you can just pass in
 the \code{\link{experiment}} object and the function will guess for you.
 }
