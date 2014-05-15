@@ -383,7 +383,7 @@ HTML; and Period objects created using `period`.
 
 We'll set up our data frame much as before:
 
-```{r}
+```{r coord_game}
 library(betr)
 N <- 8
 nreps <- 4
@@ -494,7 +494,7 @@ function which either displayed an HTML form, or stored the subject's guess.
 We can do this even more simply using a new kind of Stage: a FormStage object,
 created by the `form_stage` function.
 
-```{r}
+```{r coord_game_form}
 myform <- c(
   header(), "<p style='color:red;'><% errors %></p>",
   "<p>Pick a number:</p>",
@@ -560,7 +560,7 @@ If we have multiple users in groups, we can't let them all run through the
 experiment at their own speed. They have to wait for each other. For this we need 
 another kind of Stage called a CheckPoint.
 
-```{r}
+```{r coord_game_checkpoint}
 initialize() # creates mydf so we can use mydf$group
 grp <- mydf$group[mydf$period==1]
 grp <- grp[order(mydf$id[mydf$period==1])]
@@ -575,8 +575,8 @@ move on subjects manually using `next_stage`.) Or, as in our example, it can be
 a vector of group names, sorted by id. When this happens, each subject will wait 
 until everyone in his or her group has arrived. For example, if 
 
-```{r}
-wait_for=c("a", "b", "a", "b", "c"))
+```{r eval=FALSE}
+wait_for=c("a", "b", "a", "b", "c")
 ```
 
 then subject IDs 1 and 3 will wait for each other, subject IDs 2 and 4 will wait
@@ -590,7 +590,7 @@ a Program stage for this. A Program simply runs some code at a particular point
 in the experiment. It doesn't display anything to the subjects -- they just move
 on to the next stage.
 
-```{r}
+```{r coord_game_program}
 calculate_profit <- function(id, period) {
   mydf$guess <<- as.numeric(mydf$guess)
   me_now <- mydf$id == id & mydf$period == period
@@ -620,7 +620,7 @@ arrives, respectively.
 Lastly, we'll add our stages to the experiment - not forgetting a period counter
 using `period()`.
 
-```{r}
+```{r coord_game_add_stage}
 add_stage(expt, period(), guess_s, check_s, calc_s, times=nreps)
 ```
 
@@ -633,7 +633,7 @@ Often in lab experiments you want to give subjects only a fixed time to
 answer a question, view instructions etc. In betr, you can do this by adding
 timeouts to stages. The syntax is like:
 
-```{r}
+```{r eval=FALSE}
 timed(stage, timeout=60)
 ```
 
@@ -642,7 +642,7 @@ before the stage times out. `timed` creates a new stage object of class Timed.
 So, for example, if we wanted to give subjects 30 seconds to guess a number , we
 could write:
 
-```{r}
+```{r eval=FALSE}
 add_stage(expt, period(), timed(guess_s, 30), check_s, calc_s, times=nreps)
 ```
 
@@ -652,8 +652,10 @@ then the Timed stage returns `NEXT`. You may want to do something extra in this
 case, like set some default values, or record that the subject timed out. You
 can do this by adding an `on_timeout` argument to `timed`.
 
-```{r}
-timed(stage, timeout=60, on_timeout=function(id, period))
+```{r eval=FALSE}
+timed(stage, timeout=60, on_timeout=function(id, period) {
+  mydf[mydf$id==id & mydf$period==period, "timed_out_on_me"] <<- TRUE
+})
 ```
 
 

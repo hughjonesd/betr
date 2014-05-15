@@ -51,7 +51,7 @@ subjects.do{
 The same thing in R is just:
 
 
-```splus
+```r
 rand_id <- sample(1:N)
 ```
 
@@ -101,7 +101,7 @@ Installing betr
 To install betr just run:
 
 
-```splus
+```r
 install.packages("devtools")  # if not already installed
 library(devtools)
 install_github("betr", "hughjonesd")  # for the latest version
@@ -116,20 +116,8 @@ session, you will run it from the command line. Here's a source file for a
 simple guessing game experiment.
 
 
-```splus
+```r
 library(betr)
-```
-
-```
-## 
-## Attaching package: 'betr'
-## 
-## The following object is masked from 'package:stats':
-## 
-##     start
-```
-
-```splus
 expt <- experiment(N = 1, clients_in_url = TRUE)
 
 s1 <- function(id, period, params) {
@@ -167,7 +155,7 @@ on_ready(expt, initialize_data_frame)
 
 Let's look at this bit by bit.
 
-```splus
+```r
 expt <- experiment(N = 1, clients_in_url = TRUE)
 ```
 
@@ -179,7 +167,7 @@ _stages_. `s1` is a simple stage. Ignoring the details, the structure of `s1`
 is like:
 
 
-```splus
+```r
 s1 <- function(id, period, params) {
     # ...
     return(NEXT)
@@ -225,7 +213,7 @@ then print out the guessing form so the subject can choose another number.
 
 
 
-```splus
+```r
 add_stage(expt, period(), s1, times = 5)
 ```
 
@@ -245,7 +233,7 @@ You should usually start your experiment with a Period to set the period counter
 to 1.
 
 
-```splus
+```r
 initialize_data_frame <- function() {
     mydf <<- experiment_data_frame(expt)
     mydf$guess <<- NA
@@ -259,7 +247,7 @@ Last of all, we want to prepare a data frame for our experiment. We could just
 do this by calling
 
 
-```splus
+```r
 mydf <<- experiment_data_frame(expt)
 ```
 
@@ -282,7 +270,7 @@ when it is replayed. Then the replay will populate our data frame just as it was
 OK, we've created our experiment. Now, we need to run it. Run the code above, our
 put it in a file called `my_experiment.R` and source it: 
 
-```splus
+```r
 source("my_experiment.R")
 ```
 
@@ -290,7 +278,7 @@ You'll see some warnings about "seats" -- don't worry about those for now.
 
 Before we run it, let's take a look at it. On the command line, type
 
-```splus
+```r
 expt
 ```
 
@@ -312,7 +300,7 @@ change that. On the command line, run:
 
 
 
-```splus
+```r
 ready(expt)
 ```
 
@@ -328,7 +316,7 @@ ready(expt)
 ```
 
 
-Calling `spluseady` does several things:
+Calling `ready` does several things:
 * Starts the web server. Now, subject computers can connect to the experiment;
 * Creates a new experiment session, with a date and time, and creates a folder
 on disk to hold data about it.
@@ -337,12 +325,12 @@ on disk to hold data about it.
 Now, `expt` will report more information:
 
 
-```splus
+```r
 expt
 ```
 
 ```
-## Session: betr-2014-05-12-153829	Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
+## Session: betr-2014-05-15-122749	Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr
 ```
 
@@ -352,7 +340,7 @@ can connect to this to view the experiment. You can do this manually: open your
 web browser and go to the URL _http://127.0.0.1:10946/custom/betr/client-1_. Or,
 for a convenient shortcut, enter:
 
-```splus
+```r
 web_test(expt)
 ```
 
@@ -366,12 +354,12 @@ refresh regularly.
 Before we start, let's see a bit more information about our experiment. Type:
 
 
-```splus
+```r
 info(expt)
 ```
 
 ```
-## Session: betr-2014-05-12-153829	Status: Waiting	Clients: 1/1	Periods: 5	Stages: 10
+## Session: betr-2014-05-15-122749	Status: Waiting	Clients: 1/1	Periods: 5	Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr 
 ## Subjects:
 ##     client id seat period stage  status
@@ -385,7 +373,7 @@ This shows the same info as before, plus a list of subjects -- just one.
 To start the experiment, type:
 
 
-```splus
+```r
 start(expt)
 ```
 
@@ -398,7 +386,7 @@ guessing game. Complete a couple of guesses (good luck!). Use `info(expt)`
 to watch your subject progressing. You can also look directly at your 
 experimental data frame:
 
-```splus
+```r
 mydf
 ```
 
@@ -420,7 +408,7 @@ At the end, you will see an "experiment finished" page in your browser, and
 To stop the experiment serving, run
 
 
-```splus
+```r
 halt(expt)
 ```
 
@@ -431,7 +419,7 @@ of the experiment will be "Stopped".
 Lastly, let's replay our experiment. Enter
 
 
-```splus
+```r
 replay(expt, ask = TRUE)
 ```
 
@@ -450,18 +438,22 @@ You can enter arbitrary R expressions. For a list of other commands, enter
 Writing experiments
 -------------------
 
-### programs, checkpoints, text stages and forms
+### Experiment parameters
 
 So far our experiment is rather trivial: guessing a random number. Let's change
 it to have multiple subjects, each matched in groups, and getting paid if they 
-all choose the same random number -- i.e., a coordination game.
+all choose the same random number -- i.e., a coordination game. By doing this,
+we'll learn about the different kinds of Stages. So
+far you've met two kinds: simple functions which return `NEXT`, `WAIT` or some
+HTML; and Period objects created using `period`. 
 
 We'll set up our data frame much as before:
 
 
-```splus
+```r
 library(betr)
 N <- 8
+nreps <- 4
 groupsize <- 2
 reward <- 5  # reward in $
 seed <- 1312341  # don't forget to change this every session!!!
@@ -473,10 +465,10 @@ Ngroups <- N/groupsize
 
 initialize <- function() {
     set.seed(seed)
-    mydf <<- experiment_data_frame(expt)
+    mydf <<- experiment_data_frame(N = N, periods = nreps)
     mydf$guess <<- NA
-    mydf$correct <<- NA
-    mydf$group <<- rep(rep(1:Ngroups, each = groupsize), nperiods(expt))
+    # mydf$correct <<- NA
+    mydf$group <<- rep(rep(1:Ngroups, each = groupsize), nreps)
 }
 
 expt <- experiment(N = N, clients_in_url = TRUE, on_ready = initialize)
@@ -488,15 +480,16 @@ expt <- experiment(N = N, clients_in_url = TRUE, on_ready = initialize)
 ```
 
 
-A couple of small points. 
+Note that:
 
 * Parameters for the experiment are set at the top of the file so they can be
 edited easily.
 
 * When the file is sourced, a random seed is set. The seed will be stored when 
-`spluseady` is called. So, if the experiment is replayed, exactly the same random 
+`ready` is called. So, if the experiment is replayed, exactly the same random 
 numbers will be generated. (We should have done this for the previous guessing 
-game!)
+game!) Of course, you want to use a different seed for each session. One way to
+ensure this would be `seed <- readline("Please enter a large random integer: ")`.
 
 * The column `mydf$group` records each subject's group. In this case, subject ids
 1-2 are in group 1, subject ids 3-4 are in group 2, and so on. This is not
@@ -505,7 +498,7 @@ If you wanted to explicitly randomize you could just add the following line to
 `initialize`:
 
 
-```splus
+```r
 mydf$group <- sample(mydf$group)
 ```
 
@@ -513,7 +506,7 @@ mydf$group <- sample(mydf$group)
 If you wanted to redraw groups each round, you could do something like:
 
 
-```splus
+```r
 groups <- rep(1:Ngroups, each = groupsize)
 for (i in 1:nperiods(expt)) mydf$group[mydf$period == i] <- sample(groups)
 ```
@@ -522,11 +515,13 @@ for (i in 1:nperiods(expt)) mydf$group[mydf$period == i] <- sample(groups)
 * Notice as before that when we assign to `mydf`, we use the global assignment 
 operator `<<-`.
 
-Let's add some instructions to our experiment. To do this, we'll use a new
-kind of Stage:
+### Text Stages
+
+Let's add some instructions to our experiment. To do this, we'll use a TextStage
+object.
 
 
-```splus
+```r
 ins <- text_stage(text = c(header(), "You will be matched in groups of size", 
     groupsize, ". If you each guess the same number, you will get a reward of $", 
     reward, ". <form action=''><input type='Submit' value='OK'></form>", footer()))
@@ -545,7 +540,7 @@ We don't always want the user to be able to move on. Sometimes we would rather
 make them wait until the experimenter moves them on. Doing this is simple:
 
 
-```splus
+```r
 ins2 <- text_stage(text = c(header(), "Please wait for the experiment to begin!", 
     footer()), wait = TRUE)
 add_stage(expt, ins2)
@@ -558,7 +553,7 @@ of the `wait=TRUE` option. To move all subjects on manually from the command
 line:
 
 
-```splus
+```r
 next_stage(expt, 1:N)
 ```
 
@@ -567,33 +562,188 @@ Here `1:N` gives the subject ids as shown by `info(expt)`. Moving subjects
 on manually might risk losing data, but as this stage is just displaying some 
 text, we're fine.
 
+### Form Stages
+
 Next we need to let subjects pick a number. Last time we did this with a 
 function which either displayed an HTML form, or stored the subject's guess.
-We can do this even more simply using a new kind of Stage.
+We can do this even more simply using a new kind of Stage: a FormStage object,
+created by the `form_stage` function.
 
 
-```splus
-myform <- c(header(), "<% errors %>", "<form action='' method='POST'><select name='guess'>", 
-    paste0("<option>", 1:10, "</option>"), "</select>", "<input type='submit' value='Submit'></form>", 
+```r
+myform <- c(header(), "<p style='color:red;'><% errors %></p>", "<p>Pick a number:</p>", 
+    "<form action='' method='POST'><select name='guess'>", paste0("<option>", 
+        1:10, "</option>"), "</select>", "<input type='submit' value='Submit'></form>", 
     footer())
-guess_stage <- form(form_page = myform, fields = list(guess = all_of(is_whole_number(), 
+guess_s <- form_stage(form_page = myform, fields = list(guess = all_of(is_whole_number(), 
     is_between(1, 10))), data_frame = "mydf")
 ```
 
-```
-## Error: non trovo la funzione "form"
+
+A form stage prints out an HTML form for the subject. When the form is submitted,
+it is checked for errors. If there are no errors, the corresponding fields
+in the database are updated. You specify which fields to update by the list
+`fields`. The _names_ of this list are names of form fields, which should also
+be columns in your data frame. Each _value_ in the list should be a function to check
+the user-submitted data. You can write your own functions, but here we have
+auto-generated one with `is_whole_number`, `is_between` and `all_of`. (These are
+functions which return functions!) So, here we require the `guess` parameter to be
+_both_ a whole number, _and_ between 1 and 10. 
+
+If you wanted to do this manually you could have written e.g.:
+
+
+```r
+fields = list(guess = function(ftitle, val, ...) {
+    if (is.null(val) || !is.numeric(val) || abs(val - round(val)) >= .Machine$double.eps || 
+        val < 1 || val > 10) {
+        return(paste0(ftitle, " should be a whole number between 1 and 10"))
+    } else {
+        return(NULL)
+    }
+})
 ```
 
 
+If there are errors in your fields, the form will be redisplayed. For convenience,
+the string "<% errors %>" will be replaced by a list of errors. 
+
+Assuming that there are no errors, the data frame named in `data_frame` is
+updated. Note that:
+
+* `data_frame` should be the name of the data frame, not the data frame itself -- i.e.
+  `"mydf"` not `mydf`. 
+* The data frame must exist in the global environment
+* The data frame is expected to be in the standard form returned by 
+  `experiment_data_frame`, that is:
+id | period | ...
+-----------------
+1 | 1 | ...
+1 | 2 | ...
+... | ... | ...
+2 | 1 | ...
+2 | 1 | ...
+... | ... | ...
+* Form parameters are character vectors and will be stored in the database as
+  such (even if you've checked them with e.g. `is_whole_number()`). 
+  
+### Checkpoints
 
 If we have multiple users in groups, we can't let them all run through the 
-experiment at the same time. They have to wait for each other. For this we need 
-a new kind of Stage called a CheckPoint.
+experiment at their own speed. They have to wait for each other. For this we need 
+another kind of Stage called a CheckPoint.
 
 
-To do this we need to learn some more about the different kinds of Stages. So
-far you've met two kinds: simple functions which return `NEXT`, `WAIT` or some
-HTML; and Period objects created using `period`. 
+```r
+initialize()  # creates mydf so we can use mydf$group
+grp <- mydf$group[mydf$period == 1]
+grp <- grp[order(mydf$id[mydf$period == 1])]
+check_s <- checkpoint(wait_for = grp)
+```
+
+
+CheckPoints simply hold subjects at a waiting page until some subjects have also
+arrived at the checkpoint. You can specify which subjects to wait for by the 
+`wait_for` argument to `checkpoint`. This can be `"all"` to wait for all subjects, or 
+`"ever"` to wait forever. (This is useful if you want to let the experimenter 
+move on subjects manually using `next_stage`.) Or, as in our example, it can be 
+a vector of group names, sorted by id. When this happens, each subject will wait 
+until everyone in his or her group has arrived. For example, if 
+
+
+```r
+wait_for = c("a", "b", "a", "b", "c")
+```
+
+
+then subject IDs 1 and 3 will wait for each other, subject IDs 2 and 4 will wait
+for each other, and subject ID 5 will not wait for anyone.
+
+### Programs 
+
+After each group has arrived at the checkpoint, we know that they have filled in
+their guess. Now we can calculate if they've coordinated correctly. We'll use
+a Program stage for this. A Program simply runs some code at a particular point
+in the experiment. It doesn't display anything to the subjects -- they just move
+on to the next stage.
+
+
+```r
+calculate_profit <- function(id, period) {
+    mydf$guess <<- as.numeric(mydf$guess)
+    me_now <- mydf$id == id & mydf$period == period
+    
+    mygroup <- mydf$group[me_now]
+    myguesses <- mydf$guess[mydf$group == mygroup & mydf$period == period]
+    profit <- if (min(myguesses) == max(myguesses)) 
+        reward else 0
+    mydf$profit[me_now] <<- profit
+    
+}
+calc_s <- program(run = "all", fn = calculate_profit)
+```
+
+
+Here `calculate_profit` does just what it says. Note that the first line turns
+`mydf$guess` into a numeric variable. Also, note how the first and last lines
+use `<<-` to assign into `mydf` in the _global_ environment.
+
+The `run="all"` argument runs the program once for every subject. In effect,
+profit is calculated several times for every group, but the calculation doesn't 
+change so it doesn't. Other values include `"first"` and `"last"`. These run
+the program only when the first subject arrives, and only when the last subject
+arrives, respectively.
+
+### Putting it together
+
+Lastly, we'll add our stages to the experiment - not forgetting a period counter
+using `period()`.
+
+
+```r
+add_stage(expt, period(), guess_s, check_s, calc_s, times = nreps)
+```
+
+
+The basic pattern here is: form stage, checkpoint, program. You can use this 
+simple pattern in many experiments.
+
+### Adding timeouts
+
+Often in lab experiments you want to give subjects only a fixed time to
+answer a question, view instructions etc. In betr, you can do this by adding
+timeouts to stages. The syntax is like:
+
+
+```r
+timed(stage, timeout = 60)
+```
+
+
+where `stage` is the original stage, and `timeout` gives the number of seconds
+before the stage times out. `timed` creates a new stage object of class Timed. 
+So, for example, if we wanted to give subjects 30 seconds to guess a number , we
+could write:
+
+
+```r
+add_stage(expt, period(), timed(guess_s, 30), check_s, calc_s, times = nreps)
+```
+
+
+Timeouts work by adding a `Refresh:` header to the http request. Client browsers
+will automatically refresh after the timeout is called. If the timeout expires,
+then the Timed stage returns `NEXT`. You may want to do something extra in this
+case, like set some default values, or record that the subject timed out. You
+can do this by adding an `on_timeout` argument to `timed`.
+
+
+```r
+timed(stage, timeout = 60, on_timeout = function(id, period) {
+    mydf[mydf$id == id & mydf$period == period, "timed_out_on_me"] <<- TRUE
+})
+```
+
 
 
 Testing experiments
