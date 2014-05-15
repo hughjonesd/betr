@@ -758,9 +758,38 @@ To use `replay` you will first need to test your session manually, using
 `web_test`. This may be slow, but you need only do it once. Just by doing this,
 you already test question 1 above: you can't run the experiment if it won't run!
 If you get problems, see When you have 
-finished, check that things are how you expected
+finished, check that things are how you expected. Then, note down the session
+name (printed by `info(expt)`). You should find a folder with the corresponding
+session name on your hard drive, in the folder where R started. Note the folder
+name.
 
+Now, make some changes to your code. After you've saved the experiment file and
+(perhaps) restarted R, source the file again and enter:
 
+```{r}
+ready(expt)
+replay(expt, folder="[the folder name you noted earlier]")
+```
+
+This will replay your previous session _instantly_. Afterwards, you can check again
+that things are still as you expect. You don't have to include the folder name:
+if you don't, betr will try to find the most recent folder that looks like a
+session record.
+
+You can automate the process still further by a testing package such as `testthat`. Here's a simple example, checking that a data frame has the right number of rows
+and that the `give` field is always defined.
+
+```{r eval=FALSE}
+test_that("Data frame created OK", {
+  source("my-experiment-file.R") # defines an experiment myexp
+  replay(myexp, folder="myexp-2014-05-15-120000") # test from 12 pm on 15 May 
+  expect_that(nrow(mydf), equals(32)) 
+  expect_false(is.na(mydf$give)) # 
+})
+```
+
+Automated testing will make it easier to run tests -- which should make your
+experiments more reliable.
 
 Running your experiment in the lab
 ----------------------------------
