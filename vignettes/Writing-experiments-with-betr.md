@@ -51,7 +51,7 @@ subjects.do{
 The same thing in R is just:
 
 
-```r
+```splus
 rand_id <- sample(1:N)
 ```
 
@@ -101,7 +101,7 @@ Installing betr
 To install betr just run:
 
 
-```r
+```splus
 install.packages("devtools")  # if not already installed
 library(devtools)
 install_github("betr", "hughjonesd")  # for the latest version
@@ -116,7 +116,7 @@ session, you will run it from the command line. Here's a source file for a
 simple guessing game experiment.
 
 
-```r
+```splus
 library(betr)
 expt <- experiment(N = 1, clients_in_url = TRUE)
 
@@ -155,7 +155,7 @@ on_ready(expt, initialize_data_frame)
 
 Let's look at this bit by bit.
 
-```r
+```splus
 expt <- experiment(N = 1, clients_in_url = TRUE)
 ```
 
@@ -167,7 +167,7 @@ _stages_. `s1` is a simple stage. Ignoring the details, the structure of `s1`
 is like:
 
 
-```r
+```splus
 s1 <- function(id, period, params) {
     # ...
     return(NEXT)
@@ -213,7 +213,7 @@ then print out the guessing form so the subject can choose another number.
 
 
 
-```r
+```splus
 add_stage(expt, period(), s1, times = 5)
 ```
 
@@ -233,7 +233,7 @@ You should usually start your experiment with a Period to set the period counter
 to 1.
 
 
-```r
+```splus
 initialize_data_frame <- function() {
     mydf <<- experiment_data_frame(expt)
     mydf$guess <<- NA
@@ -247,7 +247,7 @@ Last of all, we want to prepare a data frame for our experiment. We could just
 do this by calling
 
 
-```r
+```splus
 mydf <<- experiment_data_frame(expt)
 ```
 
@@ -270,7 +270,7 @@ when it is replayed. Then the replay will populate our data frame just as it was
 OK, we've created our experiment. Now, we need to run it. Run the code above, our
 put it in a file called `my_experiment.R` and source it: 
 
-```r
+```splus
 source("my_experiment.R")
 ```
 
@@ -278,7 +278,7 @@ You'll see some warnings about "seats" -- don't worry about those for now.
 
 Before we run it, let's take a look at it. On the command line, type
 
-```r
+```splus
 expt
 ```
 
@@ -300,7 +300,7 @@ change that. On the command line, run:
 
 
 
-```r
+```splus
 ready(expt)
 ```
 
@@ -316,7 +316,7 @@ ready(expt)
 ```
 
 
-Calling `ready` does several things:
+Calling `spluseady` does several things:
 * Starts the web server. Now, subject computers can connect to the experiment;
 * Creates a new experiment session, with a date and time, and creates a folder
 on disk to hold data about it.
@@ -325,7 +325,7 @@ on disk to hold data about it.
 Now, `expt` will report more information:
 
 
-```r
+```splus
 expt
 ```
 
@@ -340,7 +340,7 @@ can connect to this to view the experiment. You can do this manually: open your
 web browser and go to the URL _http://127.0.0.1:10946/custom/betr/client-1_. Or,
 for a convenient shortcut, enter:
 
-```r
+```splus
 web_test(expt)
 ```
 
@@ -354,7 +354,7 @@ refresh regularly.
 Before we start, let's see a bit more information about our experiment. Type:
 
 
-```r
+```splus
 info(expt)
 ```
 
@@ -373,7 +373,7 @@ This shows the same info as before, plus a list of subjects -- just one.
 To start the experiment, type:
 
 
-```r
+```splus
 start(expt)
 ```
 
@@ -386,7 +386,7 @@ guessing game. Complete a couple of guesses (good luck!). Use `info(expt)`
 to watch your subject progressing. You can also look directly at your 
 experimental data frame:
 
-```r
+```splus
 mydf
 ```
 
@@ -408,7 +408,7 @@ At the end, you will see an "experiment finished" page in your browser, and
 To stop the experiment serving, run
 
 
-```r
+```splus
 halt(expt)
 ```
 
@@ -419,7 +419,7 @@ of the experiment will be "Stopped".
 Lastly, let's replay our experiment. Enter
 
 
-```r
+```splus
 replay(expt, ask = TRUE)
 ```
 
@@ -450,7 +450,7 @@ HTML; and Period objects created using `period`.
 We'll set up our data frame much as before:
 
 
-```r
+```splus
 library(betr)
 N <- 8
 nreps <- 4
@@ -486,7 +486,7 @@ Note that:
 edited easily.
 
 * When the file is sourced, a random seed is set. The seed will be stored when 
-`ready` is called. So, if the experiment is replayed, exactly the same random 
+`spluseady` is called. So, if the experiment is replayed, exactly the same random 
 numbers will be generated. (We should have done this for the previous guessing 
 game!) Of course, you want to use a different seed for each session. One way to
 ensure this would be `seed <- readline("Please enter a large random integer: ")`.
@@ -498,7 +498,7 @@ If you wanted to explicitly randomize you could just add the following line to
 `initialize`:
 
 
-```r
+```splus
 mydf$group <- sample(mydf$group)
 ```
 
@@ -506,7 +506,7 @@ mydf$group <- sample(mydf$group)
 If you wanted to redraw groups each round, you could do something like:
 
 
-```r
+```splus
 groups <- rep(1:Ngroups, each = groupsize)
 for (i in 1:nperiods(expt)) mydf$group[mydf$period == i] <- sample(groups)
 ```
@@ -521,7 +521,7 @@ Let's add some instructions to our experiment. To do this, we'll use a TextStage
 object.
 
 
-```r
+```splus
 ins <- text_stage(text = c(header(), "You will be matched in groups of size", 
     groupsize, ". If you each guess the same number, you will get a reward of $", 
     reward, ". <form action=''><input type='Submit' value='OK'></form>", footer()))
@@ -540,7 +540,7 @@ We don't always want the user to be able to move on. Sometimes we would rather
 make them wait until the experimenter moves them on. Doing this is simple:
 
 
-```r
+```splus
 ins2 <- text_stage(text = c(header(), "Please wait for the experiment to begin!", 
     footer()), wait = TRUE)
 add_stage(expt, ins2)
@@ -553,7 +553,7 @@ of the `wait=TRUE` option. To move all subjects on manually from the command
 line:
 
 
-```r
+```splus
 next_stage(expt, 1:N)
 ```
 
@@ -570,7 +570,7 @@ We can do this even more simply using a new kind of Stage: a FormStage object,
 created by the `form_stage` function.
 
 
-```r
+```splus
 myform <- c(header(), "<p style='color:red;'><% errors %></p>", "<p>Pick a number:</p>", 
     "<form action='' method='POST'><select name='guess'>", paste0("<option>", 
         1:10, "</option>"), "</select>", "<input type='submit' value='Submit'></form>", 
@@ -593,7 +593,7 @@ _both_ a whole number, _and_ between 1 and 10.
 If you wanted to do this manually you could have written e.g.:
 
 
-```r
+```splus
 fields = list(guess = function(ftitle, val, ...) {
     if (is.null(val) || !is.numeric(val) || abs(val - round(val)) >= .Machine$double.eps || 
         val < 1 || val > 10) {
@@ -634,7 +634,7 @@ experiment at their own speed. They have to wait for each other. For this we nee
 another kind of Stage called a CheckPoint.
 
 
-```r
+```splus
 initialize()  # creates mydf so we can use mydf$group
 grp <- mydf$group[mydf$period == 1]
 grp <- grp[order(mydf$id[mydf$period == 1])]
@@ -651,7 +651,7 @@ a vector of group names, sorted by id. When this happens, each subject will wait
 until everyone in his or her group has arrived. For example, if 
 
 
-```r
+```splus
 wait_for = c("a", "b", "a", "b", "c")
 ```
 
@@ -668,7 +668,7 @@ in the experiment. It doesn't display anything to the subjects -- they just move
 on to the next stage.
 
 
-```r
+```splus
 calculate_profit <- function(id, period) {
     mydf$guess <<- as.numeric(mydf$guess)
     me_now <- mydf$id == id & mydf$period == period
@@ -688,7 +688,7 @@ Here `calculate_profit` does just what it says. Note that the first line turns
 `mydf$guess` into a numeric variable. Also, note how the first and last lines
 use `<<-` to assign into `mydf` in the _global_ environment.
 
-The `run="all"` argument runs the program once for every subject. In effect,
+The `splusun="all"` argument runs the program once for every subject. In effect,
 profit is calculated several times for every group, but the calculation doesn't 
 change so it doesn't. Other values include `"first"` and `"last"`. These run
 the program only when the first subject arrives, and only when the last subject
@@ -700,7 +700,7 @@ Lastly, we'll add our stages to the experiment - not forgetting a period counter
 using `period()`.
 
 
-```r
+```splus
 add_stage(expt, period(), guess_s, check_s, calc_s, times = nreps)
 ```
 
@@ -715,7 +715,7 @@ answer a question, view instructions etc. In betr, you can do this by adding
 timeouts to stages. The syntax is like:
 
 
-```r
+```splus
 timed(stage, timeout = 60)
 ```
 
@@ -726,19 +726,19 @@ So, for example, if we wanted to give subjects 30 seconds to guess a number , we
 could write:
 
 
-```r
+```splus
 add_stage(expt, period(), timed(guess_s, 30), check_s, calc_s, times = nreps)
 ```
 
 
-Timeouts work by adding a `Refresh:` header to the http request. Client browsers
+Timeouts work by adding a `splusefresh:` header to the http request. Client browsers
 will automatically refresh after the timeout is called. If the timeout expires,
 then the Timed stage returns `NEXT`. You may want to do something extra in this
 case, like set some default values, or record that the subject timed out. You
 can do this by adding an `on_timeout` argument to `timed`.
 
 
-```r
+```splus
 timed(stage, timeout = 60, on_timeout = function(id, period) {
     mydf[mydf$id == id & mydf$period == period, "timed_out_on_me"] <<- TRUE
 })
