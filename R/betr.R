@@ -31,7 +31,7 @@ Experiment <- setRefClass("Experiment",
     on_ready="ANY",
     requests="list",
     commands="list",
-    start_time="POSIXct",
+    ready_time="POSIXct",
     clients_in_url="logical"
   ),
   methods=list(
@@ -99,6 +99,12 @@ Experiment <- setRefClass("Experiment",
       if (length(stages)==0) return(0) # avoid zero-length error
       length(stages[sapply(stages, inherits, "Period")])
     },
+    
+    get_time = function() {
+      if (status=="Stopped") stop("Called get_time but experiment is Stopped")
+      # if we are replaying need to fake time!
+      return(as.numeric(Sys.time() - ready_time))
+    }
     
     waiting_page = function(message="") {
       paste0(header(refresh=client_refresh), message, footer())
@@ -170,7 +176,7 @@ Experiment <- setRefClass("Experiment",
       if (missing(params)) params <- NULL
       command <- list(name=command, params=params)
       commands <<- append(commands, command)
-      tm=Sys.time() - start_time
+      tm=Sys.time() - ready_time
       cat(as.yaml(command), file=file.path(session_name, "record", paste0("command-", 
             as.character(tm))))
     },
@@ -178,7 +184,7 @@ Experiment <- setRefClass("Experiment",
     record_request = function(client, params, ip=NULL, cookies=NULL) {
       request <- list(client=client, params=params, ip=ip, cookies=cookies)
       requests <<- append(requests, request)
-      tm <- Sys.time() - start_time
+      tm <- Sys.time() - ready_time
       cat(as.yaml(request), file=file.path(session_name, "record", 
             paste0("request-", as.character(tm))))
     },
@@ -266,8 +272,8 @@ Experiment <- setRefClass("Experiment",
               "; ignoring since status is not Stopped.")
         return(invisible(FALSE))
       }
-      start_time <<- Sys.time()
-      session_name <<- paste(name, format(start_time, 
+      ready_time <<- Sys.time()
+      session_name <<- paste(name, format(ready_time, 
         "%Y-%m-%d-%H%M%S"), sep="-")
       dir.create(fp <- file.path(session_name, "record"), recursive=TRUE)
       if (file.access(fp, 2) != 0) stop("Could not write into ", fp)
