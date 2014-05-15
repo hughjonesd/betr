@@ -254,6 +254,43 @@ test_that("Periods work", {
 })
 
 Sys.sleep(1)
+test_that("Timed periods work", {
+  init_data <- function () {
+    mydf <<- experiment_data_frame(expt)
+    mydf$timed_out <<- FALSE
+  }
+  expt <- experiment(N=2, server="RookServer", autostart=FALSE, 
+        on_ready=init_data, randomize_ids=FALSE)
+  s1 <- function(id, period, params) "s1"
+  s1t <- timed(s1, timeout=5)
+  s1tf <- timed(s1, timeout=5, on_timeout=function(id, period) 
+        mydf$timed_out[mydf$id==id & mydf$period==period] <<- TRUE)
+  add_stage(expt, period(), s1t, text_stage("foo"), s1tf)
+  
+  rfrom <- function(cl) expt$handle_request(cl, list())
+  clients <- paste0("client", 1:2)
+  ready(expt)
+  rfrom(clients[1])
+  rfrom(clients[2])
+  start(expt)
+  rfrom(clients[1])
+  expect_that(rfrom(clients[1])$body, equals("s1"))
+  rfrom(clients[2])
+  Sys.sleep(6)
+  expect_that(rfrom(clients[2]), equals("foo"))
+  
+  next_stage(expt, 1)
+  rfrom(clients[1]) # foo
+  rfrom(clients[1])
+  rfrom(clients[1])
+  expect_that(mydf$timed_out[mydf$id==1 & mydf$period==1], is_false())
+  rfrom(clients[2])
+  Sys.sleep(6)
+  rfrom(clients[2])
+  expect_that(mydf$timed_out[mydf$id==2 & mydf$period==1], is_true())
+})
+
+Sys.sleep(1)
 test_that("Experiment replay works", {
   init_data <- function () foo <<- 0
   expt <- experiment(N=1, server="RookServer", autostart=TRUE, on_ready=init_data)
