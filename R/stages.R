@@ -95,10 +95,11 @@ TextStage <- setRefClass("TextStage", contains="AbstractStage",
 #'        \code{text} should be passed.
 #' @param file A filepath. If the file ends in ".brew" then it is passed to 
 #'        \code{brew} for processing. Otherwise it is shown to the subject as-is.
-#'        
+#' @param wait Wait to move on?
+#'         
 #' @return An object of class TextStage. When called the first time, this will
 #'         display the HTML in \code{file} or \code{text} to the participant. 
-#'         If çode{wait} is \code{FALSE} (the default), subsequent calls
+#'         If \çode{wait} is \code{FALSE} (the default), subsequent calls
 #'         will return \code{NEXT}. If \code{wait} is \code{TRUE}, subsequent
 #'         calls return the same page.
 #' @details It is always safe to call \code{next_stage} on a participant who
