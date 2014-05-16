@@ -343,8 +343,9 @@ Experiment <- setRefClass("Experiment",
       return(invisible(TRUE))
     },
     
-    replay = function(folder=NULL, maxtime=NULL, speed=NULL, ask=FALSE) {
-      # if folder is null, use my current session_name or guess the most recently modified
+    replay = function(folder=NULL, maxtime=NULL, speed=NULL, ask=FALSE, live=FALSE) {
+      if (live && (missing(speed) || is.null(speed))) speed="realtime"
+      # if folder is null, use session_name or guess the most recently modified
       if (is.null(folder)) {
         if (length(session_name) == 0) {
           dirs <- file.info(list.files(pattern=paste0("^",name, 
@@ -355,7 +356,7 @@ Experiment <- setRefClass("Experiment",
         } else folder <- session_name 
       }
       # if we've started, change status and halt the server
-      if (status != "Stopped") {
+      if (status != "Stopped" && ! live) {
         status <<- "Stopped"      
         server$halt()        
       }
@@ -375,7 +376,7 @@ Experiment <- setRefClass("Experiment",
       # but do we ever get here?
       server$halt()
       server <<- .oldserver
-      server$start()
+      if (! live) server$start()
       # hopefully we are now back at the approp. period and with correct status...
       # need to think, how could we mix manual and automated clients...      
     }
@@ -635,6 +636,7 @@ print_stages <- function(experiment) experiment$print_stages()
 #' @param speed how long to wait between each command or request
 #' @param maxtime replay only 'maxtime' seconds of the original session
 #' @param ask ask before replaying each command or request
+#' @param live run the replay "live", with the web server continuing to serve
 #' 
 #' @details
 #' betr records requests and commands in a folder named <experiment
@@ -649,13 +651,14 @@ print_stages <- function(experiment) experiment$print_stages()
 #' Details are stored in the file using the YAML format, which is quite 
 #' self-explanatory and easy to edit.
 #' 
-#' Before replay, the experiment will be stopped (if it is already started); the
+#' Unless \code{live=TRUE}, the experiment will be stopped before replay(if it is already started). In any case, the
 #' subject table will be reinitialized and \code{\link{ready}} will be called. 
 #' This has the effect of calling any user-defined \code{on_ready} function.
 #' 
-#' \code{speed} can be numeric or "realtime". A numeric gives the number of seconds
-#' to wait before executing each command or request. "realtime" means, go at the speed of the
-#' original session.
+#' \code{speed} can be numeric or "realtime". A numeric gives the number of
+#' seconds to wait before executing each command or request. "realtime" means,
+#' go at the speed of the original session. \code{live=TRUE} implies
+#' \code{speed="realtime"} unless \code{speed} is explicitly set.
 #' 
 #' If \code{maxtime} is given, only the first \code{maxtime} seconds of the experiment will be replayed.
 #' This is useful if you want to "rewind" the experiment because of lab problems,
@@ -694,7 +697,8 @@ print_stages <- function(experiment) experiment$print_stages()
 #' 
 #' @family command line functions
 #' @export
-replay <- function(experiment, folder=NULL, maxtime=Inf, speed=NULL, ask=FALSE) 
+replay <- function(experiment, folder=NULL, maxtime=Inf, speed=NULL, ask=FALSE,
+      live=FALSE) 
   experiment$replay(folder, maxtime, speed, ask)
 
 #' Trace one or more experiment stages

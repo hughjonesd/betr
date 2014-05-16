@@ -173,7 +173,6 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
     },
     
     start = function(session_name=NULL) {
-# browser()
       comreq <- list.files(file.path(folder, "record"), 
         pattern="(command|request)-[0-9\\.]+")
       if (length(comreq) == 0) stop("Found no commands or requests in ", file.path(folder, "record"))

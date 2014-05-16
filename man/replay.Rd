@@ -4,7 +4,7 @@
 \title{Replay part or all of an experiment}
 \usage{
 replay(experiment, folder = NULL, maxtime = Inf, speed = NULL,
-  ask = FALSE)
+  ask = FALSE, live = FALSE)
 }
 \arguments{
 \item{experiment}{an object of class Experiment}
@@ -17,6 +17,8 @@ or the most recent session found}
 \item{maxtime}{replay only 'maxtime' seconds of the original session}
 
 \item{ask}{ask before replaying each command or request}
+
+\item{live}{run the replay "live", with the web server continuing to serve}
 }
 \description{
 \code{replay} plays back an experiment using records stored on disk.
@@ -36,13 +38,14 @@ records the time after experiment start that the command/request was processed.
 Details are stored in the file using the YAML format, which is quite
 self-explanatory and easy to edit.
 
-Before replay, the experiment will be stopped (if it is already started); the
+Unless \code{live=TRUE}, the experiment will be stopped before replay(if it is already started). In any case, the
 subject table will be reinitialized and \code{\link{ready}} will be called.
 This has the effect of calling any user-defined \code{on_ready} function.
 
-\code{speed} can be numeric or "realtime". A numeric gives the number of seconds
-to wait before executing each command or request. "realtime" means, go at the speed of the
-original session.
+\code{speed} can be numeric or "realtime". A numeric gives the number of
+seconds to wait before executing each command or request. "realtime" means,
+go at the speed of the original session. \code{live=TRUE} implies
+\code{speed="realtime"} unless \code{speed} is explicitly set.
 
 If \code{maxtime} is given, only the first \code{maxtime} seconds of the experiment will be replayed.
 This is useful if you want to "rewind" the experiment because of lab problems,
