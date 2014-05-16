@@ -1,7 +1,7 @@
+#' @import tools
 #' @import Rook
 #' @import yaml
 #' @import svSocket
-#' @import tools
 
 
 
@@ -136,8 +136,10 @@ RookServer <- setRefClass("RookServer", contains="Server",
         res$finish()
       }          
     },
+    
     start = function (session_name=paste0(name, Sys.time())) {
       session_name <<- session_name
+      require(tools) # seems to fix weird Rhttpd$start startDynamicHelp problem
       if (is.null(rhttpd)) rhttpd <<- Rhttpd$new()
       rhttpd$add(app=.self, name=name) # dupes ignored
       rhttpd$start(port=port)
