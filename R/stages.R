@@ -362,7 +362,7 @@ all_of <- function(...) {
 #' @export
 is_at_least <- function(min) {
   function(ftitle, val, ...) {
-    if (! is.null(hv <- has_value(ftitle, val, ...))) return(hv)
+    if (! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
     val <- as.numeric(val)
     if (! val >= min) paste0(ftitle, 
       " must be at least ", min) else NULL
@@ -373,17 +373,16 @@ is_at_least <- function(min) {
 #' @export
 has_value <- function() {
   function(ftitle, val, ...) {
-    if (is.null(val) || is.na(val) || nchar(val)==0 ) paste0("Please enter a
+    if (is.null(val) || is.na(val) || nchar(val)==0 ) paste0("Please submit a
           value for ", ftitle) else NULL
   }
 }
-
-
 
 #' @rdname all_of
 #' @export
 is_at_most <- function(max) {
   function(ftitle, val, ...) {
+    if (! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
     val <- as.numeric(val)
     if (is.null(val) || is.na(val) || ! val <= max) paste0(ftitle, 
       " must be no more than ", max) else NULL
@@ -394,6 +393,7 @@ is_at_most <- function(max) {
 #' @export
 is_whole_number <- function() {
   function(ftitle, val, ...) {
+    if (! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
     val <- as.numeric(val)
     tol = .Machine$double.eps^0.5  
     if (is.null(val) || is.na(val) || abs(val - round(val)) >= tol) paste0(ftitle, 
@@ -405,6 +405,7 @@ is_whole_number <- function() {
 #' @export
 is_between <- function(min, max) {
   function(ftitle, val, ...) {
+    if (! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
     val <- as.numeric(val)
     if (is.null(val) || is.na(val) || ! (val >= min && val <= max)) paste0(ftitle, 
         " must be between ", min, " and ", max) else NULL
@@ -415,7 +416,7 @@ is_between <- function(min, max) {
 #' @export
 length_between <- function(min, max) {
   function(ftitle, val, ...) {
-    if (min > 0 && ! is.null(hv <- has_value(ftitle, val, ...))) return(hv)
+    if (min > 0 && ! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
     nc <- nchar(val)
     if (! (nc >= min && nc <= max)) paste0(ftitle, 
       " must be between ", min, " and ", max, " characters long") else NULL
@@ -428,9 +429,9 @@ length_between <- function(min, max) {
 length_at_least <- function(min) {
   function(ftitle, val, ...) {
     nc <- nchar(val)
-    if (min > 0 && ! is.null(hv <- has_value(ftitle, val, ...))) return(hv)
-    if (! (nc >= min )) paste0(ftitle, 
-      " must be at least ", min, " characters long") else NULL
+    if (min > 0 && ! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
+    if (! nc >= min) paste0(ftitle, " must be at least ", min, 
+          " characters long") else NULL
   }
 }
 
@@ -450,6 +451,10 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
       form_page <<- form_page
       fields <<- fields
       titles <<- titles
+      if (! is.null(titles) && length(mf <- setdiff(names(fields), 
+            names(titles)))) {
+        stop("Missing fields from titles: ", paste(mf, sep=", "))
+      }
       data_frame <<- data_frame
       seenonce <<- numeric(0)
       callSuper(...)
