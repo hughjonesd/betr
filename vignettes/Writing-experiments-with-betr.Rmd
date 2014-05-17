@@ -113,7 +113,14 @@ simple guessing game experiment.
 
 ```{r warning=FALSE}
 library(betr)
-expt <- experiment(N=1, clients_in_url=TRUE)
+
+initialize_data_frame <- function() {
+  mydf <<- experiment_data_frame(expt)
+  mydf$guess <<- NA
+  mydf$correct <<- NA
+}
+expt <- experiment(N=1, clients_in_url=TRUE, on_ready=initialize_data_frame,
+      seats=NULL)
 
 s1 <- function(id, period, params) {
 
@@ -139,25 +146,39 @@ s1 <- function(id, period, params) {
 }
 
 add_stage(expt, period(), s1, times=5)
-
-
-initialize_data_frame <- function() {
-  mydf <<- experiment_data_frame(expt)
-  mydf$guess <<- NA
-  mydf$correct <<- NA
-}
-on_ready(expt, initialize_data_frame)
 ```
 
 Let's look at this bit by bit.
-```{r eval=FALSE}
-expt <- experiment(N=1, clients_in_url=TRUE)
-```
-The call to `experiment` returns an object of class Experiment. `N=1` gives the
-number of participants. We'll come to the other options in a bit.
 
-Next, we define a function called `s1`. In betr, experiments are composed of
-_stages_. `s1` is a simple stage. Ignoring the details, the structure of `s1`
+Our first task is to prepare a data frame for our experiment. We could just 
+do this by calling
+
+```{r eval=FALSE}
+mydf <<- data.frame(id=1, period=1:5, guess=NA, correct=NA)
+```
+
+However, we want to make sure that our experiment is _replay-safe_. If we 
+replay our experiment, either during testing or to recover from a problem in a
+session, our experiment will be rerun from the start. But if our data has 
+already been written, then this might affect how things work. To make sure
+that replay will work exactly the same, we create a function 
+`initialize_data_frame` that creates a fresh empty dataset. This
+function will be called whenever the experiment is made ready, including
+when it is replayed. Then the replay will populate our data frame just as it was.
+
+`experiment_data_frame` is a convenience function. It sets up a
+data frame with the right number of rows and columns for our experiment -- one
+per subject per period. 
+
+Next we set our experiment up. The call to `experiment` returns an object of 
+class Experiment, which we have called `expt`. `N=1` gives the number of 
+participants, and `on_ready=initialize_data_frame` tells betr to call our 
+function whenever the experiment is made ready. Don't worry about the other 
+options for now.
+
+ In betr, experiments are composed of
+_stages_. The next piece of code defines a function `s1`, which will be one of 
+our experiment's stages. Ignoring the details, the structure of `s1`
 is like:
 
 ```{r eval=FALSE}
@@ -170,11 +191,10 @@ s1 <- function(id, period, params) {
 ```
 
 Here's how this works. When a subject makes an HTTP request to betr, the current
-stage is called with the subject's `id` (usually randomly generated), the
+stage is called with the subject's `id` (a number from 1 to N), the
 subject's current `period`, and any parameters from the request -- e.g.
-data from a form filled in by the subject.
-
-The stage can then do one of three things:
+data from a form filled in by the subject. The stage can then do one of three 
+things:
 
 1. Return some HTML to the subject.
 The subject stays on the same stage. For example, if you return
@@ -203,68 +223,32 @@ Having recorded the data, `s1` returns `NEXT` and moves the subject on. If we
 aren't finished, `s1` will then be called again without parameters. `s1` will
 then print out the guessing form so the subject can choose another number.
 
+Lastly, we add our stage `s1` to the experiment:
 
 ```{r eval=FALSE}
 add_stage(expt, period(), s1, times=5)
 ```
 
-To create our experiment we need to add `s1` to it. What about the other thing 
-here, `period()`?
-In fact, `period()` creates another kind of stage, called (guess what?) a 
-Period. This stage is very simple: it simply increments the period counter by 1,
-then returns `NEXT`. 
+What about the other thing here, `period()`? In fact, `period()` creates another
+kind of stage, called (guess what?) a Period. This stage is very simple: it 
+adds 1 to the subject's period counter, then returns `NEXT`. 
 
-Lastly, the `times=5` argument repeats the whole sequence of stages 5 times. So
+The `times=5` argument repeats the whole sequence of stages 5 times. So
 our experiment's stages are now:
 
 > period, s1, period, s1, period, s1, period, s1, period, s1
 
-You should usually start your experiment with a Period to set the period counter 
-to 1.
+OK, we've created our experiment. Now, we need to run it. Run the code above, or
+put it in a file called `my_experiment.R` and source it:
 
-```{r eval=FALSE}
-initialize_data_frame <- function() {
-  mydf <<- experiment_data_frame(expt)
-  mydf$guess <<- NA
-  mydf$correct <<- NA
-}
-on_ready(expt, initialize_data_frame)
-```
-
-Last of all, we want to prepare a data frame for our experiment. We could just 
-do this by calling
-
-```{r eval=FALSE}
-mydf <<- experiment_data_frame(expt)
-```
-
-This would create a new data frame with 5 * 1 = 5 rows -- 5 for the number of
-periods, 1 for the number of subjects -- and with columns `id` and `period`. 
-(There's no magic about `experiment_data_frame`: you could just do 
-`mydf <- data.frame(id=1, period=1:5)`.)
-
-However, we want to make sure that our experiment is _replay-safe_. If we 
-replay our experiment, either during testing or to recover from a problem in a
-session, our experiment will be rerun from the start. But if our data has 
-already been written, then this might affect how things work. To make sure
-that replay will work exactly the same, we create a function 
-`initialize_data_frame` that creates a fresh empty dataset. We then pass
-this to the experiment using `on_ready(expt, initialize_data_frame)`. Our
-function will be called whenever the experiment is made ready, including
-when it is replayed. Then the replay will populate our data frame just as it was.
-
-OK, we've created our experiment. Now, we need to run it. Run the code above, our
-put it in a file called `my_experiment.R` and source it: 
 ```{r eval=FALSE}
 source("my_experiment.R")
 ```
-You'll see some warnings about "seats" -- don't worry about those for now.
 
 Before we run it, let's take a look at it. On the command line, type
 ```{r}
 expt
 ```
-
 
 This gives you basic information about the experiment. _Clients_ tells you how
 many clients have connected, out of the experiment's N. _Periods_ and 
@@ -274,18 +258,15 @@ the 5 `s1` objects. Lastly, the _Status_ tells us whether the experiment is
 _Stopped_, _Waiting_, _Started_ or _Paused_. Right now it is _Stopped_. Let's
 change that. On the command line, run:
 
-```{r echo=FALSE}
-library(tools) # so startDynamicHelp has no problems
-```
-
 ```{r error=FALSE}
 ready(expt)
 ```
 
-Calling `ready` does several things:
-* Starts the web server. Now, subject computers can connect to the experiment;
+Typically, you will call `ready` when you want to start connecting subjects to
+the experiment. `ready` does several things:
+* Starts the web server so that subject computers can connect to the experiment;
 * Creates a new experiment session, with a date and time, and creates a folder
-on disk to hold data about it.
+on disk to hold data about it;
 * Calls any function passed to `on_ready`, e.g. initializing your data.
 
 Now, `expt` will report more information:
@@ -296,13 +277,14 @@ expt
 
 The status has changed, and we see the session name. We also have a URL. Clients
 can connect to this to view the experiment. You can do this manually: open your 
-web browser and go to the URL _http://127.0.0.1:35538/custom/betr/client-1_. Or,
+web browser and go to the URL http://127.0.0.1:35538/custom/betr/client-1. Or,
 for a convenient shortcut, enter:
 ```{r eval=FALSE}
 web_test(expt)
 ```
 on the R command line. You should see a page saying "Waiting to start". It will 
-refresh regularly. 
+refresh regularly. (If you don't see that, check your computer settings. You may
+need to allow access to certain ports.)
 
 
 ```{r echo=FALSE, results='hide'}
@@ -317,7 +299,7 @@ info(expt)
 
 This shows the same info as before, plus a list of subjects -- just one.
 
-To start the experiment, type:
+Now we've got our 1 subject, we're ready to start. On the command line, type:
 
 ```{r}
 start(expt)
@@ -333,6 +315,7 @@ Now, when your browser page refreshes, you will see the first period of the
 guessing game. Complete a couple of guesses (good luck!). Use `info(expt)`
 to watch your subject progressing. You can also look directly at your 
 experimental data frame:
+
 ```{r}
 mydf
 ```
@@ -352,6 +335,12 @@ halt(expt)
 Now the server will halt, so clients can no longer connect, and the status
 of the experiment will be "Stopped". 
 
+Our experiment is finished, but our data is still there, as you can see if you
+type `mydf`. To save it to a CSV file, run:
+
+```{r eval=FALSE}
+write.csv(mydf, file="my-first-data.csv")
+```
 Lastly, let's replay our experiment. Enter
 
 ```{r eval=FALSE}
@@ -360,7 +349,9 @@ replay(expt, ask=TRUE)
 
 The command prompt should show 
 
-> replay>
+```
+replay>
+```
 
 Enter 'd' to see details of the first request from a client computer. Then enter
 'n' to replay this request. Carry on entering 'd' and 'n'; eventually you will 
@@ -389,22 +380,19 @@ N <- 8
 nreps <- 4
 groupsize <- 2
 reward <- 5 # reward in $
-seed <- 1312341 # don't forget to change this every session!!!
 
-seed <- as.integer(seed)
 if (N %% groupsize > 0) stop("N must be an exact multiple of groupsize")
 Ngroups <- N/groupsize
 
 
 initialize <- function() {
-  set.seed(seed)
   mydf <<- experiment_data_frame(N=N, periods=nreps)
   mydf$guess <<- NA
 #   mydf$correct <<- NA
   mydf$group <<- rep(rep(1:Ngroups, each=groupsize), nreps)
 }
 
-expt <- experiment(N=N, clients_in_url=TRUE, on_ready=initialize)
+expt <- experiment(N=N, clients_in_url=TRUE, on_ready=initialize, seed=seed)
 
 ```
 
@@ -412,12 +400,6 @@ Note that:
 
 * Parameters for the experiment are set at the top of the file so they can be
 edited easily.
-
-* When the file is sourced, a random seed is set. The seed will be stored when 
-`ready` is called. So, if the experiment is replayed, exactly the same random 
-numbers will be generated. (We should have done this for the previous guessing 
-game!) Of course, you want to use a different seed for each session. One way to
-ensure this would be `seed <- readline("Please enter a large random integer: ")`.
 
 * The column `mydf$group` records each subject's group. In this case, subject ids
 1-2 are in group 1, subject ids 3-4 are in group 2, and so on. This is not
@@ -727,30 +709,23 @@ We've already seen how to test your experiments manually, using
 `web_test(expt)`. However, if your experiment has 16 participants, this quickly
 becomes laborious. Luckily, we can automate the process using `replay`.
 
-Consider the experiment above. We might want to test several things about it. 
-For example:
+In the experiment above, we might want to test several things, such as:
 
 1. Does the experiment start and run without throwing an R error?
 2. If subjects get the same number, do they get a profit of $5?
 3. If subjects get a different number, do they get a profit of $0?
 4. If a subject enters a number less than 0 or greater than 10 or not a whole
 number, does the script print an error and ask for input again?
-5. Can subjects see and select a number from 1 to 10 on the HTML page?
-
-Questions 1-4 are relatively easy to test because they are about how the 
-experiment runs in R. Question 5 is a bit harder: it is about how the user
-sees the experiment. We'll start with the first kind of questions.
 
 #### Testing with `replay`
 
 To use `replay` you will first need to test your session manually, using 
 `web_test`. This may be slow, but you need only do it once. Just by doing this,
 you already test question 1 above: you can't run the experiment if it won't run!
-If you get problems, see When you have 
-finished, check that things are how you expected. Then, note down the session
-name (printed by `info(expt)`). You should find a folder with the corresponding
-session name on your hard drive, in the folder where R started. Note the folder
-name.
+When you have finished, check that things are how you expected. Then, note down 
+the session name (printed by `info(expt)`). You should find a folder with the 
+corresponding session name on your hard drive, in the folder where R started. 
+Note the folder name.
 
 Now, make some changes to your code. After you've saved the experiment file and
 (perhaps) restarted R, source the file again and enter:
@@ -777,8 +752,10 @@ test_that("Data frame created OK", {
 })
 ```
 
-Automated testing will make it easier to run tests -- which should make your
+Automated testing makes it easier to run tests -- which should make your
 experiments more reliable.
+ 
+
 
 Running your experiment in the lab
 ----------------------------------
