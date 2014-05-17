@@ -295,7 +295,14 @@ session, you will run it from the command line. Here&#39;s a source file for a
 simple guessing game experiment.</p>
 
 <pre><code class="r">library(betr)
-expt &lt;- experiment(N = 1, clients_in_url = TRUE)
+
+initialize_data_frame &lt;- function() {
+    mydf &lt;&lt;- experiment_data_frame(expt)
+    mydf$guess &lt;&lt;- NA
+    mydf$correct &lt;&lt;- NA
+}
+expt &lt;- experiment(N = 1, clients_in_url = TRUE, on_ready = initialize_data_frame, 
+    seats_file = NULL)
 
 s1 &lt;- function(id, period, params) {
 
@@ -319,26 +326,38 @@ s1 &lt;- function(id, period, params) {
 }
 
 add_stage(expt, period(), s1, times = 5)
-
-
-initialize_data_frame &lt;- function() {
-    mydf &lt;&lt;- experiment_data_frame(expt)
-    mydf$guess &lt;&lt;- NA
-    mydf$correct &lt;&lt;- NA
-}
-on_ready(expt, initialize_data_frame)
 </code></pre>
 
 <p>Let&#39;s look at this bit by bit.</p>
 
-<pre><code class="r">expt &lt;- experiment(N = 1, clients_in_url = TRUE)
+<p>Our first task is to prepare a data frame for our experiment. We could just 
+do this by calling</p>
+
+<pre><code class="r">mydf &lt;&lt;- data.frame(id = 1, period = 1:5, guess = NA, correct = NA)
 </code></pre>
 
-<p>The call to <code>experiment</code> returns an object of class Experiment. <code>N=1</code> gives the
-number of participants. We&#39;ll come to the other options in a bit.</p>
+<p>However, we want to make sure that our experiment is <em>replay-safe</em>. If we 
+replay our experiment, either during testing or to recover from a problem in a
+session, our experiment will be rerun from the start. But if our data has 
+already been written, then this might affect how things work. To make sure
+that replay will work exactly the same, we create a function 
+<code>initialize_data_frame</code> that creates a fresh empty dataset. This
+function will be called whenever the experiment is made ready, including
+when it is replayed. Then the replay will populate our data frame just as it was.</p>
 
-<p>Next, we define a function called <code>s1</code>. In betr, experiments are composed of
-<em>stages</em>. <code>s1</code> is a simple stage. Ignoring the details, the structure of <code>s1</code>
+<p><code>experiment_data_frame</code> is a convenience function. It sets up a
+data frame with the right number of rows and columns for our experiment &ndash; one
+per subject per period. </p>
+
+<p>Next we set our experiment up. The call to <code>experiment</code> returns an object of 
+class Experiment, which we have called <code>expt</code>. <code>N=1</code> gives the number of 
+participants, and <code>on_ready=initialize_data_frame</code> tells betr to call our 
+function whenever the experiment is made ready. Don&#39;t worry about the other 
+options for now.</p>
+
+<p>In betr, experiments are composed of
+<em>stages</em>. The next piece of code defines a function <code>s1</code>, which will be one of 
+our experiment&#39;s stages. Ignoring the details, the structure of <code>s1</code>
 is like:</p>
 
 <pre><code class="r">s1 &lt;- function(id, period, params) {
@@ -350,11 +369,10 @@ is like:</p>
 </code></pre>
 
 <p>Here&#39;s how this works. When a subject makes an HTTP request to betr, the current
-stage is called with the subject&#39;s <code>id</code> (usually randomly generated), the
+stage is called with the subject&#39;s <code>id</code> (a number from 1 to N), the
 subject&#39;s current <code>period</code>, and any parameters from the request &ndash; e.g.
-data from a form filled in by the subject.</p>
-
-<p>The stage can then do one of three things:</p>
+data from a form filled in by the subject. The stage can then do one of three 
+things:</p>
 
 <ol>
 <li>Return some HTML to the subject.
@@ -386,61 +404,27 @@ global environment, rather than just in the function&#39;s local environment.</p
 aren&#39;t finished, <code>s1</code> will then be called again without parameters. <code>s1</code> will
 then print out the guessing form so the subject can choose another number.</p>
 
+<p>Lastly, we add our stage <code>s1</code> to the experiment:</p>
+
 <pre><code class="r">add_stage(expt, period(), s1, times = 5)
 </code></pre>
 
-<p>To create our experiment we need to add <code>s1</code> to it. What about the other thing 
-here, <code>period()</code>?
-In fact, <code>period()</code> creates another kind of stage, called (guess what?) a 
-Period. This stage is very simple: it simply increments the period counter by 1,
-then returns <code>NEXT</code>. </p>
+<p>What about the other thing here, <code>period()</code>? In fact, <code>period()</code> creates another
+kind of stage, called (guess what?) a Period. This stage is very simple: it 
+adds 1 to the subject&#39;s period counter, then returns <code>NEXT</code>. </p>
 
-<p>Lastly, the <code>times=5</code> argument repeats the whole sequence of stages 5 times. So
+<p>The <code>times=5</code> argument repeats the whole sequence of stages 5 times. So
 our experiment&#39;s stages are now:</p>
 
 <blockquote>
 <p>period, s1, period, s1, period, s1, period, s1, period, s1</p>
 </blockquote>
 
-<p>You should usually start your experiment with a Period to set the period counter 
-to 1.</p>
-
-<pre><code class="r">initialize_data_frame &lt;- function() {
-    mydf &lt;&lt;- experiment_data_frame(expt)
-    mydf$guess &lt;&lt;- NA
-    mydf$correct &lt;&lt;- NA
-}
-on_ready(expt, initialize_data_frame)
-</code></pre>
-
-<p>Last of all, we want to prepare a data frame for our experiment. We could just 
-do this by calling</p>
-
-<pre><code class="r">mydf &lt;&lt;- experiment_data_frame(expt)
-</code></pre>
-
-<p>This would create a new data frame with 5 * 1 = 5 rows &ndash; 5 for the number of
-periods, 1 for the number of subjects &ndash; and with columns <code>id</code> and <code>period</code>. 
-(There&#39;s no magic about <code>experiment_data_frame</code>: you could just do 
-<code>mydf &lt;- data.frame(id=1, period=1:5)</code>.)</p>
-
-<p>However, we want to make sure that our experiment is <em>replay-safe</em>. If we 
-replay our experiment, either during testing or to recover from a problem in a
-session, our experiment will be rerun from the start. But if our data has 
-already been written, then this might affect how things work. To make sure
-that replay will work exactly the same, we create a function 
-<code>initialize_data_frame</code> that creates a fresh empty dataset. We then pass
-this to the experiment using <code>on_ready(expt, initialize_data_frame)</code>. Our
-function will be called whenever the experiment is made ready, including
-when it is replayed. Then the replay will populate our data frame just as it was.</p>
-
-<p>OK, we&#39;ve created our experiment. Now, we need to run it. Run the code above, our
-put it in a file called <code>my_experiment.R</code> and source it: </p>
+<p>OK, we&#39;ve created our experiment. Now, we need to run it. Run the code above, or
+put it in a file called <code>my_experiment.R</code> and source it:</p>
 
 <pre><code class="r">source(&quot;my_experiment.R&quot;)
 </code></pre>
-
-<p>You&#39;ll see some warnings about &ldquo;seats&rdquo; &ndash; don&#39;t worry about those for now.</p>
 
 <p>Before we run it, let&#39;s take a look at it. On the command line, type</p>
 
@@ -461,7 +445,8 @@ change that. On the command line, run:</p>
 <pre><code class="r">ready(expt)
 </code></pre>
 
-<pre><code>## starting httpd help server ... done
+<pre><code>## Loading required package: tools
+## starting httpd help server ... done
 </code></pre>
 
 <pre><code>## 
@@ -470,12 +455,13 @@ change that. On the command line, run:</p>
 ##  http://127.0.0.1:35538/custom/betr
 </code></pre>
 
-<p>Calling <code>ready</code> does several things:</p>
+<p>Typically, you will call <code>ready</code> when you want to start connecting subjects to
+the experiment. <code>ready</code> does several things:</p>
 
 <ul>
-<li>Starts the web server. Now, subject computers can connect to the experiment;</li>
+<li>Starts the web server so that subject computers can connect to the experiment;</li>
 <li>Creates a new experiment session, with a date and time, and creates a folder
-on disk to hold data about it.</li>
+on disk to hold data about it;</li>
 <li>Calls any function passed to <code>on_ready</code>, e.g. initializing your data.</li>
 </ul>
 
@@ -484,27 +470,28 @@ on disk to hold data about it.</li>
 <pre><code class="r">expt
 </code></pre>
 
-<pre><code>## Session: betr-2014-05-16-013554  Status: Waiting Clients: 0/1    Periods: 5  Stages: 10
+<pre><code>## Session: betr-2014-05-17-193257  Status: Waiting Clients: 0/1    Periods: 5  Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr
 </code></pre>
 
 <p>The status has changed, and we see the session name. We also have a URL. Clients
 can connect to this to view the experiment. You can do this manually: open your 
-web browser and go to the URL <em><a href="http://127.0.0.1:35538/custom/betr/client-1">http://127.0.0.1:35538/custom/betr/client-1</a></em>. Or,
+web browser and go to the URL <a href="http://127.0.0.1:35538/custom/betrclient-1">http://127.0.0.1:35538/custom/betrclient-1</a>. Or,
 for a convenient shortcut, enter:</p>
 
 <pre><code class="r">web_test(expt)
 </code></pre>
 
 <p>on the R command line. You should see a page saying &ldquo;Waiting to start&rdquo;. It will 
-refresh regularly. </p>
+refresh regularly. (If you don&#39;t see that, check your computer settings. You may
+need to allow access to certain ports.)</p>
 
 <p>Before we start, let&#39;s see a bit more information about our experiment. Type:</p>
 
 <pre><code class="r">info(expt)
 </code></pre>
 
-<pre><code>## Session: betr-2014-05-16-013554  Status: Waiting Clients: 1/1    Periods: 5  Stages: 10
+<pre><code>## Session: betr-2014-05-17-193257  Status: Waiting Clients: 1/1    Periods: 5  Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr 
 ## Subjects:
 ##     client id seat period stage  status
@@ -515,7 +502,7 @@ refresh regularly. </p>
 
 <p>This shows the same info as before, plus a list of subjects &ndash; just one.</p>
 
-<p>To start the experiment, type:</p>
+<p>Now we&#39;ve got our 1 subject, we&#39;re ready to start. On the command line, type:</p>
 
 <pre><code class="r">start(expt)
 </code></pre>
@@ -547,6 +534,12 @@ experimental data frame:</p>
 <p>Now the server will halt, so clients can no longer connect, and the status
 of the experiment will be &ldquo;Stopped&rdquo;. </p>
 
+<p>Our experiment is finished, but our data is still there, as you can see if you
+type <code>mydf</code>. To save it to a CSV file, run:</p>
+
+<pre><code class="r">write.csv(mydf, file = &quot;my-first-data.csv&quot;)
+</code></pre>
+
 <p>Lastly, let&#39;s replay our experiment. Enter</p>
 
 <pre><code class="r">replay(expt, ask = TRUE)
@@ -554,9 +547,8 @@ of the experiment will be &ldquo;Stopped&rdquo;. </p>
 
 <p>The command prompt should show </p>
 
-<blockquote>
-<p>replay&gt;</p>
-</blockquote>
+<pre><code>replay&gt;
+</code></pre>
 
 <p>Enter &#39;d&#39; to see details of the first request from a client computer. Then enter
 &#39;n&#39; to replay this request. Carry on entering &#39;d&#39; and &#39;n&#39;; eventually you will 
@@ -583,22 +575,23 @@ N &lt;- 8
 nreps &lt;- 4
 groupsize &lt;- 2
 reward &lt;- 5  # reward in $
-seed &lt;- 1312341  # don&#39;t forget to change this every session!!!
 
-seed &lt;- as.integer(seed)
 if (N%%groupsize &gt; 0) stop(&quot;N must be an exact multiple of groupsize&quot;)
 Ngroups &lt;- N/groupsize
 
 
 initialize &lt;- function() {
-    set.seed(seed)
     mydf &lt;&lt;- experiment_data_frame(N = N, periods = nreps)
     mydf$guess &lt;&lt;- NA
     # mydf$correct &lt;&lt;- NA
     mydf$group &lt;&lt;- rep(rep(1:Ngroups, each = groupsize), nreps)
 }
 
-expt &lt;- experiment(N = N, clients_in_url = TRUE, on_ready = initialize)
+expt &lt;- experiment(N = N, clients_in_url = TRUE, on_ready = initialize, seed = seed, 
+    seats_file = NULL)
+</code></pre>
+
+<pre><code>## Error: object &#39;seed&#39; not found
 </code></pre>
 
 <p>Note that:</p>
@@ -606,11 +599,6 @@ expt &lt;- experiment(N = N, clients_in_url = TRUE, on_ready = initialize)
 <ul>
 <li><p>Parameters for the experiment are set at the top of the file so they can be
 edited easily.</p></li>
-<li><p>When the file is sourced, a random seed is set. The seed will be stored when 
-<code>ready</code> is called. So, if the experiment is replayed, exactly the same random 
-numbers will be generated. (We should have done this for the previous guessing 
-game!) Of course, you want to use a different seed for each session. One way to
-ensure this would be <code>seed &lt;- readline(&quot;Please enter a large random integer: &quot;)</code>.</p></li>
 <li><p>The column <code>mydf$group</code> records each subject&#39;s group. In this case, subject ids
 1-2 are in group 1, subject ids 3-4 are in group 2, and so on. This is not
 randomized, but by default, betr randomizes IDs across subjects, so we are fine. 
@@ -938,8 +926,7 @@ the method <code>trace</code> in <code>?setRefClass</code>.</p>
 <code>web_test(expt)</code>. However, if your experiment has 16 participants, this quickly
 becomes laborious. Luckily, we can automate the process using <code>replay</code>.</p>
 
-<p>Consider the experiment above. We might want to test several things about it. 
-For example:</p>
+<p>In the experiment above, we might want to test several things, such as:</p>
 
 <ol>
 <li>Does the experiment start and run without throwing an R error?</li>
@@ -947,23 +934,17 @@ For example:</p>
 <li>If subjects get a different number, do they get a profit of $0?</li>
 <li>If a subject enters a number less than 0 or greater than 10 or not a whole
 number, does the script print an error and ask for input again?</li>
-<li>Can subjects see and select a number from 1 to 10 on the HTML page?</li>
 </ol>
-
-<p>Questions 1-4 are relatively easy to test because they are about how the 
-experiment runs in R. Question 5 is a bit harder: it is about how the user
-sees the experiment. We&#39;ll start with the first kind of questions.</p>
 
 <h4>Testing with <code>replay</code></h4>
 
 <p>To use <code>replay</code> you will first need to test your session manually, using 
 <code>web_test</code>. This may be slow, but you need only do it once. Just by doing this,
 you already test question 1 above: you can&#39;t run the experiment if it won&#39;t run!
-If you get problems, see When you have 
-finished, check that things are how you expected. Then, note down the session
-name (printed by <code>info(expt)</code>). You should find a folder with the corresponding
-session name on your hard drive, in the folder where R started. Note the folder
-name.</p>
+When you have finished, check that things are how you expected. Then, note down 
+the session name (printed by <code>info(expt)</code>). You should find a folder with the 
+corresponding session name on your hard drive, in the folder where R started. 
+Note the folder name.</p>
 
 <p>Now, make some changes to your code. After you&#39;ve saved the experiment file and
 (perhaps) restarted R, source the file again and enter:</p>
@@ -988,7 +969,7 @@ and that the <code>give</code> field is always defined.</p>
 })
 </code></pre>
 
-<p>Automated testing will make it easier to run tests &ndash; which should make your
+<p>Automated testing makes it easier to run tests &ndash; which should make your
 experiments more reliable.</p>
 
 <h2>Running your experiment in the lab</h2>
