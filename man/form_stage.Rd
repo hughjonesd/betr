@@ -4,13 +4,13 @@
 \title{Print out a form and store the subject's inputs in a data frame, after
 checking for errors}
 \usage{
-form_stage(form_page, fields = NULL, titles = NULL, data_frame)
+form_stage(form_page, fields, titles = NULL, data_frame)
 }
 \arguments{
 \item{form_page}{Some text, or a file object. If the file name ends in
 '.brew' then it will be passed through \code{\link{brew}}.}
 
-\item{fields}{A list of fields, like
+\item{fields}{A character vector of field names, or a list like
 \code{list(field_name=check_function, ...)}}
 
 \item{titles}{A list of field titles, like \code{list(field_name=title,...)}}

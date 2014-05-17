@@ -150,6 +150,27 @@ experiment_data_frame <- function(experiment=NULL, N=NULL, periods=NULL, ...) {
   do.call(data.frame, arglist)
 }
 
+#' Write data to "session_name.csv"
+#' 
+#' This is a simple convenience function that calls \code{\link{write.csv}}
+#' with the file name set to the experimental session name.
+#' 
+#' @param experiment an object of class Experiment
+#' @param data_frame a data frame to write to a file
+#' 
+#' @family development tools
+#' 
+#' @export
+write_data <- function(experiment, data_frame) {
+  fn <- session_name(experiment)
+  if (is.na(fn)) {
+    fn <- paste0("betr-data-", paste0(sample(LETTERS, 10), collapse=""))
+  }
+  message("Writing data frame to ", fn, ".csv")
+  write.csv(data_frame, file=paste0(fn, ".csv"))
+}
+
+
 
 #' Simple HTML header and footer
 #' 

@@ -24,6 +24,6 @@ NB: by default this opens one window for each participant up to a total of
 \seealso{
 Other development tools: \code{\link{experiment_data_frame}};
   \code{\link{footer}}, \code{\link{header}};
-  \code{\link{identify_seats}}
+  \code{\link{identify_seats}}; \code{\link{write_data}}
 }
 
