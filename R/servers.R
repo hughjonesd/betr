@@ -175,8 +175,9 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
   methods=list(
     initialize = function(pass_request=NULL, folder=NULL, speed=NULL, maxtime=Inf, 
       pass_command=NULL, ask=FALSE, clients=NULL, ...) {
+      clients <<- clients
        callSuper(folder=folder, speed=speed, maxtime=maxtime, pass_request=pass_request,
-         pass_command=pass_command, ask=ask, clients=clients...)
+         pass_command=pass_command, ask=ask, ...)
     },
     
     start = function(session_name=NULL) {
@@ -184,13 +185,14 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
         pattern="(command|request)-[0-9\\.]+")
       if (length(comreq) == 0) stop("Found no commands or requests in ", file.path(folder, "record"))
       comreq <- data.frame(name=comreq, type=sub("(command|request).*", "\\1", comreq),
-        time=sub("(command|request)-([0-9\\.]+)", "\\2", comreq), 
-        stringsAsFactors=FALSE)
+        time=sub("(command|request)-([0-9\\.]+).*", "\\2", comreq), 
+        order=sub(".*-([0-9])", "\\1", comreq), stringsAsFactors=FALSE)
       comreq$time <- as.numeric(comreq$time)
       comreq <- comreq[order(comreq$time),]
       comreq <- comreq[comreq$time <= maxtime,]
       cr.data <- list()
       for (i in 1:nrow(comreq)) {
+        if (is.na(comreq$name[i])) browser()
         cr.data[[i]] <- yaml.load_file(file.path(folder, "record", comreq$name[i]))
       }
             

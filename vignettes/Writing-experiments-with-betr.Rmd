@@ -120,7 +120,7 @@ initialize_data_frame <- function() {
   mydf$correct <<- NA
 }
 expt <- experiment(N=1, clients_in_url=TRUE, on_ready=initialize_data_frame,
-      seats=NULL)
+      seats_file=NULL)
 
 s1 <- function(id, period, params) {
 
@@ -258,7 +258,7 @@ the 5 `s1` objects. Lastly, the _Status_ tells us whether the experiment is
 _Stopped_, _Waiting_, _Started_ or _Paused_. Right now it is _Stopped_. Let's
 change that. On the command line, run:
 
-```{r error=FALSE}
+```{r}
 ready(expt)
 ```
 
@@ -277,8 +277,9 @@ expt
 
 The status has changed, and we see the session name. We also have a URL. Clients
 can connect to this to view the experiment. You can do this manually: open your 
-web browser and go to the URL http://127.0.0.1:35538/custom/betr/client-1. Or,
+web browser and go to the URL `r paste0(get_url(expt), "client-1")`. Or,
 for a convenient shortcut, enter:
+
 ```{r eval=FALSE}
 web_test(expt)
 ```
@@ -392,7 +393,8 @@ initialize <- function() {
   mydf$group <<- rep(rep(1:Ngroups, each=groupsize), nreps)
 }
 
-expt <- experiment(N=N, clients_in_url=TRUE, on_ready=initialize, seed=seed)
+expt <- experiment(N=N, clients_in_url=TRUE, on_ready=initialize, seed=seed,
+      seats_file=NULL)
 
 ```
 

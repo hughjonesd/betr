@@ -435,9 +435,7 @@ setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
 #'        \code{\link{identify_seats}} for details. Note: to suppress warnings
 #'        about a missing file, use \code{seats_file=NULL}.
 #' @param on_ready a user-defined function, to be called when \code{\link{ready}} 
-#'        is called. Use \code{on_ready} to initialize your data. In this
-#'        way your experiment will be replay-safe, since \code{replay} calls
-#'        \code{ready} automatically. 
+#'        is called.
 #' @param randomize_ids if \code{TRUE}, subject IDs will be randomized from
 #'        1 to \code{N}. If \code{FALSE} subject IDs will be allocated first-come
 #'        first-served.
@@ -721,9 +719,10 @@ print_stages <- function(experiment) experiment$print_stages()
 #' @family command line functions
 #' @export
 replay <- function(experiment, folder=NULL, maxtime=Inf, speed=NULL, ask=FALSE,
-      live=FALSE, clients=NULL) 
-  experiment$replay(folder, maxtime, speed, ask, clients)
-
+      live=FALSE, clients=NULL) {
+  experiment$replay(folder=folder, maxtime=maxtime, speed=speed, ask=ask, 
+        clients=clients, live=live)
+}
 #' Trace one or more experiment stages
 #' @param experiment an object of class Experiment
 #' @param num numbers of stages to trace
