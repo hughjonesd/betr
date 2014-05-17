@@ -12,7 +12,8 @@ BUGS
 TODO
 ----
 
-- [] use makeActiveBinding to "watch" data frames etc.
+- [] use makeActiveBinding to "watch" data frames etc.... or define
+  an on_request hook?
 - [x] run without a record
 - [x] experiment has own time() function to make sure replay gets timeouts right
 - [x] timeout stage to wrap other stages
@@ -27,6 +28,8 @@ TODO
 - [] vignette: include graphics with knitr/brew
 - [] vignette: using brew
 - [] vignette: tips/tricks/bugs
+- [] chat box with Rook?
+- [] media server with Rook?
 
 
 
