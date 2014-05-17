@@ -129,5 +129,5 @@ s2 <- function(id, period, params) {
 
 expt <- experiment(auth=TRUE, server="RookServer", N=N, autostart=TRUE,
       clients_in_url=TRUE, name="mix")
-add_stage(expt, s1, s2, times=10) 
+add_stage(expt, period(), s1, s2, times=10) 
 ready(expt)
