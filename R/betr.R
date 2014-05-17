@@ -257,8 +257,8 @@ Experiment <- setRefClass("Experiment",
     },
     
     get_session_name = function() {
-      if (status=="Stopped") {
-        warning("No session defined yet, status is Stopped")
+      if (length(session_name)==0) {
+        warning("No session name defined yet, maybe ready() has not been called")
         return(NA)
       }
       return(session_name)

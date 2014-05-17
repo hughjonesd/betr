@@ -471,7 +471,7 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
           if (! is.null(err)) errs <- append(errs, err)
         }
         if (length(errs) == 0) {
-          update_data_frame(id, period, params)
+          update_data_frame(id, period, params[names(fields)])
           return(NEXT)
         } else {
             error <- paste(errs, collapse="<br />") 
@@ -488,11 +488,10 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
     },
     
     update_data_frame = function(id, period, params) {
-      myid <- id
-      myperiod <- period
       if (! is.data.frame(.GlobalEnv[[data_frame]])) stop("'", data_frame, 
             "' is not a data frame in the global environment")
-      selrow <- .GlobalEnv[[data_frame]]$id==id & .GlobalEnv[[data_frame]]$period==period
+      selrow <- .GlobalEnv[[data_frame]]$id==id & 
+            .GlobalEnv[[data_frame]]$period==period
       .GlobalEnv[[data_frame]][selrow, names(params)] <- params
     }
   )
@@ -504,7 +503,7 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' 
 #' @param form_page Some text, or a file object. If the file name ends in 
 #'        '.brew' then it will be passed through \code{\link{brew}}.
-#' @param fields A list of fields, like 
+#' @param fields A character vector of field names, or a list like 
 #'        \code{list(field_name=check_function, ...)}
 #' @param titles A list of field titles, like \code{list(field_name=title,...)}
 #' @param data_frame The quoted string name of the data frame to be updated.
@@ -560,10 +559,11 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' @return An object of class FormStage
 #' @family stages
 #' @export
-form_stage <- function (form_page, fields=NULL, titles=NULL, data_frame) {
+form_stage <- function (form_page, fields, titles=NULL, data_frame) {
   if (missing(form_page) || is.null(form_page)) stop("form_page must be specified")
   if (missing(data_frame) || ! is.character(data_frame)) 
         stop("data_frame must be a string")
+  if (missing(fields)) stop("Please specify a list of fields")
   FormStage$new(form_page=form_page, fields=fields, titles=titles, 
         data_frame=data_frame)
 }
