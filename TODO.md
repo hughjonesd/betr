@@ -2,12 +2,11 @@ BUGS
 ----
 
 - [] RookServer not respecting port under RStudio (workaround; needs actual fix)
-- [x] Needs this_url()
-- [x] Last period info of guessing-game is lost
-- [x] Autostart not working
 - [] Server doesn't stop after rm(expt)
 - [] RookServer creates sink() a lot
 - [] FormStage doesn't like not getting params...?
+- [] how to move on manually from TextStages? autorefresh?
+
 
 TODO
 ----
