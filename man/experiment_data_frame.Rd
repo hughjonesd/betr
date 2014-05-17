@@ -3,7 +3,16 @@
 \alias{experiment_data_frame}
 \title{Create an appropriate data frame for an experiment}
 \usage{
-experiment_data_frame(experiment = NULL, N = NULL, periods = NULL)
+experiment_data_frame(experiment = NULL, N = NULL, periods = NULL, ...)
+}
+\arguments{
+\item{N}{number of subjects}
+
+\item{periods}{number of periods}
+
+\item{experiment}{an Experiment object}
+
+\item{...}{other arguments to data.frame}
 }
 \description{
 This is a convenience function. It creates a data frame with \code{N * periods}

@@ -123,6 +123,11 @@ identify_seats <- function (method="IP", serve=TRUE) {
 #' \code{N} and \code{periods} can be specified manually, or you can just pass in 
 #' the \code{\link{experiment}} object and the function will guess for you.
 #' 
+#' @param N number of subjects
+#' @param periods number of periods
+#' @param experiment an Experiment object
+#' @param ... other arguments to data.frame
+#' 
 #' @family development tools
 #' @examples
 #' 
@@ -132,13 +137,17 @@ identify_seats <- function (method="IP", serve=TRUE) {
 #' mydf <- experiment_data_frame(expt)
 #' 
 #' @export
-experiment_data_frame <- function(experiment=NULL, N=NULL, periods=NULL) {
+experiment_data_frame <- function(experiment=NULL, N=NULL, periods=NULL, ...) {
   if (! is.null(experiment)) {
     N <- experiment$N
     periods <- nperiods(experiment)
   }
   if (periods < 1) stop("Experiment must have at least one period!")
-  data.frame(id=rep(1:N, periods), period=rep(1:periods, each=N))
+  arglist <- list(...)
+  arglist$period <- rep(1:periods, each=N)
+  arglist$id <- rep(1:N, periods)
+  arglist <- arglist[c("id", "period", setdiff(names(arglist), c("id", "period")))]
+  do.call(data.frame, arglist)
 }
 
 
