@@ -40,24 +40,25 @@ myform <- form_stage(
   
 myprog <- program("first", function(id, period) {
   tmp <- mydf[mydf$period==period,]
-  tmp$contrib <<- as.numeric(tmp$contrib)
+  tmp$contrib <- as.numeric(tmp$contrib)
   profit <- ave(tmp$contrib, tmp$group, FUN=function(x) max_contrib - x + 
         multiplier * mean(x))
   profit[tmp$timed_out] <- 0
   mydf$earnings[mydf$period==period] <<- profit
 })
 
-sfinal <- stage(function(id, period, params) {
-  if (is.na(payment_period)) {
-    payment_period <- sample(1:periods, 1)
-    mydf$payment_period <<- payment_period
-    mydf$final_earnings <<- mydf$earnings[mydf$period==payment_period]
-  }
-  #capture.output(brew(file.path(brewdir, "public-goods-final.brew")))
-  c(header(), sprintf("<p>You earned $%2f</p>", mydf$final_earnings), footer())
+finalprog <- program("first", function(id, period) {
+  payment_period <- sample(1:periods, 1)
+  mydf$payment_period <<- payment_period
+  mydf$final_earnings <<- mydf$earnings[mydf$period==payment_period]
+  write_data(expt, mydf)
 })
+
+sfinal <- text_stage(text=c(header(), sprintf("<p>You earned $%2f</p>", 
+      mydf$final_earnings[mydf$id==id & mydf$period==payment_period]), 
+      footer()))
 
 add_stage(expt, myinstructions)
 add_stage(expt, period(), myform, checkpoint("all"), myprog, times=periods)
-add_stage(expt, sfinal)
+add_stage(expt, finalprog, sfinal)
   
