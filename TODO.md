@@ -1,25 +1,25 @@
 BUGS
 ----
 
-- [] RookServer not respecting port (workaround; needs actual fix)
+- [] RookServer not respecting port under RStudio (workaround; needs actual fix)
 - [x] Needs this_url()
 - [x] Last period info of guessing-game is lost
 - [x] Autostart not working
 - [] Server doesn't stop after rm(expt)
+- [] RookServer creates sink() a lot
+- [] FormStage doesn't like not getting params...?
 
 TODO
 ----
 
-
 - [] use makeActiveBinding to "watch" data frames etc.
-- [] experiment has own time() function to make sure replay gets timeouts right
-- [] timeout stage to wrap other stages
+- [x] experiment has own time() function to make sure replay gets timeouts right
+- [x] timeout stage to wrap other stages
   - would be nice to do this for "wait" also but hard to "redisplay the page"
-
 - [x] replay() 
 - [] replay max_requests, ids, clients options
-- [] try live replay by not halting main server
-
+- [x] try live replay by not halting main server
+- [] proper readline for replay
 - [] HTML form elements in separate package
   - checker functions
   - javascript attribute?
