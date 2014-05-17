@@ -58,9 +58,11 @@ Experiment <- setRefClass("Experiment",
       .command_names <<- c("start", "pause", "restart", "next_stage")
       if (randomize_ids) random_ids <<- sample(1:N)
       seats <<- data.frame(seat=numeric(0), IP=character(0), cookie=character(0))
-      err <- try(seats <<- read.table(seats_file, header=TRUE, 
-            colClasses=c("integer", "character", "character")), silent=TRUE)    
-      if (class(err)=="try-error") warning("Problem reading seats file ", seats_file)
+      if (nzchar(seats_file)) {
+        err <- try(seats <<- read.table(seats_file, header=TRUE, 
+              colClasses=c("integer", "character", "character")), silent=TRUE)    
+        if (class(err)=="try-error") warning("Problem reading seats file ", seats_file)
+      }
       callSuper(..., auth=auth, autostart=autostart, clients_in_url=clients_in_url,
             allow_latecomers=allow_latecomers, N=N, client_refresh=client_refresh,
             name=name, on_ready=on_ready, randomize_ids=randomize_ids, 
@@ -418,7 +420,8 @@ setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
 #'        in the URL as e.g. experiment/client_name. Useful for testing, should
 #'        be turned off in production!
 #' @param seats_file path of the file where seat information is stored. See
-#'        \code{\link{identify_seats}} for details.
+#'        \code{\link{identify_seats}} for details. Note: to suppress warnings
+#'        about a missing file, use \code{seats_file=NULL}.
 #' @param on_ready a user-defined function, to be called when \code{\link{ready}} 
 #'        is called. Use \code{on_ready} to initialize your data. In this
 #'        way your experiment will be replay-safe, since \code{replay} calls
@@ -692,8 +695,7 @@ print_stages <- function(experiment) experiment$print_stages()
 #' }
 #' 
 #' : the first replay will have created a new session with only the commands 
-#' from the first 30 seconds. (NB also: the timings will have been changed to reflect
-#' the replay speed. This is probably a bug.) If you want to move backward and forward
+#' from the first 30 seconds. If you want to move backward and forward
 #' within a session, use \code{replay(expt, folder="xxx")} where xxx is the specific 
 #' session of interest.
 #' 
