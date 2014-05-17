@@ -1,5 +1,6 @@
 
 library(testthat)
+library(betr)
 
 # test_that("Command line server works remotely", {
 #   cls <- CommandLineServer$new(port=12345, 
@@ -16,7 +17,7 @@ library(testthat)
 # })
 
 test_that("RookServer works", {
-  rs <- RookServer$new(name="jim", clients_in_url=FALSE, record=FALSE,
+  rs <- RookServer$new(name="jim", clients_in_url=FALSE, 
         pass_request = function(name, params, ip, cookies) return(params["foo"]))
   rs$start()
   fake_env <- new.env()
@@ -27,7 +28,7 @@ test_that("RookServer works", {
 })
 
 test_that("Experiment stages work", {
-  expt <- experiment(N=2, server="CommandLineServer", record=FALSE)
+  expt <- experiment(N=2, server="CommandLineServer", record=FALSE, seats_file=NULL)
   s1 <- function(...) "Stage 1"
   s2 <- stage(handler=function(...) "Stage 2")
   add_stage(expt, s1, s2)
@@ -42,7 +43,7 @@ test_that("Experiment stages work", {
 
 Sys.sleep(1) # new session name
 test_that("Experiment starting, status, pause, restart & halt work", {
-  expt <- experiment(N=2, server="CommandLineServer", record=FALSE)
+  expt <- experiment(N=2, server="CommandLineServer", record=FALSE, seats_file=NULL)
   add_stage(expt, period(), text_stage(text="foo"))
   expect_that(expt$N, equals(2))
   expect_that(expt$status <- "B0rked", throws_error())
@@ -95,7 +96,7 @@ test_that("Experiment starting, status, pause, restart & halt work", {
 
 Sys.sleep(1) # new session name
 test_that("Command line server & client work", {
-  expt <- experiment(N=1, server=CommandLineServer, record=FALSE)
+  expt <- experiment(N=1, server=CommandLineServer, record=FALSE, seats_file=NULL)
   s1 <- stage(handler=function(...) "Got to stage s1")
   add_stage(expt, s1)
   ready(expt)
@@ -108,14 +109,16 @@ test_that("Command line server & client work", {
 
 Sys.sleep(1) # new session name
 test_that("Rook server works with experiment", {
-  expt <- experiment(N=1, server="RookServer", autostart=TRUE, record=FALSE)
+  expt <- experiment(N=1, server="RookServer", autostart=TRUE, record=FALSE,
+        seats_file=NULL)
   s1 <- stage(handler=function(...) "Got to stage s1")
   add_stage(expt, s1)
   ready(expt)
   expect_that(show(expt), prints_text("Waiting"))
   expect_that(expt$handle_request("jim", list()), equals("Got to stage s1"))
   
-  expt <- experiment(N=1, server="RookServer", autostart=FALSE)
+  expt <- experiment(N=1, server="RookServer", autostart=FALSE, record=FALSE,
+        seats_file=NULL)
   add_stage(expt, s1)
   ready(expt)
   expect_that(expt$handle_request("jim", list()), 
@@ -156,7 +159,7 @@ test_that("StructuredStages work", {
 Sys.sleep(1)
 test_that("Checkpoints work", {  
   expt <- experiment(N=4, server="RookServer", autostart=FALSE, 
-    randomize_ids=FALSE, record=FALSE)
+    randomize_ids=FALSE, record=FALSE, seats_file=NULL)
   s1 <- text_stage("foo")
   s2 <- text_stage("bar")
   add_stage(expt, period(), s1, checkpoint(), s2, checkpoint(c(1,2,1,2)),
@@ -184,7 +187,7 @@ test_that("Programs work", {
   seen <- numeric(0)
   last <- NA
   expt <- experiment(N=3, server="RookServer", autostart=FALSE, 
-    randomize_ids=FALSE, record=FALSE)
+    randomize_ids=FALSE, record=FALSE, seats_file=NULL)
   s1 <- program("first", function (id, period) first <<- id)
   s2 <- program("all", function(id, period) seen <<- c(seen, id))
   s3 <- program("last", function(id, period) last <<- id)
@@ -209,7 +212,7 @@ test_that("Periods work", {
     seen <<- matrix(FALSE, nrow=4, ncol=4)
   }
   expt <- experiment(N=4, server="RookServer", autostart=FALSE, 
-        randomize_ids=FALSE, on_ready=init_data, record=FALSE)
+        randomize_ids=FALSE, on_ready=init_data, record=FALSE, seats_file=NULL)
   s1 <- stage(handler=function(id, period, params) {
     myperiods[id] <<- period
     sn <- seen[id, period]
@@ -260,7 +263,7 @@ test_that("Timed periods work", {
     mydf$timed_out <<- FALSE
   }
   expt <- experiment(N=2, server="RookServer", autostart=FALSE, 
-        on_ready=init_data, randomize_ids=FALSE, record=FALSE)
+        on_ready=init_data, randomize_ids=FALSE, record=FALSE, seats_file=NULL)
   s1 <- function(id, period, params) "s1"
   s1t <- timed(s1, timeout=5)
   s1tf <- timed(s1, timeout=5, on_timeout=function(id, period) 
@@ -292,9 +295,10 @@ test_that("Timed periods work", {
 
 Sys.sleep(1)
 test_that("Experiment replay works", {
-  init_data <- function () foo <<- 0
-  expt <- experiment(N=1, server="RookServer", autostart=TRUE, on_ready=init_data)
-  s1 <- stage(handler=function(id, period, params) {foo <<- foo + 1})
+  init_data <- function () {foo <<- 0; bar <<- 0}
+  expt <- experiment(N=1, autostart=TRUE, on_ready=init_data, seats_file=NULL)
+  s1 <- stage(handler=function(id, period, params) {foo <<- foo + 1; 
+        bar <<- sample(1:10000000, 1)})
   add_stage(expt, s1)
   ready(expt)
   t1 <- Sys.time() # time of expt start + a bit
@@ -307,22 +311,23 @@ test_that("Experiment replay works", {
   expt$handle_request("jim", list(mypar="b"))
   expect_that(foo, equals(2))
   t4 <- as.numeric(Sys.time()-t1) # min time req 3
+  oldbar <- bar
   expt$handle_request("jim", list(mypar="c"))
   expect_that(foo, equals(3))
-  file.remove()
   Sys.sleep(1)
   replay(expt, maxtime=t4)
   expect_that(foo, equals(2))
+  expect_that(bar, equals(oldbar), "random number generation was different")
   Sys.sleep(1)
   replay(expt, maxtime=t3, folder=snm)
   expect_that(foo, equals(1))
   Sys.sleep(1)
   replay(expt, folder=snm) 
   expect_that(foo, equals(3))
-  halt(expt)
+  halt(expt, force=TRUE)
   unlink(list.files(pattern=paste0("^", session_name(expt), "$")), recursive=TRUE)
   
-  expt <- experiment(N=1)
+  expt <- experiment(N=1, seats_file=NULL)
   tm <<- numeric(0)
   add_stage(expt, stage(function(...) tm <<- c(tm, expt$elapsed_time()) ))
   ready(expt)
@@ -330,7 +335,7 @@ test_that("Experiment replay works", {
   start(expt)
   Sys.sleep(1)
   expt$handle_request("client1", list())
-  halt(expt, force=T)
+  halt(expt, force=TRUE)
   replay(expt)
   expect_that(round(tm[1],2), equals(round(tm[2],2)), 
         info="Replay didn't get time right")
