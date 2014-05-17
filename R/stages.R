@@ -449,6 +449,12 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
     initialize = function(form_page=NULL, fields=list(), titles=NULL, 
           data_frame="", ...) {
       form_page <<- form_page
+      if (! is.list(fields)) {
+        fnames <- fields
+        fields <- list()
+        for(i in 1:length(fnames)) fields[[i]] <- has_value()
+        names(fields) <- fnames
+      }
       fields <<- fields
       titles <<- titles
       if (! is.null(titles) && length(mf <- setdiff(names(fields), 
