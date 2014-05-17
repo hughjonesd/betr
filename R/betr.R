@@ -32,13 +32,14 @@ Experiment <- setRefClass("Experiment",
     requests="list",
     commands="list",
     clients_in_url="logical",
-    record="logical"
+    record="logical",
+    seed="integer"
   ),
   methods=list(
     initialize = function(..., auth=TRUE, port, autostart=FALSE, 
       allow_latecomers=FALSE, N=Inf, server="RookServer", name="betr", 
       client_refresh=10, clients_in_url=FALSE, seats_file="betr-SEATS.txt",
-      on_ready=NULL, randomize_ids=TRUE, record=TRUE) {
+      on_ready=NULL, randomize_ids=TRUE, record=TRUE, seed=NULL) {
       stages <<- list()
       initialize_subjects()
       status <<- "Stopped"
@@ -62,6 +63,9 @@ Experiment <- setRefClass("Experiment",
         err <- try(seats <<- read.table(seats_file, header=TRUE, 
               colClasses=c("integer", "character", "character")), silent=TRUE)    
         if (class(err)=="try-error") warning("Problem reading seats file ", seats_file)
+      }
+      if (! is.null(seed)) seed <<- as.integer(seed) else {
+        seed <<- sample(1:1000000000, 1) # hopefully random
       }
       callSuper(..., auth=auth, autostart=autostart, clients_in_url=clients_in_url,
             allow_latecomers=allow_latecomers, N=N, client_refresh=client_refresh,
@@ -283,10 +287,15 @@ Experiment <- setRefClass("Experiment",
       }
       session_name <<- paste(name, format(Sys.time(), 
         "%Y-%m-%d-%H%M%S"), sep="-")
+      set.seed(seed)
+      
       if (record) {
         dir.create(fp <- file.path(session_name, "record"), recursive=TRUE)
         if (file.access(fp, 2) != 0) stop("Could not write into ", fp)
-      }     
+        cat(seed, file.path(session_name, "seed"))
+      }
+      
+      
       status <<- "Waiting"
       if (! is.null(on_ready)) on_ready()
       server$start(session_name=session_name)
@@ -369,6 +378,9 @@ Experiment <- setRefClass("Experiment",
       # clean up the subjects table etc.
       requests <<- commands <<- list()
       initialize_subjects()
+      fp <- file.path(session_name, "seed")
+      err <- try(seed <<- as.integer(readLines(fp, warn=FALSE)), silent=TRUE)
+      if (inherits(err, "try-error")) stop("Couldn't read seed file in ", fp)
       # start a replayserver which runs the commands
       server <<- ReplayServer$new(folder=folder, 
         pass_request=.self$handle_request, pass_command=.self$handle_command,
@@ -432,6 +444,8 @@ setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
 #' @param record records experiment commands to disk. Turning this off will save
 #'        disk space and not clutter your working directory, but will prevent
 #'        experiment replay.
+#' @param seed a seed to set whenever \code{\link{ready}} is called. You should
+#'        ensure you set this to a different value in every session. 
 #'        
 #' @return an object of class Experiment.
 #' 
