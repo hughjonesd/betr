@@ -33,7 +33,8 @@ in the URL as e.g. experiment/client_name. Useful for testing, should
 be turned off in production!}
 
 \item{seats_file}{path of the file where seat information is stored. See
-\code{\link{identify_seats}} for details.}
+\code{\link{identify_seats}} for details. Note: to suppress warnings
+about a missing file, use \code{seats_file=NULL}.}
 
 \item{on_ready}{a user-defined function, to be called when \code{\link{ready}}
 is called. Use \code{on_ready} to initialize your data. In this
@@ -45,8 +46,11 @@ way your experiment will be replay-safe, since \code{replay} calls
 first-served.}
 
 \item{record}{records experiment commands to disk. Turning this off will save
-       disk space and not clutter your working directory, but will prevent
-       experiment replay.}
+disk space and not clutter your working directory, but will prevent
+experiment replay.}
+
+\item{seed}{a seed to set whenever \code{\link{ready}} is called. You should
+       ensure you set this to a different value in every session.}
 }
 \value{
 an object of class Experiment.

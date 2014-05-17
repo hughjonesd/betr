@@ -59,7 +59,7 @@ Experiment <- setRefClass("Experiment",
       .command_names <<- c("start", "pause", "restart", "next_stage")
       if (randomize_ids) random_ids <<- sample(1:N)
       seats <<- data.frame(seat=numeric(0), IP=character(0), cookie=character(0))
-      if (nzchar(seats_file)) {
+      if (! is.null(seats_file) && nzchar(seats_file)) {
         err <- try(seats <<- read.table(seats_file, header=TRUE, 
               colClasses=c("integer", "character", "character")), silent=TRUE)    
         if (class(err)=="try-error") warning("Problem reading seats file ", seats_file)
@@ -292,7 +292,7 @@ Experiment <- setRefClass("Experiment",
       if (record) {
         dir.create(fp <- file.path(session_name, "record"), recursive=TRUE)
         if (file.access(fp, 2) != 0) stop("Could not write into ", fp)
-        cat(seed, file.path(session_name, "seed"))
+        cat(seed, file=file.path(session_name, "seed"))
       }
       
       

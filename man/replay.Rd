@@ -74,8 +74,7 @@ replay(expt, maxtime=120)
 }
 
 : the first replay will have created a new session with only the commands
-from the first 30 seconds. (NB also: the timings will have been changed to reflect
-the replay speed. This is probably a bug.) If you want to move backward and forward
+from the first 30 seconds. If you want to move backward and forward
 within a session, use \code{replay(expt, folder="xxx")} where xxx is the specific
 session of interest.
 }
