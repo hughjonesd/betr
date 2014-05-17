@@ -319,4 +319,18 @@ test_that("Experiment replay works", {
   Sys.sleep(1)
   replay(expt, folder=snm) 
   expect_that(foo, equals(3))
+  halt(expt)
+  
+  expt <- experiment(N=1)
+  tm <<- numeric(0)
+  add_stage(expt, stage(function(...) tm <<- c(tm, expt$elapsed_time()) ))
+  ready(expt)
+  expt$handle_request("client1", list())
+  start(expt)
+  Sys.sleep(1)
+  expt$handle_request("client1", list())
+  halt(expt, force=T)
+  replay(expt)
+  expect_that(round(tm[1],2), equals(round(tm[2],2)), 
+        info="Replay didn't get time right")
 })

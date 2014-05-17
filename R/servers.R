@@ -14,7 +14,8 @@ Server <- setRefClass("Server",
     pass_request="function",
     clients_in_url="logical",
     name="character",
-    session_name = "character"
+    session_name = "character",
+    start_time = "POSIXct"
   ),
   methods=list(
     initialize = function(clients_in_url=FALSE, ...) {
@@ -26,6 +27,8 @@ Server <- setRefClass("Server",
     halt = function() stop("halt() called on abstract class Server"),
     
     get_url = function() stop("get_url() called on abstract class Server"),
+    
+    elapsed_time = function() as.numeric(Sys.time() - start_time),
     
     .pass_request = function(name, params, ip=NULL, client=NULL) 
       pass_request(name, params, ip, client)
@@ -46,6 +49,7 @@ CommandLineServer <- setRefClass("CommandLineServer",
     
     finalize = function() halt(),
     start = function(session_name=paste0("betr", Sys.time())) {
+      start_time <<- Sys.time()
       svSocket::startSocketServer(port=port, procfun=.self$.process_socket)
     },
     
@@ -143,6 +147,7 @@ RookServer <- setRefClass("RookServer", contains="Server",
       if (is.null(rhttpd)) rhttpd <<- Rhttpd$new()
       rhttpd$add(app=.self, name=name) # dupes ignored
       rhttpd$start(port=port)
+      start_time <<- Sys.time()
     },
     
     halt = function () {
@@ -163,7 +168,8 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
     speed="ANY",
     maxtime="numeric",
     pass_command="function",
-    ask="logical"
+    ask="logical",
+    fake_time="numeric"
   ),
   methods=list(
     initialize = function(pass_request=NULL, folder=NULL, speed=NULL, maxtime=Inf, 
@@ -215,6 +221,7 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
           }
         }
         if (skip) next
+        fake_time <<- comreq$time[i]
         switch(comreq$type[i], 
           command= pass_command(cr.data[[i]]$name, cr.data[[i]]$params),
           request= .pass_request(cr.data[[i]]$client, cr.data[[i]]$params, cr.data[[i]]$ip, cr.data[[i]]$cookies)
@@ -228,7 +235,9 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
     
     get_url = function() {
       return(normalizePath(folder))
-    }
+    },
+    
+    elapsed_time = function() fake_time
   )
 )
   
