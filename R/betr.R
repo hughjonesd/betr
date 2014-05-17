@@ -139,7 +139,7 @@ Experiment <- setRefClass("Experiment",
         warning("Experiment status is not 'Running', cannot move subjects on")
         return(invisible(FALSE))
       }
-      if (is.numeric(subj)) subj <- subjects[subjects$id==subj,]
+      if (is.numeric(subj)) subj <- subjects[subjects$id %in% subj,]
       done <- subjects$id %in% subj$id & subjects$period == length(stages)
       subjects$status[done] <<- "Finished"
       srows <- subjects$id %in% subj$id & subjects$period < length(stages)
