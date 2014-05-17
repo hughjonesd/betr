@@ -57,7 +57,6 @@ Experiment <- setRefClass("Experiment",
       }
       requests <<- commands <<- list()
       .command_names <<- c("start", "pause", "restart", "next_stage")
-      if (randomize_ids) random_ids <<- sample(1:N)
       seats <<- data.frame(seat=numeric(0), IP=character(0), cookie=character(0))
       if (! is.null(seats_file) && nzchar(seats_file)) {
         err <- try(seats <<- read.table(seats_file, header=TRUE, 
@@ -65,7 +64,7 @@ Experiment <- setRefClass("Experiment",
         if (class(err)=="try-error") warning("Problem reading seats file ", seats_file)
       }
       if (! is.null(seed)) seed <<- as.integer(seed) else {
-        seed <<- sample(1:1000000000, 1) # hopefully random
+        seed <<- sample(1:10000000, 1) # hopefully random
       }
       callSuper(..., auth=auth, autostart=autostart, clients_in_url=clients_in_url,
             allow_latecomers=allow_latecomers, N=N, client_refresh=client_refresh,
@@ -161,7 +160,7 @@ Experiment <- setRefClass("Experiment",
     },
     
     next_stage = function(subj) {
-      if (is.numeric(subj)) subj <- subjects[subjects$id==subj,]
+      if (is.numeric(subj)) subj <- subjects[subjects$id %in% subj,]
       done <- subjects$id %in% subj$id & subjects$stage == length(stages)
       subjects$status[done] <<- "Finished"
       srows <- subjects$id %in% subj$id & subjects$stage < length(stages)
@@ -254,6 +253,7 @@ Experiment <- setRefClass("Experiment",
         print(subjects[order(subjects$id),])
       }
       if (map) .self$map()
+      invisible(TRUE)
     },
     
     get_session_name = function() {
@@ -265,10 +265,11 @@ Experiment <- setRefClass("Experiment",
     },
     
     map = function() {
+      if (nrow(subjects) < 1) return()
       tbl <- table(subjects$period)
       cat("Period progression:\n")
-      for (i in as.character(1:max(subjects$period))) {
-        if (i %in% names(tbl)) cat(i,": ", rep(".", tbl[[i]]), "[", tbl[[i]], "]\n",
+      for (i in as.character(0:max(subjects$period))) {
+        if (i %in% names(tbl)) cat(i,": ", rep(".", tbl[[i]]), " [", tbl[[i]], "]\n",
               sep="")
       }
     },
@@ -288,18 +289,15 @@ Experiment <- setRefClass("Experiment",
       session_name <<- paste(name, format(Sys.time(), 
         "%Y-%m-%d-%H%M%S"), sep="-")
       set.seed(seed)
-      
       if (record) {
         dir.create(fp <- file.path(session_name, "record"), recursive=TRUE)
         if (file.access(fp, 2) != 0) stop("Could not write into ", fp)
         cat(seed, file=file.path(session_name, "seed"))
       }
-      
-      
-      status <<- "Waiting"
+      if (randomize_ids) random_ids <<- sample(1:N)
       if (! is.null(on_ready)) on_ready()
+      status <<- "Waiting"
       server$start(session_name=session_name)
-
       return(invisible(TRUE))
     },
     
@@ -583,7 +581,7 @@ restart <- function(experiment) experiment$handle_command("restart")
 #' @family command line functions
 #' @export
 next_stage <- function(experiment, subjid) {
-  warning("Moving subject on manually")
+  warning("Moving subjects on manually")
   experiment$handle_command("next_stage", list(subj=subjid))
 }
 
