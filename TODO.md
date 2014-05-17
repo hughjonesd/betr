@@ -13,6 +13,7 @@ TODO
 ----
 
 - [] use makeActiveBinding to "watch" data frames etc.
+- [x] run without a record
 - [x] experiment has own time() function to make sure replay gets timeouts right
 - [x] timeout stage to wrap other stages
   - would be nice to do this for "wait" also but hard to "redisplay the page"

@@ -31,13 +31,14 @@ Experiment <- setRefClass("Experiment",
     on_ready="ANY",
     requests="list",
     commands="list",
-    clients_in_url="logical"
+    clients_in_url="logical",
+    record="logical"
   ),
   methods=list(
     initialize = function(..., auth=TRUE, port, autostart=FALSE, 
       allow_latecomers=FALSE, N=Inf, server="RookServer", name="betr", 
       client_refresh=10, clients_in_url=FALSE, seats_file="betr-SEATS.txt",
-      on_ready=NULL, randomize_ids=TRUE) {
+      on_ready=NULL, randomize_ids=TRUE, record=TRUE) {
       stages <<- list()
       initialize_subjects()
       status <<- "Stopped"
@@ -62,7 +63,8 @@ Experiment <- setRefClass("Experiment",
       if (class(err)=="try-error") warning("Problem reading seats file ", seats_file)
       callSuper(..., auth=auth, autostart=autostart, clients_in_url=clients_in_url,
             allow_latecomers=allow_latecomers, N=N, client_refresh=client_refresh,
-            name=name, on_ready=on_ready, randomize_ids=randomize_ids)
+            name=name, on_ready=on_ready, randomize_ids=randomize_ids, 
+            record=record)
       if (is.infinite(N)) warning("No maximum N set for experiment")
     },
     
@@ -190,7 +192,7 @@ Experiment <- setRefClass("Experiment",
     
     handle_command = function(command, params) {      
       if (command %in% .command_names) {
-        record_command(command, params)
+        if (record) record_command(command, params)
         command <- do.call(`$`, list(.self, command)) 
         if (missing(params)) command() else do.call(command, params)
       } else {
@@ -199,7 +201,7 @@ Experiment <- setRefClass("Experiment",
     },
     
     handle_request = function(client, params, ip=NULL, cookies=NULL) {
-      record_request(client, params, ip, cookies)
+      if (record) record_request(client, params, ip, cookies)
       # authorization
       subject <- tryCatch( authorize(client, params, ip, cookies), error = function(e) e)
       if (inherits(subject, "error")) {
@@ -279,8 +281,10 @@ Experiment <- setRefClass("Experiment",
       }
       session_name <<- paste(name, format(Sys.time(), 
         "%Y-%m-%d-%H%M%S"), sep="-")
-      dir.create(fp <- file.path(session_name, "record"), recursive=TRUE)
-      if (file.access(fp, 2) != 0) stop("Could not write into ", fp)
+      if (record) {
+        dir.create(fp <- file.path(session_name, "record"), recursive=TRUE)
+        if (file.access(fp, 2) != 0) stop("Could not write into ", fp)
+      }     
       status <<- "Waiting"
       if (! is.null(on_ready)) on_ready()
       server$start(session_name=session_name)
@@ -421,6 +425,9 @@ setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
 #' @param randomize_ids if \code{TRUE}, subject IDs will be randomized from
 #'        1 to \code{N}. If \code{FALSE} subject IDs will be allocated first-come
 #'        first-served.
+#' @param record records experiment commands to disk. Turning this off will save
+#'        disk space and not clutter your working directory, but will prevent
+#'        experiment replay.
 #'        
 #' @return an object of class Experiment.
 #' 
