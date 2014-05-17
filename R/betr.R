@@ -345,7 +345,8 @@ Experiment <- setRefClass("Experiment",
       return(invisible(TRUE))
     },
     
-    replay = function(folder=NULL, maxtime=NULL, speed=NULL, ask=FALSE, live=FALSE) {
+    replay = function(folder=NULL, maxtime=NULL, speed=NULL, ask=FALSE, 
+          live=FALSE, clients=NULL) {
       if (live && (missing(speed) || is.null(speed))) speed="realtime"
       # if folder is null, use session_name or guess the most recently modified
       if (is.null(folder)) {
@@ -369,7 +370,7 @@ Experiment <- setRefClass("Experiment",
       # start a replayserver which runs the commands
       server <<- ReplayServer$new(folder=folder, 
         pass_request=.self$handle_request, pass_command=.self$handle_command,
-        name=name, speed=speed, maxtime=maxtime, ask=ask)
+        name=name, speed=speed, maxtime=maxtime, ask=ask, clients=clients)
       ready() # this will create a new session (good idea?)
       # if we have autostart, then ready() will get the server running and do everything
       # if we don't have autostart, then a "start" command will be read in
@@ -642,6 +643,7 @@ print_stages <- function(experiment) experiment$print_stages()
 #' @param maxtime replay only 'maxtime' seconds of the original session
 #' @param ask ask before replaying each command or request
 #' @param live run the replay "live", with the web server continuing to serve
+#' @param clients (character vector) only replay requests from \code{clients}
 #' 
 #' @details
 #' betr records requests and commands in a folder named <experiment
@@ -703,8 +705,8 @@ print_stages <- function(experiment) experiment$print_stages()
 #' @family command line functions
 #' @export
 replay <- function(experiment, folder=NULL, maxtime=Inf, speed=NULL, ask=FALSE,
-      live=FALSE) 
-  experiment$replay(folder, maxtime, speed, ask)
+      live=FALSE, clients=NULL) 
+  experiment$replay(folder, maxtime, speed, ask, clients)
 
 #' Trace one or more experiment stages
 #' @param experiment an object of class Experiment

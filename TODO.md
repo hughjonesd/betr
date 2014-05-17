@@ -18,13 +18,16 @@ TODO
 - [x] timeout stage to wrap other stages
   - would be nice to do this for "wait" also but hard to "redisplay the page"
 - [x] replay() 
-- [] replay max_requests, ids, clients options
 - [x] try live replay by not halting main server
 - [] proper readline for replay
 - [] HTML form elements in separate package
   - checker functions
   - javascript attribute?
   - using Twitter Bootstrap?
+- [] vignette: include graphics with knitr/brew
+- [] vignette: using brew
+- [] vignette: tips/tricks/bugs
+
 
 
 OTHER IDEAS

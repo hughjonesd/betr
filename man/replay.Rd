@@ -4,7 +4,7 @@
 \title{Replay part or all of an experiment}
 \usage{
 replay(experiment, folder = NULL, maxtime = Inf, speed = NULL,
-  ask = FALSE, live = FALSE)
+  ask = FALSE, live = FALSE, clients = NULL)
 }
 \arguments{
 \item{experiment}{an object of class Experiment}
@@ -19,6 +19,8 @@ or the most recent session found}
 \item{ask}{ask before replaying each command or request}
 
 \item{live}{run the replay "live", with the web server continuing to serve}
+
+\item{clients}{(character vector) only replay requests from \code{clients}}
 }
 \description{
 \code{replay} plays back an experiment using records stored on disk.

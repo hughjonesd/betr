@@ -169,13 +169,14 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
     maxtime="numeric",
     pass_command="function",
     ask="logical",
-    fake_time="numeric"
+    fake_time="numeric",
+    clients="ANY"
   ),
   methods=list(
     initialize = function(pass_request=NULL, folder=NULL, speed=NULL, maxtime=Inf, 
-      pass_command=NULL, ask=FALSE, ...) {
+      pass_command=NULL, ask=FALSE, clients=NULL, ...) {
        callSuper(folder=folder, speed=speed, maxtime=maxtime, pass_request=pass_request,
-         pass_command=pass_command, ask=ask, ...)
+         pass_command=pass_command, ask=ask, clients=clients...)
     },
     
     start = function(session_name=NULL) {
@@ -201,6 +202,7 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
           if(speed=="realtime") Sys.sleep(reltimes[i])
           if (is.numeric(speed)) Sys.sleep(speed)
         }
+        if (! is.null(clients) && ! cr.data[[i]]$client %in% clients) next
         if (ask) {
           r <- "xxx"
           skip <- FALSE

@@ -41,8 +41,12 @@ way your experiment will be replay-safe, since \code{replay} calls
 \code{ready} automatically.}
 
 \item{randomize_ids}{if \code{TRUE}, subject IDs will be randomized from
-       1 to \code{N}. If \code{FALSE} subject IDs will be allocated first-come
-       first-served.}
+1 to \code{N}. If \code{FALSE} subject IDs will be allocated first-come
+first-served.}
+
+\item{record}{records experiment commands to disk. Turning this off will save
+       disk space and not clutter your working directory, but will prevent
+       experiment replay.}
 }
 \value{
 an object of class Experiment.
