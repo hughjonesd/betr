@@ -177,7 +177,7 @@ Experiment <- setRefClass("Experiment",
       commands <<- append(commands, command)
       tm <- elapsed_time()
       cat(as.yaml(command), file=file.path(session_name, "record", paste0("command-", 
-            as.character(tm))))
+            as.character(tm), "-", length(commands))))
     },
     
     record_request = function(client, params, ip=NULL, cookies=NULL) {
@@ -185,7 +185,7 @@ Experiment <- setRefClass("Experiment",
       requests <<- append(requests, request)
       tm <- elapsed_time()
       cat(as.yaml(request), file=file.path(session_name, "record", 
-            paste0("request-", as.character(tm))))
+            paste0("request-", as.character(tm), "-", length(requests))))
     },
     
     handle_command = function(command, params) {      
