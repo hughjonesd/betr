@@ -11,18 +11,20 @@ BUGS
 
 TODO
 ----
-
-- [] use makeActiveBinding to "watch" data frames etc.... or define
-  an on_request hook?
+- [x] replay() 
+- [x] try live replay by not halting main server
 - [x] use mAB to implement single-word commands (`READY`, `START`, `INFO`)
 - [x] run without a record
-- [] text_stage should cope with functions, knitr, brew etc.
-- [] in fact, general framework for HTML pages...!
 - [x] experiment has own time() function to make sure replay gets timeouts right
 - [x] timeout stage to wrap other stages
   - would be nice to do this for "wait" also but hard to "redisplay the page"
-- [x] replay() 
-- [x] try live replay by not halting main server
+- [] use makeActiveBinding to "watch" data frames etc.... or define
+  an on_request hook?
+- [] general framework for HTML pages
+  - text is just text.
+  - everything else is done via returning a function (or a class?) to be
+  called in appropriate context
+  - functions for brew, knitr?, HTMLform
 - [] proper readline for replay
 - [] HTML form elements in separate package
   - checker functions
