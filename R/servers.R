@@ -115,7 +115,14 @@ RookServer <- setRefClass("RookServer", contains="Server",
     call = function (env) {
       req <- Rook::Request$new(env)
       ip <- req$ip()
-      if (length(ip) == 0) ip <- "127.0.0.1" # work around Rook bug
+      if (length(ip) == 0) {
+        # work around Rook bug
+        ip <- "127.0.0.1" 
+        if (exists("HTTP_X_FORWARDED_FOR", env)) {
+          ip <- sub("^([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}).*", "\\1",
+                env$HTTP_X_FORWARDED_FOR)
+        }
+      }
       cookies <- req$cookies()
       if (session_name %in% names(cookies))
         client <- cookies[[session_name]] else 
