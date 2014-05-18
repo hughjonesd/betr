@@ -6,7 +6,7 @@
 experiment(...)
 }
 \arguments{
-\item{auth}{TRUE, FALSE, a character vector of regular expressions,
+\item{auth}{TRUE, FALSE, a character vector of patterns,
 or a function. See Details}
 
 \item{port}{what port to listen on}
@@ -72,8 +72,9 @@ initialize your data.
 
 The parameter \code{auth} determines how you authorize clients. \code{TRUE}
 (the default) allows any client to join the experiment. If \code{auth} is a
-character vector, it is treated as a list of regular expressions. If the
-client's IP address matches any regular expression, the client will be
+character vector, it is treated as a list of patterns in shell-glob style, e.g.
+\code{"192.168.*.*"} (see \code{\link{glob2rx}} for details). If the
+client's IP address matches any pattern, the client will be
 accepted. IF \code{auth} is a function, it will be called like \code{auth(ip,
 params, cookies)} where \code{ip} is the remote IP address and \code{params}
 and \code{cookies} are lists of HTTP parameters and cookies respectively. The

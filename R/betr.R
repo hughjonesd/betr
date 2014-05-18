@@ -128,7 +128,7 @@ Experiment <- setRefClass("Experiment",
         stop("Experiment has already started")
       ok <- switch(class(auth),
         logical = auth,
-        character = any(sapply(auth, grepl, x=ip)),
+        character = any(sapply(glob2rx(auth), grepl, x=ip)),
         "function" = auth(ip, params, cookies),
         stop("auth is of class '", class(auth), 
           "', should be TRUE, FALSE, character or function")
@@ -410,7 +410,7 @@ setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
 #' In betr, an experiment consists of one or more stages, as well
 #' as global options defined when the experiment is created.
 #' 
-#' @param auth TRUE, FALSE, a character vector of regular expressions,
+#' @param auth TRUE, FALSE, a character vector of patterns,
 #'        or a function. See Details
 #' @param port what port to listen on
 #' @param autostart logical. Start the experiment automatically when N 
@@ -458,8 +458,9 @@ setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
 #' 
 #' The parameter \code{auth} determines how you authorize clients. \code{TRUE} 
 #' (the default) allows any client to join the experiment. If \code{auth} is a
-#' character vector, it is treated as a list of regular expressions. If the
-#' client's IP address matches any regular expression, the client will be
+#' character vector, it is treated as a list of patterns in shell-glob style, e.g.
+#' \code{"192.168.*.*"} (see \code{\link{glob2rx}} for details). If the
+#' client's IP address matches any pattern, the client will be
 #' accepted. IF \code{auth} is a function, it will be called like \code{auth(ip,
 #' params, cookies)} where \code{ip} is the remote IP address and \code{params}
 #' and \code{cookies} are lists of HTTP parameters and cookies respectively. The
