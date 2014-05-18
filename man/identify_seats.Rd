@@ -38,7 +38,6 @@ the cookie.
 }
 \seealso{
 Other development tools: \code{\link{experiment_data_frame}};
-  \code{\link{footer}}, \code{\link{header}};
   \code{\link{web_test}}; \code{\link{write_data}}
 }
 

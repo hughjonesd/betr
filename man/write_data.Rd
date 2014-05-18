@@ -16,7 +16,6 @@ with the file name set to the experimental session name.
 }
 \seealso{
 Other development tools: \code{\link{experiment_data_frame}};
-  \code{\link{footer}}, \code{\link{header}};
   \code{\link{identify_seats}}; \code{\link{web_test}}
 }
 

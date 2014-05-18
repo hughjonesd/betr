@@ -214,7 +214,6 @@ unload_commands <- function() {
 #' Convenience functions to print a simple HTML header and footer, optionally
 #' with a title
 #'  
-#' @family development tools
 #' @family HTML utilities
 #' @examples
 #' s1 <- text_stage(text=paste0(header(), "<b>Got here!</b>", footer()))

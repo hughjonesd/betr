@@ -15,9 +15,4 @@ with a title
 \examples{
 s1 <- text_stage(text=paste0(header(), "<b>Got here!</b>", footer()))
 }
-\seealso{
-Other development tools: \code{\link{experiment_data_frame}};
-  \code{\link{identify_seats}}; \code{\link{web_test}};
-  \code{\link{write_data}}
-}
 
