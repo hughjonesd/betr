@@ -6,7 +6,8 @@ BUGS
 - [] RookServer creates sink() a lot
 - [] FormStage doesn't like not getting params...?
 - [] how to move on manually from TextStages? autorefresh?
-
+- [] ReplayServer gets put in .oldserver
+- [x] problem with timed() in PG game?
 
 TODO
 ----
@@ -14,6 +15,8 @@ TODO
 - [] use makeActiveBinding to "watch" data frames etc.... or define
   an on_request hook?
 - [x] run without a record
+- [] text_stage should cope with functions, knitr, brew etc.
+- [] in fact, general framework for HTML pages...!
 - [x] experiment has own time() function to make sure replay gets timeouts right
 - [x] timeout stage to wrap other stages
   - would be nice to do this for "wait" also but hard to "redisplay the page"
