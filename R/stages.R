@@ -803,8 +803,9 @@ Timed <- setRefClass("Timed", contains="AbstractStage",
         }
       }
       res <- stage$handle_request(id, period, params)
+      if (is.next(res) || is.wait(res)) return(res) # shd WAIT interrupt t.o.?
       if (! is(res, "Response")) res <- rookify(res)
-      res$header("Refresh", time_remaining)
+      res$header("Refresh", time_remaining)  
       return(res)
     }
   )
