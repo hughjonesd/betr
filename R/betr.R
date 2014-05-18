@@ -106,10 +106,10 @@ Experiment <- setRefClass("Experiment",
         stop("Experiment has already started")
       ok <- switch(class(auth),
         logical = auth,
-        character = any(sapply(auth, grepl, x=client)),
-        "function" = auth(client, params),
+        character = any(sapply(auth, grepl, x=ip)),
+        "function" = auth(ip, params, cookies),
         stop("auth is of class '", class(auth), 
-          "', should be character or function")
+          "', should be TRUE, FALSE, character or function")
       )
       if (! ok) stop("Client unauthorized")
 
@@ -350,8 +350,8 @@ setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
 #' In betr, an experiment consists of one or more stages, as well
 #' as global options defined when the experiment is created.
 #' 
-#' @param auth may be TRUE, FALSE, a character vector of regular expressions,
-#'        or a function taking two arguments, client and params.
+#' @param auth TRUE, FALSE, a character vector of regular expressions,
+#'        or a function. See Details
 #' @param port what port to listen on
 #' @param autostart logical. Start the experiment automatically when N 
 #'        participants have joined?
@@ -386,7 +386,17 @@ setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
 #' command line. When you want the experiment to start, call 
 #' \code{\link[=start]{start(experiment)}}.
 #' 
-#' To keep your experiments replay-safe, use \code{\link{on_ready}} to initialize your data.
+#' To keep your experiments replay-safe, use \code{\link{on_ready}} to 
+#' initialize your data.
+#' 
+#' The parameter \code{auth} determines how you authorize clients. \code{TRUE} 
+#' (the default) allows any client to join the experiment. If \code{auth} is a
+#' character vector, it is treated as a list of regular expressions. If the
+#' client's IP address matches any regular expression, the client will be
+#' accepted. IF \code{auth} is a function, it will be called like \code{auth(ip,
+#' params, cookies)} where \code{ip} is the remote IP address and \code{params}
+#' and \code{cookies} are lists of HTTP parameters and cookies respectively. The
+#' client will be authorized if the function returns \code{TRUE}.
 #' 
 #' @examples
 #' expt <- experiment(name='testing', port=12345, N=4)
