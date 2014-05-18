@@ -171,6 +171,43 @@ write_data <- function(experiment, data_frame) {
 }
 
 
+#' Set up simple one-word commands
+#' 
+#' After \code{load_commands(expt)} is called, entering \code{READY}, 
+#' \code{START}, \code{HALT}, \code{PAUSE}, \code{RESTART}, \code{INFO},
+#' \code{MAP} or \code{WEB_TEST} will call the corresponding command on the 
+#' experiment, with no arguments.
+#' 
+#' @details
+#' \code{load_commands} is implemented using \code{\link{makeActiveBinding}}.
+#' For obvious reasons, don't assign to the values \code{READY} etc. either before
+#' or after this is called! 
+#' 
+#' \code{unload_commands} simply removes the command names from the global 
+#' environment.
+#'  
+#' @family command line functions
+#' @examples
+#' expt <- experiment(name="myexpt", N=2, seats_file=NULL, record=FALSE)
+#' info(expt)
+#' load_commands(expt)
+#' INFO
+#' @export
+load_commands <- function(expt) {
+  makeActiveBinding("READY", function(x) ready(expt), env=globalenv())
+  makeActiveBinding("START", function(x) start(expt), env=globalenv())
+  makeActiveBinding("HALT", function(x) halt(expt), env=globalenv())
+  makeActiveBinding("PAUSE", function(x) pause(expt), env=globalenv())
+  makeActiveBinding("RESTART", function(x) restart(expt), env=globalenv())
+  makeActiveBinding("INFO", function(x) info(expt), env=globalenv())
+  makeActiveBinding("MAP", function(x) map(expt), env=globalenv())
+  makeActiveBinding("WEB_TEST", function(x) web_test(expt), env=globalenv())
+  
+}
+
+unload_commands <- function() {
+  rm(READY, START, HALT, PAUSE, RESTART, INFO, MAP, WEB_TEST, envir=globalenv())
+}
 
 #' Simple HTML header and footer
 #' 
@@ -178,6 +215,7 @@ write_data <- function(experiment, data_frame) {
 #' with a title
 #'  
 #' @family development tools
+#' @family HTML utilities
 #' @examples
 #' s1 <- text_stage(text=paste0(header(), "<b>Got here!</b>", footer()))
 #' @export

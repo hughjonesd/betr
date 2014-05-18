@@ -14,6 +14,7 @@ TODO
 
 - [] use makeActiveBinding to "watch" data frames etc.... or define
   an on_request hook?
+- [x] use mAB to implement single-word commands (`READY`, `START`, `INFO`)
 - [x] run without a record
 - [] text_stage should cope with functions, knitr, brew etc.
 - [] in fact, general framework for HTML pages...!
@@ -32,6 +33,7 @@ TODO
 - [] vignette: tips/tricks/bugs
 - [] chat box with Rook?
 - [] media server with Rook?
+- [] JSON server with Rook?
 
 
 
