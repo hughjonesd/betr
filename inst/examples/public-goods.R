@@ -11,6 +11,7 @@ timeout <- 60 # set to NULL for no timeout
 timed_out_contrib <- 0
 
 library(betr)
+library(knitr)
 
 initialize <- function() {
   mydf <<- experiment_data_frame(expt, group=NA, contrib=NA, 
@@ -61,9 +62,11 @@ finalprog <- program("first", function(id, period) {
   write_data(expt, mydf)
 })
 
-sfinal <- text_stage(text=c(header(), sprintf("<p>You earned $%2f</p>", 
+sfinal <- function (id, period, params) {
+  c(header(), sprintf("<p>You earned $%2f. Thank you for participatin!</p>", 
   mydf$final_earnings[mydf$id==id & mydf$period==payment_period]),   
   footer()))
+}
 
 add_stage(expt, myinstructions)
 add_stage(expt, period(), myform, checkpoint("all"), myprog, times=periods)
