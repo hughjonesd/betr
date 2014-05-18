@@ -28,7 +28,7 @@ Server <- setRefClass("Server",
     
     get_url = function() stop("get_url() called on abstract class Server"),
     
-    elapsed_time = function() as.numeric(Sys.time() - start_time),
+    elapsed_time = function() as.numeric(Sys.time() - start_time, units="secs"),
     
     .pass_request = function(name, params, ip=NULL, client=NULL) 
       pass_request(name, params, ip, client)
