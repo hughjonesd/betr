@@ -1,6 +1,11 @@
 
 library(betr)
-expt <- experiment(N=1, autostart=TRUE, clients_in_url=TRUE)
+
+init <- function() {
+  mydf <<- experiment_data_frame(expt, guess=NA, correct=NA)
+})
+
+expt <- experiment(N=1, autostart=TRUE, clients_in_url=TRUE, on_ready=init)
 s1 <- function(id, period, params) {
 
   me_now <- mydf$id==id & mydf$period==period
@@ -25,8 +30,3 @@ s1 <- function(id, period, params) {
 }
 add_stage(expt, period(), s1, times=5)
 
-on_ready(expt, function() {
-  mydf <<- experiment_data_frame(expt)
-  mydf$guess <<- NA
-  mydf$correct <<- NA
-})

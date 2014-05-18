@@ -82,9 +82,7 @@ Experiment <- setRefClass("Experiment",
     finalize = function(...) {
       if (status != "Stopped") halt(force=TRUE)
     },
-    
-    set_on_ready = function(fn) on_ready <<- fn,
-    
+        
     add_stage = function(..., times, each, after) {
       if (status != "Stopped") 
         warning("Adding stage to server while status is ", status, 
@@ -474,22 +472,6 @@ setMethod("show", "Experiment", function(object) object$info(FALSE, FALSE))
 #' 
 #' @export
 experiment <- function (...) Experiment$new(...)
-
-
-#' Set a function to be called whenever \code{ready} is called on an experiment.
-#' 
-#' @param epxt an Experiment object 
-#' @param fn a function, which should be callable no arguments
-#' @usage on_ready(experiment, fn)
-#' @details
-#' See \code{experiment} for more details. 
-#' @examples
-#' expt <- experiment(N=5, autostart=TRUE)
-#' s1 <- stage(function(id, period, params) return("Got to s1!"))
-#' add_stage(expt, s1, times=10) 
-#' on_ready(expt, function() {mydf <<- experiment_data_frame(expt)})
-#' @export
-on_ready <- function (expt, fn) expt$set_on_ready(fn)
 
 #' Add one or more stages to an experiment
 #' 

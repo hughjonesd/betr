@@ -71,13 +71,13 @@ To keep your experiments replay-safe, use \code{\link{on_ready}} to
 initialize your data.
 
 The parameter \code{auth} determines how you authorize clients. \code{TRUE}
-(the default) allows any client to join the experiment. If \code{auth} is
-a character vector, it is treated as a list of regular expressions. If
-the client's IP address matches any regular expression, the client will
-be accepted. IF \code{auth} is a function, it will be called like
-\code{auth(params, ip, cookies)} where \code{params} and \cookies{cookies}
-are lists of HTTP parameters and cookies respectively. The client will be
-authorized if the function returns \code{TRUE}.
+(the default) allows any client to join the experiment. If \code{auth} is a
+character vector, it is treated as a list of regular expressions. If the
+client's IP address matches any regular expression, the client will be
+accepted. IF \code{auth} is a function, it will be called like \code{auth(ip,
+params, cookies)} where \code{ip} is the remote IP address and \code{params}
+and \code{cookies} are lists of HTTP parameters and cookies respectively. The
+client will be authorized if the function returns \code{TRUE}.
 }
 \examples{
 expt <- experiment(name='testing', port=12345, N=4)
