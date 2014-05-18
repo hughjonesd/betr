@@ -1,14 +1,16 @@
 
-library(betr)
 
 # parameters
 N <- 4
-periods <- 2
+periods <- 1
 multiplier <- 1.6
 partner <- FALSE # FALSE for stranger design, TRUE for partner
 groupsize <- 2
 max_contrib <- 50
-timeout <- 60
+timeout <- 60 # set to NULL for no timeout
+timed_out_contrib <- 0
+
+library(betr)
 
 initialize <- function() {
   mydf <<- experiment_data_frame(expt, group=NA, contrib=NA, 
@@ -17,6 +19,9 @@ initialize <- function() {
     mydf$group[mydf$period==i] <<- if (i==1 || ! partner) 
       sample(rep(1:(N/groupsize), groupsize)) else mydf$group[mydf$period==1]
   }
+  pat_html()
+  render_html()
+  opts_chunk$set(echo=FALSE, warning=FALSE, error=FALSE, message=FALSE)
 }
 expt <- experiment(N=N, clients_in_url=TRUE, name="public-goods", 
       autostart=TRUE, on_ready=initialize)
@@ -34,9 +39,11 @@ myform <- form_stage(
     fields=list(contrib=all_of(is_whole_number(), is_between(0, max_contrib)))
   , data_frame="mydf")
   
-# myform <- timed(myform, timeout, on_timeout=function(id, period) {
-#   mydf$timed_out[mydf$id==id & mydf$period==period] <<- TRUE
-# })
+if (!is.null(timeout)) myform <- timed(myform, timeout, 
+      on_timeout=function(id, period) {
+        mydf$timed_out[mydf$id==id & mydf$period==period] <<- TRUE
+        mydf$contrib[mydf$id==id & mydf$period==period] <<- timed_out_contrib
+      })
   
 myprog <- program("first", function(id, period) {
   tmp <- mydf[mydf$period==period,]
@@ -55,8 +62,8 @@ finalprog <- program("first", function(id, period) {
 })
 
 sfinal <- text_stage(text=c(header(), sprintf("<p>You earned $%2f</p>", 
-      mydf$final_earnings[mydf$id==id & mydf$period==payment_period]), 
-      footer()))
+  mydf$final_earnings[mydf$id==id & mydf$period==payment_period]),   
+  footer()))
 
 add_stage(expt, myinstructions)
 add_stage(expt, period(), myform, checkpoint("all"), myprog, times=periods)
