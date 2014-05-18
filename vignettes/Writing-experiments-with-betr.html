@@ -470,7 +470,7 @@ on disk to hold data about it;</li>
 <pre><code class="r">expt
 </code></pre>
 
-<pre><code>## Session: betr-2014-05-17-193257  Status: Waiting Clients: 0/1    Periods: 5  Stages: 10
+<pre><code>## Session: betr-2014-05-18-104815  Status: Waiting Clients: 0/1    Periods: 5  Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr
 </code></pre>
 
@@ -491,13 +491,13 @@ need to allow access to certain ports.)</p>
 <pre><code class="r">info(expt)
 </code></pre>
 
-<pre><code>## Session: betr-2014-05-17-193257  Status: Waiting Clients: 1/1    Periods: 5  Stages: 10
+<pre><code>## Session: betr-2014-05-18-104815  Status: Waiting Clients: 1/1    Periods: 5  Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr 
 ## Subjects:
 ##     client id seat period stage  status
 ## 1 client-1  1   NA      0     0 Running
 ## Period progression:
-## 0: .[1]
+## 0: . [1]
 </code></pre>
 
 <p>This shows the same info as before, plus a list of subjects &ndash; just one.</p>
@@ -974,9 +974,141 @@ experiments more reliable.</p>
 
 <h2>Running your experiment in the lab</h2>
 
-<h3>SEATS</h3>
+<p>When you&#39;ve tested on your computer, you&#39;ll want to try it in the laboratory.
+This section describes how to prepare the laboratory to run betr experiments.</p>
 
-<h3>Apache/Rapache/Rook</h3>
+<h3>Installing betr on a server computer</h3>
+
+<p>The install process for betr is as described above. You could either use a 
+computer in the lab, or a remote server. The lab client
+computers must be able to connect to this server. </p>
+
+<p>So far, we&#39;ve only been serving betr to our own computer. This has hidden a 
+small problem: betr relies on the R package 
+<a href="http://cran.r-project.org/package=Rook">Rook</a>, and Rook&#39;s web server can
+<em>only</em> serve to our own computer. Obviously that is not very useful now it is 
+time to go live!</p>
+
+<p>The simplest solution to this is to use a proxy web server in front of betr on the
+same computer, which redirects requests to betr. betr then serves the requests 
+(now coming from its own computer) and the proxy returns them. </p>
+
+<p>One way to do this is using the standard <a href="http://httpd.apache.org">Apache</a> web 
+server. The steps to do this are:</p>
+
+<ol>
+<li>Download and install Apache</li>
+</ol>
+
+<p>On Debian or Ubuntu Linux systems, run <code>sudo apt-get install apache2</code>.</p>
+
+<ol>
+<li>Enable the Apache module <code>mod_proxy</code>. Again, on Debian/Ubuntu:</li>
+</ol>
+
+<pre><code>sudo a2enmod mod_proxy
+sudo a2enmod proxy_http
+sudo service apache2 restart
+</code></pre>
+
+<ol>
+<li>Edit your Apache config file to include the line:</li>
+</ol>
+
+<pre><code>ProxyPass /betr/ http://127.0.0.1:35538/custom/
+</code></pre>
+
+<p>Here, <code>35538</code> is the port betr will serve on internally. (This is the default
+port: you can change it using the <code>port</code> argument to <code>experiment()</code>.)
+You can check this works by running something like this in R:</p>
+
+<pre><code class="r">experiment(N = 1, name = &quot;foo&quot;, autostart = TRUE)
+add_stage(experiment, text_stage(c(header(), &quot;Success!&quot;, footer())))
+ready(expt)
+</code></pre>
+
+<p>Now, if you request the web page <code>http://your.server.name/betr/foo</code>, Apache will 
+forward this to <code>http://127.0.0.1:35538/custom/foo</code>. </p>
+
+<h3>Kiosk mode</h3>
+
+<p>Your lab client computers don&#39;t need any special software &ndash; just a web browser.
+However, you don&#39;t want your subjects to start reading Facebook if they get 
+bored. To lock down the web browser, you may wish to install a &ldquo;Kiosk mode&rdquo;
+extension. This should:</p>
+
+<ul>
+<li>hide the URL bar and other toolbars</li>
+<li>prevent the user using the back or refresh buttons</li>
+</ul>
+
+<p>Ideally, you also want to prevent users using <code>Alt+F4</code> or <code>Ctrl+Alt+Delete</code> to
+switch applications&hellip; but your lab does that already, right? ;-)</p>
+
+<p>Google Chrome comes with a built-in kiosk mode, which you can enable by running
+<code>chrome --kiosk &quot;http://starting.url&quot;</code>. For Firefox, there is the 
+<a href="https://addons.mozilla.org/en-us/firefox/addon/r-kiosk/">Rkiosk extension</a>.
+Internet Explorer appears to have a built-in kiosk mode enabled by 
+<code>iexplore.exe -k</code>.</p>
+
+<p>Another thing you may wish to do is ensure that only certain computers can
+connect to your experiment. You can do this with the <code>auth</code> argument to 
+<code>experiment</code>. Here&#39;s how to allow only IP addresses starting with
+\code{123.121.123}:</p>
+
+<pre><code class="r">expt &lt;- experiment(N = 1, auth = c(&quot;123.121.123.*&quot;, &quot;127.0.0.1&quot;))
+</code></pre>
+
+<pre><code>## Warning: cannot open file &#39;betr-SEATS.txt&#39;: No such file or directory
+## Warning: Problem reading seats file betr-SEATS.txt
+</code></pre>
+
+<p>If you need more complex authentication, then you can pass a function to 
+<code>auth</code>: see <code>?experiment</code> for more information.</p>
+
+<h3>Seats and client IDs</h3>
+
+<p>TODO&hellip;</p>
+
+<h3>Easy commands</h3>
+
+<p>You may not always want to run an experiment yourself. If your
+experiment administrator does not know R, he or she may find the R command line quite
+intimidating. To simplify, you can add the line <code>load_commands(expt)</code> to your
+source file. Then, instead of typing e.g. <code>ready(expt)</code>, the administrator can
+just type <code>READY</code>:</p>
+
+<pre><code class="r">myexpt &lt;- experiment(N = 3, seats_file = NULL, record = FALSE)
+info(expt)
+</code></pre>
+
+<pre><code>## Name: betr   Status: Stopped Clients: 0/1    Periods: 0  Stages: 0
+</code></pre>
+
+<pre><code class="r">load_commands(myexpt)
+READY
+</code></pre>
+
+<pre><code>## starting httpd help server ... done
+</code></pre>
+
+<pre><code>## 
+## Server started on host 127.0.0.1 and port 35538 . App urls are:
+## 
+##  http://127.0.0.1:35538/custom/betr
+</code></pre>
+
+<pre><code class="r">INFO
+</code></pre>
+
+<pre><code>## Session: betr-2014-05-18-104816  Status: Waiting Clients: 0/3    Periods: 0  Stages: 0
+## Serving at http://127.0.0.1:35538/custom/betr
+</code></pre>
+
+<p>The commands that can be used are <code>READY</code>, <code>START</code>, <code>PAUSE</code>, <code>RESTART</code>, <code>HALT</code>, 
+<code>INFO</code>, <code>MAP</code> and <code>WEB_TEST</code>. </p>
+
+<h2>Running experiments online</h2>
 
 </body>
 

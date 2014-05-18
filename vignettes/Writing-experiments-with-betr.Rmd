@@ -848,8 +848,27 @@ If you need more complex authentication, then you can pass a function to
 
 ### Seats and client IDs
 
-If you're in the laboratory
+TODO...
 
+### Easy commands
+
+You may not always want to run an experiment yourself. If your
+experiment administrator does not know R, he or she may find the R command line quite
+intimidating. To simplify, you can add the line `load_commands(expt)` to your
+source file. Then, instead of typing e.g. `ready(expt)`, the administrator can
+just type `READY`:
+
+
+```{r}
+myexpt <- experiment(N=3, seats_file=NULL, record=FALSE)
+info(expt)
+load_commands(myexpt)
+READY
+INFO
+```
+
+The commands that can be used are `READY`, `START`, `PAUSE`, `RESTART`, `HALT`, 
+`INFO`, `MAP` and ``WEB_TEST`. 
 
 Running experiments online
 --------------------------

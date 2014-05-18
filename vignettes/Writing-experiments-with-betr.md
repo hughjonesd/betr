@@ -309,7 +309,7 @@ expt
 ```
 
 ```
-## Session: betr-2014-05-17-193257	Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
+## Session: betr-2014-05-18-104815	Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr
 ```
 
@@ -340,13 +340,13 @@ info(expt)
 ```
 
 ```
-## Session: betr-2014-05-17-193257	Status: Waiting	Clients: 1/1	Periods: 5	Stages: 10
+## Session: betr-2014-05-18-104815	Status: Waiting	Clients: 1/1	Periods: 5	Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr 
 ## Subjects:
 ##     client id seat period stage  status
 ## 1 client-1  1   NA      0     0 Running
 ## Period progression:
-## 0: .[1]
+## 0: . [1]
 ```
 
 
@@ -876,6 +876,150 @@ experiments more reliable.
 Running your experiment in the lab
 ----------------------------------
 
-### SEATS
+When you've tested on your computer, you'll want to try it in the laboratory.
+This section describes how to prepare the laboratory to run betr experiments.
 
-### Apache/Rapache/Rook
+### Installing betr on a server computer
+
+The install process for betr is as described above. You could either use a 
+computer in the lab, or a remote server. The lab client
+computers must be able to connect to this server. 
+
+So far, we've only been serving betr to our own computer. This has hidden a 
+small problem: betr relies on the R package 
+[Rook](http://cran.r-project.org/package=Rook), and Rook's web server can
+_only_ serve to our own computer. Obviously that is not very useful now it is 
+time to go live!
+
+The simplest solution to this is to use a proxy web server in front of betr on the
+same computer, which redirects requests to betr. betr then serves the requests 
+(now coming from its own computer) and the proxy returns them. 
+
+One way to do this is using the standard [Apache](http://httpd.apache.org) web 
+server. The steps to do this are:
+
+1. Download and install Apache
+
+On Debian or Ubuntu Linux systems, run `sudo apt-get install apache2`.
+
+2. Enable the Apache module `mod_proxy`. Again, on Debian/Ubuntu:
+
+```
+sudo a2enmod mod_proxy
+sudo a2enmod proxy_http
+sudo service apache2 restart
+```
+
+3. Edit your Apache config file to include the line:
+
+```
+ProxyPass /betr/ http://127.0.0.1:35538/custom/
+```
+
+Here, `35538` is the port betr will serve on internally. (This is the default
+port: you can change it using the `port` argument to `experiment()`.)
+You can check this works by running something like this in R:
+
+
+```splus
+experiment(N = 1, name = "foo", autostart = TRUE)
+add_stage(experiment, text_stage(c(header(), "Success!", footer())))
+ready(expt)
+```
+
+
+Now, if you request the web page `http://your.server.name/betr/foo`, Apache will 
+forward this to `http://127.0.0.1:35538/custom/foo`. 
+
+### Kiosk mode
+
+Your lab client computers don't need any special software -- just a web browser.
+However, you don't want your subjects to start reading Facebook if they get 
+bored. To lock down the web browser, you may wish to install a "Kiosk mode"
+extension. This should:
+
+* hide the URL bar and other toolbars
+* prevent the user using the back or refresh buttons
+
+Ideally, you also want to prevent users using `Alt+F4` or `Ctrl+Alt+Delete` to
+switch applications... but your lab does that already, right? ;-)
+
+Google Chrome comes with a built-in kiosk mode, which you can enable by running
+`chrome --kiosk "http://starting.url"`. For Firefox, there is the 
+[Rkiosk extension](https://addons.mozilla.org/en-us/firefox/addon/r-kiosk/).
+Internet Explorer appears to have a built-in kiosk mode enabled by 
+`iexplore.exe -k`.
+
+Another thing you may wish to do is ensure that only certain computers can
+connect to your experiment. You can do this with the `auth` argument to 
+`experiment`. Here's how to allow only IP addresses starting with
+\code{123.121.123}:
+
+
+```splus
+expt <- experiment(N = 1, auth = c("123.121.123.*", "127.0.0.1"))
+```
+
+```
+## Warning: cannot open file 'betr-SEATS.txt': No such file or directory
+## Warning: Problem reading seats file betr-SEATS.txt
+```
+
+
+If you need more complex authentication, then you can pass a function to 
+`auth`: see `?experiment` for more information.
+
+### Seats and client IDs
+
+TODO...
+
+### Easy commands
+
+You may not always want to run an experiment yourself. If your
+experiment administrator does not know R, he or she may find the R command line quite
+intimidating. To simplify, you can add the line `load_commands(expt)` to your
+source file. Then, instead of typing e.g. `ready(expt)`, the administrator can
+just type `READY`:
+
+
+
+```splus
+myexpt <- experiment(N = 3, seats_file = NULL, record = FALSE)
+info(expt)
+```
+
+```
+## Name: betr	Status: Stopped	Clients: 0/1	Periods: 0	Stages: 0
+```
+
+```splus
+load_commands(myexpt)
+READY
+```
+
+```
+## starting httpd help server ... done
+```
+
+```
+## 
+## Server started on host 127.0.0.1 and port 35538 . App urls are:
+## 
+## 	http://127.0.0.1:35538/custom/betr
+```
+
+```splus
+INFO
+```
+
+```
+## Session: betr-2014-05-18-104816	Status: Waiting	Clients: 0/3	Periods: 0	Stages: 0
+## Serving at http://127.0.0.1:35538/custom/betr
+```
+
+
+The commands that can be used are `READY`, `START`, `PAUSE`, `RESTART`, `HALT`, 
+`INFO`, `MAP` and ``WEB_TEST`. 
+
+Running experiments online
+--------------------------
