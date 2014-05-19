@@ -277,6 +277,10 @@ Experiment <- setRefClass("Experiment",
         cat(i, ": ", class(stages[[i]]), "\n", sep="")
       }
     },
+    
+    merge_subjects = function(data_frame) {
+      merge(data_frame, subjects[,c("id", "client", "seat")], by="id", all.x=TRUE)
+    },
 
     ready = function() {
       if (status != "Stopped") {
@@ -633,6 +637,26 @@ nperiods <- function(experiment) experiment$nperiods()
 #' @rdname info
 #' @export
 print_stages <- function(experiment) experiment$print_stages()
+
+#' Merge a data frame with information about experiment subjects
+#' @param experiment an object of class Experiment
+#' @param data_frame a data frame containing a column 'id'
+#' 
+#' @value A new data frame produced by \code{\link{merge}} using the 'id' column 
+#' , resulting in new columns 'client' and 'seat'. 'period', 'stage' and 'status'
+#' will not be merged, as these are changeable.
+#' 
+#' @examples
+#' expt <- experiment(N=2, port=12345)
+#' expt # on the command line, calls info() 
+#' 
+#' @family command line functions
+#' @export
+#' @export
+merge_subjects <- function(experiment, data_frame) {
+  experiment$merge_subjects(data_frame)
+}
+
 
 
 

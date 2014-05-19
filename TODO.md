@@ -30,6 +30,8 @@ TODO
   - checker functions
   - javascript attribute?
   - using Twitter Bootstrap?
+- [x] mergewithsubjects function
+- [] IP address in subjects table
 - [] vignette: include graphics with knitr/brew
 - [] vignette: using brew
 - [] vignette: tips/tricks/bugs

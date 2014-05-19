@@ -630,6 +630,11 @@ timed(stage, timeout=60, on_timeout=function(id, period) {
 })
 ```
 
+### Dynamic pages and images
+
+TODO
+
+
 Debugging experiments
 ---------------------
 
@@ -848,7 +853,48 @@ If you need more complex authentication, then you can pass a function to
 
 ### Seats and client IDs
 
-TODO...
+In the lab, you need to know how much to pay your subjects. This is typically 
+done by seat number. To identify subject seats, betr looks for a _seats file_, 
+with the standard name `betr_SEATS.txt`, in its working directory.
+
+The seats file is a tab separated data file which looks like this:
+
+seat | IP | cookie
+------------------
+1 | 111.1.1.123 | AFDJKLRE
+2 | 111.1.1.124 | REAJKJKL
+
+betr identifies seats either by IP address, or by a cookie set on a client 
+machine. (The latter is useful if your lab machines do not have static IP
+addresses.)
+
+You can create the seats file by hand, but it easier to use the function 
+`identify_seats()`. This starts a simple web application on your server and
+tells you the web address it is serving on. You can then go to this address
+on each of your lab client computers, and enter the computer's seat number. 
+The seats file will be created automatically.
+
+When you call `experiment()`, betr looks for the seats file and prints a warning
+if it can't be found. You can pass a non-standard path to the `seats_file` 
+argument, or `seats_file=NULL` to suppress this warning and not look for seats
+(e.g. in an internet experiment). If the seats file is found, `info(expt)` will
+print out clients' seats along with their ID.
+
+At payment time, you can match your data to seats by running `merge_subjects`:
+
+```{r eval=FALSE}
+mydf <<- merge_subjects(expt, mydf)
+```
+
+This assumes that `mydf` has a column named `id`. It will add columns including
+`seat` to the data. You can then print a list of payments by doing something
+like:
+
+```{r eval=FALSE}
+profits <- mydf$[mydf$period=10, c("profit", "seat")]
+profits <- profits[order(profits$seat),]
+write.csv(profits, file="profits.csv")
+```
 
 ### Easy commands
 
