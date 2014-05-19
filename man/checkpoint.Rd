@@ -45,7 +45,6 @@ add_stage(expt, period(), s1, checkpoint(c(1, 1, 2, 2)), s1)
 Other stages: \code{\link{NEXT}}, \code{\link{WAIT}},
   \code{\link{stage}}; \code{\link{form_stage}};
   \code{\link{period}}; \code{\link{program}};
-  \code{\link{structured_stage}}; \code{\link{text_stage}};
-  \code{\link{timed}}
+  \code{\link{text_stage}}; \code{\link{timed}}
 }
 

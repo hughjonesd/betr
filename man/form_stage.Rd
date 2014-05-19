@@ -73,7 +73,6 @@ s1 <- form_stage(form_page=myform, data_frame="mydf",
 Other stages: \code{\link{NEXT}}, \code{\link{WAIT}},
   \code{\link{stage}}; \code{\link{checkpoint}};
   \code{\link{period}}; \code{\link{program}};
-  \code{\link{structured_stage}}; \code{\link{text_stage}};
-  \code{\link{timed}}
+  \code{\link{text_stage}}; \code{\link{timed}}
 }
 

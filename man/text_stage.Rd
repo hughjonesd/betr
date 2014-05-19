@@ -32,7 +32,6 @@ It is always safe to call \code{next_stage} on a participant who
 Other stages: \code{\link{NEXT}}, \code{\link{WAIT}},
   \code{\link{stage}}; \code{\link{checkpoint}};
   \code{\link{form_stage}}; \code{\link{period}};
-  \code{\link{program}}; \code{\link{structured_stage}};
-  \code{\link{timed}}
+  \code{\link{program}}; \code{\link{timed}}
 }
 

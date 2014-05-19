@@ -46,8 +46,8 @@ stg <- stage(function(id, period, params) {
 \seealso{
 Other stages: \code{\link{checkpoint}};
   \code{\link{form_stage}}; \code{\link{period}};
-  \code{\link{program}}; \code{\link{structured_stage}};
-  \code{\link{text_stage}}; \code{\link{timed}}
+  \code{\link{program}}; \code{\link{text_stage}};
+  \code{\link{timed}}
 }
 \keyword{datasets}
 
