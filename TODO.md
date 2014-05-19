@@ -25,19 +25,22 @@ TODO
   - everything else is done via returning a function (or a class?) to be
   called in appropriate context
   - functions for brew, knitr?, HTMLform
+  - all arguments called 'page'
+  - how to deal with 'errors'?
 - [] proper readline for replay
 - [] HTML form elements in separate package
   - checker functions
   - javascript attribute?
   - using Twitter Bootstrap?
 - [x] mergewithsubjects function
-- [] IP address in subjects table
+- [x] IP address in subjects table
 - [] vignette: include graphics with knitr/brew
 - [] vignette: using brew
 - [] vignette: tips/tricks/bugs
 - [] chat box with Rook?
 - [] media server with Rook?
 - [] JSON server with Rook?
+- [] admin interface with Rook or gtk?
 
 
 

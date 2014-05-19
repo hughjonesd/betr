@@ -61,17 +61,13 @@ stage <- function (handler) Stage$new(handler)
 #' @exportClass TextStage
 TextStage <- setRefClass("TextStage", contains="AbstractStage",
   fields=list(
-    text="character",
-    file="character",
+    page="ANY",
     shown="numeric",
     wait="logical"
   ),
   methods=list(
-    initialize = function(text, file, wait=FALSE, ...) {
-      if (! missing(text) && ! missing(file)) 
-            stop("Only one of body or file should be defined")
-      if (! missing(text)) text <<- text
-      if (! missing(file)) file <<- file
+    initialize = function(page, wait=FALSE, ...) {
+      page <<- page
       wait <<- wait
       callSuper(shown=numeric(0), ...)
     },
@@ -79,10 +75,8 @@ TextStage <- setRefClass("TextStage", contains="AbstractStage",
     handle_request = function(id, period, params) {
       if (id %in% shown && ! wait) return(NEXT)
       if (! id %in% shown) shown <<- c(shown, id)
-      if (length(text)>0) return(text)
-      # don't crash if a file is missing?
-      tryCatch(html <- file_or_brew(file), error= function(e) warning(e))
-      return(html)
+      res <- call_page(page, id, period, params)
+      return(res)
     }
   )
 )
@@ -91,19 +85,21 @@ TextStage <- setRefClass("TextStage", contains="AbstractStage",
 #' 
 #' A text stage presents some HTML once to each subject.
 #' 
-#' @param text A character vector of HTML. Only one of \code{file} and
-#'        \code{text} should be passed.
-#' @param file A filepath. If the file ends in ".brew" then it is passed to 
-#'        \code{brew} for processing. Otherwise it is shown to the subject as-is.
+#' @param page A character vector containing HTML, or a function to be called 
+#'        with parameters \code{id, period, params}.
 #' @param wait Wait to move on?
 #'         
 #' @return An object of class TextStage. When called the first time, this will
 #'         display the HTML in \code{file} or \code{text} to the participant. 
-#'         If \çode{wait} is \code{FALSE} (the default), subsequent calls
+#'         If \code{wait} is \code{FALSE} (the default), subsequent calls
 #'         will return \code{NEXT}. If \code{wait} is \code{TRUE}, subsequent
 #'         calls return the same page.
 #' @details It is always safe to call \code{next_stage} on a participant who
 #'          is at a TextStage.
+#'          
+#'          Functions such as \code{\link{b_brew}} can be used as arguments to
+#'          \code{page}.
+#'          
 #' @family stages  
 #' @export
 text_stage <- function (...) TextStage$new(...)
@@ -440,15 +436,15 @@ length_at_least <- function(min) {
 FormStage <- setRefClass("FormStage", contains="AbstractStage",
   fields = list(
     fields       = "list",
-    form_page    = "ANY",
+    page    = "ANY",
     titles       = "ANY",
     data_frame   = "character",
     seenonce     = "numeric"
   ),
   methods = list(
-    initialize = function(form_page=NULL, fields=list(), titles=NULL, 
+    initialize = function(page=NULL, fields=list(), titles=NULL, 
           data_frame="", ...) {
-      form_page <<- form_page
+      page <<- page
       if (! is.list(fields)) {
         fnames <- fields
         fields <- list()
@@ -481,13 +477,12 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
           return(NEXT)
         } else {
             error <- paste(errs, collapse="<br />") 
-            if (inherits(form_page, "file")) res <- file_or_brew(form_page, error)
-            if (is.character(form_page)) res <- form_page     
+            res <- call_page(page, id, period, params)     
         }
       } else {
         seenonce <<- c(seenonce, id)
-        error=""
-        res <- ffbc(form_page, error=NULL) 
+        error <- ""
+        res <- call_page(page, id, period, params)
       }
       res <- gsub("<%\\s*errors\\s*%>", error, res) # for case of not brew      
       return(res)
@@ -507,8 +502,8 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' Print out a form and store the subject's inputs in a data frame, after
 #' checking for errors
 #' 
-#' @param form_page Some text, or a file object. If the file name ends in 
-#'        '.brew' then it will be passed through \code{\link{brew}}.
+#' @param page A character vector containing HTML, or a function to be called 
+#'        with parameters \code{id, period, params}.
 #' @param fields A character vector of field names, or a list like 
 #'        \code{list(field_name=check_function, ...)}
 #' @param titles A list of field titles, like \code{list(field_name=title,...)}
@@ -517,7 +512,7 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' 
 #' @details 
 #' 
-#' When the subject first arrives, the text or file \code{form_page} is 
+#' When the subject first arrives, the text or file \code{page} is 
 #' displayed. After the form is submitted, it is checked for errors, as follows:
 #' each member of the list \code{fields} is called as a function, with arguments
 #' \code{(field_title, value, id, period, params)}. Here
@@ -533,14 +528,15 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' 
 #' If the function returns \code{NULL} the field is OK. If the function
 #' returns a character vector, this is treated as a vector of error messages.
-#' If there are any error messages, \code{form_page} is redisplayed. For 
-#' convenience, the ' string "<% errors %>" will be replaced by the error 
-#' messages (whether or not you use \code{\link{brew}} is used).
+#' If there are any error messages, \code{page} is redisplayed.
 #' 
 #'   If there
 #' are no error messages, the data frame named in \code{data_frame} is updated: 
 #' in the row with \code{id==id && period==period}, the columns
 #' named by \code{fields} get the values passed in by the user. 
+#' 
+#' \code{\link{b_brew}} and similar functions can be used as arguments to 
+#' \code{page}.
 #' 
 #' \code{\link{is_whole_number}} and similar functions return functions suitable
 #' for use in the fields list.
@@ -550,7 +546,7 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' mydf <- data.frame(id=rep(1:5, each=5), period=rep(1:5, times=5), 
 #'      username=NA_character_, password=NA_character_)
 #' 
-#' s1 <- form_stage(form_page=myform, data_frame="mydf",
+#' s1 <- form_stage(page=b_brew("myform.html"), data_frame="mydf",
 #'  fields=list(
 #'    username=length_between(8, 15),
 #'    password=all_of(length_at_least(8), function(name, val, ...) {
@@ -565,12 +561,12 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' @return An object of class FormStage
 #' @family stages
 #' @export
-form_stage <- function (form_page, fields, titles=NULL, data_frame) {
-  if (missing(form_page) || is.null(form_page)) stop("form_page must be specified")
+form_stage <- function (page, fields, titles=NULL, data_frame) {
+  if (missing(page) || is.null(page)) stop("page must be specified")
   if (missing(data_frame) || ! is.character(data_frame)) 
         stop("data_frame must be a string")
   if (missing(fields)) stop("Please specify a list of fields")
-  FormStage$new(form_page=form_page, fields=fields, titles=titles, 
+  FormStage$new(page=page, fields=fields, titles=titles, 
         data_frame=data_frame)
 }
 
