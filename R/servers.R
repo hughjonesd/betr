@@ -1,11 +1,6 @@
 #' @import tools
 #' @import Rook
 #' @import svSocket
-<<<<<<< HEAD
-=======
-
->>>>>>> 5986d5d... fix startDynamicHelp
-
 
 if (getRversion() < "2.15.0") paste0 <- function(...) paste(..., sep="")
 
