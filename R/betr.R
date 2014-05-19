@@ -38,7 +38,7 @@ Experiment <- setRefClass("Experiment",
   methods=list(
     initialize = function(..., auth=TRUE, port, autostart=FALSE, 
       allow_latecomers=FALSE, N=Inf, server="RookServer", name="betr", 
-      client_refresh=10, clients_in_url=FALSE, seats_file="betr-SEATS.txt",
+      client_refresh=5, clients_in_url=FALSE, seats_file="betr-SEATS.txt",
       on_ready=NULL, randomize_ids=TRUE, record=TRUE, seed=NULL) {
       stages <<- list()
       initialize_subjects()
