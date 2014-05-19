@@ -74,9 +74,10 @@ Experiment <- setRefClass("Experiment",
     },
     
     initialize_subjects = function() {
-      subjects <<- data.frame(client=character(0), id=numeric(0), seat=character(0),
-        period=numeric(0), stage=numeric(0), status=factor(, levels=c("Running", "Waiting", 
-          "Finished")), stringsAsFactors=FALSE)
+      subjects <<- data.frame(client=character(0), IP=character(0), 
+            id=numeric(0), seat=character(0), period=numeric(0), stage=numeric(0), 
+            status=factor(, levels=c("Running", "Waiting", "Finished")), 
+            stringsAsFactors=FALSE)
     },
     
     finalize = function(...) {
@@ -143,11 +144,15 @@ Experiment <- setRefClass("Experiment",
           seat <- seats$seat[ seats$cookie==cookies[["betr-seat"]] ] 
         } else if (! is.null(ip)) {
           seat <- seats$seat[seats$IP==ip] 
-        } else warning("Seat not found for client ", client)  
+        } else {
+          warning("Seat not found for client with IP address '", ip, 
+                if (! is.null(cookies)) paste0(", cookie '", 
+                cookies[["betr-seat"]], "'"))
+        }
       }
-      subjects <<- rbind(subjects, data.frame( client=client, id=id, seat=seat, 
-            period=0, stage=0, status=factor("Running", levels=c("Running", "Waiting", 
-            "Finished")), stringsAsFactors=FALSE))
+      subjects <<- rbind(subjects, data.frame(client=client, IP=ip, id=id, 
+            seat=seat, period=0, stage=0, status=factor("Running", 
+            levels=c("Running", "Waiting", "Finished")), stringsAsFactors=FALSE))
           
       if (status=="Started") next_period(subjects[subjects$client==client,])
       # if we reach N, trigger a change of state
@@ -279,7 +284,7 @@ Experiment <- setRefClass("Experiment",
     },
     
     merge_subjects = function(data_frame) {
-      merge(data_frame, subjects[,c("id", "client", "seat")], by="id", all.x=TRUE)
+      merge(data_frame, subjects[,c("id", "IP", "client", "seat")], by="id", all.x=TRUE)
     },
 
     ready = function() {
@@ -643,8 +648,8 @@ print_stages <- function(experiment) experiment$print_stages()
 #' @param data_frame a data frame containing a column 'id'
 #' 
 #' @value A new data frame produced by \code{\link{merge}} using the 'id' column 
-#' , resulting in new columns 'client' and 'seat'. 'period', 'stage' and 'status'
-#' will not be merged, as these are changeable.
+#' , resulting in new columns 'IP', 'client' and 'seat'. 'period', 'stage' and 
+#' 'status' will not be merged.
 #' 
 #' @examples
 #' expt <- experiment(N=2, port=12345)
