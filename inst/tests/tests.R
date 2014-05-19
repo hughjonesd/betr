@@ -295,6 +295,9 @@ test_that("Timed periods work", {
 
 Sys.sleep(1)
 test_that("Experiment replay works", {
+  td <- tempdir()
+  od <- setwd(td)
+ 
   init_data <- function () {foo <<- 0; bar <<- 0}
   expt <- experiment(N=1, autostart=TRUE, on_ready=init_data, seats_file=NULL)
   s1 <- stage(handler=function(id, period, params) {foo <<- foo + 1; 
@@ -339,5 +342,5 @@ test_that("Experiment replay works", {
   replay(expt)
   expect_that(round(tm[1],2), equals(round(tm[2],2)), 
         info="Replay didn't get time right")
-  unlink(list.files(pattern=paste0("^", session_name(expt), "$")), recursive=TRUE)
+  setwd(od)
 })
