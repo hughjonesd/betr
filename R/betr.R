@@ -647,9 +647,9 @@ print_stages <- function(experiment) experiment$print_stages()
 #' @param experiment an object of class Experiment
 #' @param data_frame a data frame containing a column 'id'
 #' 
-#' @value A new data frame produced by \code{\link{merge}} using the 'id' column 
-#' , resulting in new columns 'IP', 'client' and 'seat'. 'period', 'stage' and 
-#' 'status' will not be merged.
+#' @return A new data frame produced by \code{\link{merge}} using the 'id' 
+#' column, resulting in new columns 'IP', 'client' and 'seat'. 'period', 'stage'
+#' and 'status' will not be merged.
 #' 
 #' @examples
 #' expt <- experiment(N=2, port=12345)

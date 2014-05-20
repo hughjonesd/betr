@@ -22,4 +22,5 @@ Collate:
     'stages.R'
     'servers.R'
     'betr.R'
+    'pages.R'
     'utils.R'
