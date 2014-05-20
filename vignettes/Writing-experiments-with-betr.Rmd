@@ -2,6 +2,13 @@
 %\VignetteEngine{knitr::knitr}
 %\VignetteIndexEntry{A tutorial on writing and running experiments}
 
+```{r echo=FALSE, results='hide'}
+library(betr)
+opts_chunk$restore()
+opts_knit$restore()
+```
+
+
 Writing experiments with betr
 =============================
 
@@ -115,34 +122,29 @@ simple guessing game experiment.
 library(betr)
 
 initialize_data_frame <- function() {
-  mydf <<- experiment_data_frame(expt)
-  mydf$guess <<- NA
-  mydf$correct <<- NA
+  mydf <<- experiment_data_frame(expt, guess=NA, correct=NA)
 }
 expt <- experiment(N=1, clients_in_url=TRUE, on_ready=initialize_data_frame,
       seats_file=NULL)
 
 s1 <- function(id, period, params) {
-
   me_now <- mydf$id==id & mydf$period==period
-  gg <- ! missing(params) && 'guess' %in% names(params) 
-  if (gg) {
-    mydf$guess[me_now] <<- params$guess
+  if ('guess' %in% names(params)) {
+    mydf$guess[me_now] <<- as.numeric(params$guess)
     mydf$correct[me_now] <<- if (params$guess == sample(1:10,1)) 1 else 0
     return(NEXT)
   }
   last_guess <- ''
   me_before <- mydf$id==id & mydf$period == period -1
-  if (period > 1) last_guess <- paste('You guessed ', mydf$guess[me_before], 
-        '... you were ', if(mydf$correct[me_before]>0) 'right!' else 'wrong!', sep='')
-  return(paste(header(), sprintf(
-    "<p color='red'>%s</p>
-    <p>Pick a number</p>
-    <form action='' method='post'><select name='guess'>%s</select>
-    <input type='submit' value='Submit'></form>",
-    last_guess,
-    paste("<option value='", 1:10,"'>", 1:10, "</option>", sep="", collapse=""
-  )), footer()))
+  if (period > 1) last_guess <- paste0('You guessed ', mydf$guess[me_before], 
+        '... you were ', if(mydf$correct[me_before]>0) 'right!' else 'wrong!')
+  return(c(header(), sprintf("<p color='red'>%s</p>", last_guess),
+    "<p>Pick a number</p>",
+    "<form action='' method='post'><select name='guess'>",
+    paste0("<option value='", 1:10,"'>", 1:10, "</option>", collapse="")),
+    "</select>",
+    "<input type='submit' value='Submit'></form>",
+    footer())
 }
 
 add_stage(expt, period(), s1, times=5)
@@ -277,7 +279,7 @@ expt
 
 The status has changed, and we see the session name. We also have a URL. Clients
 can connect to this to view the experiment. You can do this manually: open your 
-web browser and go to the URL `r paste0(get_url(expt), "client-1")`. Or,
+web browser and go to the URL `r paste0(get_url(expt), "/client-1")`. Or,
 for a convenient shortcut, enter:
 
 ```{r eval=FALSE}
@@ -393,9 +395,8 @@ initialize <- function() {
   mydf$group <<- rep(rep(1:Ngroups, each=groupsize), nreps)
 }
 
-expt <- experiment(N=N, clients_in_url=TRUE, on_ready=initialize, seed=seed,
+expt <- experiment(N=N, clients_in_url=TRUE, on_ready=initialize,
       seats_file=NULL)
-
 ```
 
 Note that:
@@ -835,8 +836,8 @@ If you run this experiment, you'll get an error:
 ```{r echo=1:2, eval=c(1,3,4), warning=FALSE}
 ready(expt)
 web_test(expt) # and submit a number in your browser
-expt$handle_request("client-1")
-expt$handle_request("client-1", list(give="1"))
+expt$handle_request("client-1", list())
+x <- expt$handle_request("client-1", list(give="1"))
 ```
 
 
