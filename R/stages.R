@@ -75,7 +75,7 @@ TextStage <- setRefClass("TextStage", contains="AbstractStage",
     handle_request = function(id, period, params) {
       if (id %in% shown && ! wait) return(NEXT)
       if (! id %in% shown) shown <<- c(shown, id)
-      res <- call_page(page, id, period, params)
+      res <- call_page(page, id, period, params, errors=character(0))
       return(res)
     }
   )
@@ -257,21 +257,19 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
           f <- fields[[f]]
           ftitle <- if(is.null(titles)) fname else titles[[fname]]
           err <- f(ftitle, params[[fname]], id, period, params)
-          if (! is.null(err)) errs <- append(errs, err)
+          if (! is.null(err)) {names(err) <- fname; errs <- c(errs, err)}
         }
         if (length(errs) == 0) {
           update_data_frame(id, period, params[names(fields)])
           return(NEXT)
         } else {
-            error <- paste(errs, collapse="<br />") 
-            res <- call_page(page, id, period, params)     
+            res <- call_page(page, id, period, params, errors=errs)     
         }
       } else {
         seenonce <<- c(seenonce, id)
         error <- ""
-        res <- call_page(page, id, period, params)
+        res <- call_page(page, id, period, params, errors=character(0))
       }
-      res <- gsub("<%\\s*errors\\s*%>", error, res) # for case of not brew      
       return(res)
     },
     
@@ -290,7 +288,7 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' checking for errors
 #' 
 #' @param page A character vector containing HTML, or a function to be called 
-#'        with parameters \code{id, period, params}.
+#'        with parameters \code{id, period, params, errors}.
 #' @param fields A character vector of field names, or a list like 
 #'        \code{list(field_name=check_function, ...)}
 #' @param titles A list of field titles, like \code{list(field_name=title,...)}
@@ -315,9 +313,8 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' 
 #' If the function returns \code{NULL} the field is OK. If the function
 #' returns a character vector, this is treated as a vector of error messages.
-#' If there are any error messages, \code{page} is redisplayed.
 #' 
-#'   If there
+#' If there are any error messages, \code{page} is redisplayed. If there
 #' are no error messages, the data frame named in \code{data_frame} is updated: 
 #' in the row with \code{id==id && period==period}, the columns
 #' named by \code{fields} get the values passed in by the user. 

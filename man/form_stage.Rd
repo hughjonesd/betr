@@ -8,7 +8,7 @@ form_stage(page, fields, titles = NULL, data_frame)
 }
 \arguments{
 \item{page}{A character vector containing HTML, or a function to be called
-with parameters \code{id, period, params}.}
+with parameters \code{id, period, params, errors}.}
 
 \item{fields}{A character vector of field names, or a list like
 \code{list(field_name=check_function, ...)}}
@@ -42,9 +42,8 @@ each member of the list \code{fields} is called as a function, with arguments
 
 If the function returns \code{NULL} the field is OK. If the function
 returns a character vector, this is treated as a vector of error messages.
-If there are any error messages, \code{page} is redisplayed.
 
-  If there
+If there are any error messages, \code{page} is redisplayed. If there
 are no error messages, the data frame named in \code{data_frame} is updated:
 in the row with \code{id==id && period==period}, the columns
 named by \code{fields} get the values passed in by the user.

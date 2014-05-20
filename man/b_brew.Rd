@@ -11,12 +11,17 @@ b_brew(filename)
 \description{
 This returns a function which can be passed as the \code{page} argument to
 a Stage object. When the page is shown \code{\link{brew}} will be called
-on \code{filename}. The variables \code{id}, \code{period} and \code{params}
-will be available within the brew file.
+on \code{filename}. The variables \code{id}, \code{period}, \code{params}
+and \code{error} will be available within the brew file. \code{params} is
+a named list of HTML parameters. \code{error} is a character vector of errors,
+e.g. from a form submission. Typically it will be \code{character(0)}.
 }
 \examples{
 \dontrun{
 text_stage(page=b_brew("mybrewfile.html"))
 }
+}
+\seealso{
+Other page creation: \code{\link{b_knit}}
 }
 

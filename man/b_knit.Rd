@@ -11,8 +11,10 @@ b_knit(filename)
 \description{
 This returns a function which can be passed as the \code{page} argument to
 a Stage object. When the page is shown \code{\link{knit}} will be called
-on \code{filename}. The variables \code{id}, \code{period} and \code{params}
-will be available within the knitr file.
+on \code{filename}. The variables \code{id}, \code{period}, \code{params}
+and \code{error} will be available within the knitr file. \code{params} is
+a named list of HTML parameters. \code{error} is a character vector of errors,
+e.g. from a form submission. Typically it will be \code{character(0)}.
 }
 \details{
 By default the following options are set: \code{echo=FALSE, cache=FALSE,
@@ -25,5 +27,8 @@ warning=FALSE, message=FALSE} for \code{opts_chunk}; and
 \dontrun{
 text_stage(page=b_knit("myknitfile.Rhtml"))
 }
+}
+\seealso{
+Other page creation: \code{\link{b_brew}}
 }
 
