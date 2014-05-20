@@ -429,7 +429,7 @@ Let's add some instructions to our experiment. To do this, we'll use a TextStage
 object.
 
 ```{r}
-ins <- text_stage(text=c(
+ins <- text_stage(page=c(
   header(), 
   "You will be matched in groups of size", groupsize,
   ". If you each guess the same number, you will get a reward of $", reward,
@@ -488,7 +488,7 @@ myform <- c(
   "<input type='submit' value='Submit'></form>", 
   footer()
 )
-guess_s <- form_stage(form_page=myform, fields=list(
+guess_s <- form_stage(page=myform, fields=list(
       guess=all_of(is_whole_number(), is_between(1, 10))
       ), data_frame="mydf")
 ```

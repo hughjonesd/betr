@@ -66,7 +66,7 @@ TextStage <- setRefClass("TextStage", contains="AbstractStage",
     wait="logical"
   ),
   methods=list(
-    initialize = function(page, wait=FALSE, ...) {
+    initialize = function(page=NULL, wait=FALSE, ...) {
       page <<- page
       wait <<- wait
       callSuper(shown=numeric(0), ...)
@@ -102,7 +102,7 @@ TextStage <- setRefClass("TextStage", contains="AbstractStage",
 #'          
 #' @family stages  
 #' @export
-text_stage <- function (...) TextStage$new(...)
+text_stage <- function (page, wait=FALSE) TextStage$new(page=page, wait=wait)
 
 rookify <- function (thing) {
   if (inherits(thing, "Response")) return(thing)
@@ -407,7 +407,7 @@ CheckPoint <- setRefClass("CheckPoint", contains="AbstractStage",
 #' @examples
 #' expt <- experiment(N=4)
 #' groups <- c("A", "A", "B", "B")
-#' s1 <- text_stage(text="<html><body><form action=''>
+#' s1 <- text_stage(page="<html><body><form action=''>
 #'      <input type='submit' value='Next'></form></body></html>")
 #'      
 #' # wait for everyone:
@@ -464,7 +464,7 @@ Period <- setRefClass("Period", contains="CheckPoint",
 #' @examples
 #' expt <- experiment(N=4)
 #' groups <- c("A", "A", "B", "B")
-#' s1 <- text_stage(text="<html><body><form action=''>
+#' s1 <- text_stage(page="<html><body><form action=''>
 #'      <input type='submit' value='Next'></form></body></html>")
 #'      
 #' # go ahead individually:

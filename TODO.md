@@ -8,6 +8,7 @@ BUGS
 - [] how to move on manually from TextStages? autorefresh?
 - [] ReplayServer gets put in .oldserver
 - [x] problem with timed() in PG game?
+- [ ] knit still showing too much output
 
 TODO
 ----
@@ -20,13 +21,8 @@ TODO
   - would be nice to do this for "wait" also but hard to "redisplay the page"
 - [] use makeActiveBinding to "watch" data frames etc.... or define
   an on_request hook?
-- [] general framework for HTML pages
-  - text is just text.
-  - everything else is done via returning a function (or a class?) to be
-  called in appropriate context
-  - functions for brew, knitr?, HTMLform
-  - all arguments called 'page'
-  - how to deal with 'errors'?
+- [x] general framework for HTML pages
+  - [] how to deal with 'errors'?
 - [] proper readline for replay
 - [] HTML form elements in separate package
   - checker functions
