@@ -242,8 +242,10 @@ unload_commands <- function() {
 header <- function(title="Experiment", refresh=NA) {
   paste0("<html><head><title>", title, "</title>", 
         if(!is.na(refresh)) sprintf("<meta http-equiv='refresh' content='%d'>", 
-        refresh) ,"</head><body style='background-color: #CCCCCC; padding: 2% 4%;'>
-        <div style='background-color: white; padding: 3% 3%'>")
+        refresh) ,"</head>
+        <body style='background-color: #CCCCCC; padding: 2% 4%;'>
+        <div style='background-color: white; padding: 3% 3%; 
+        border: 1px solid #888888; border-radius: 10px;'>")
 }
 
 #' @rdname header
