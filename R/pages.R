@@ -1,14 +1,14 @@
 #' @import brew
 #' @import knitr
-#' 
-#' 
 
 # what do do about 'error'?
-
-brewCacheOn() # just does parsing, hopefully safe
-opts_chunk$set(echo=FALSE, cache=FALSE, warning=FALSE, message=FALSE)
-opts_knit$set(out.format="html", progress=FALSE, upload.fun = image_uri)
-
+.onLoad <- function(libname, pkgname) {
+  library(knitr)
+  library(brew)
+  brewCacheOn() # just does parsing, hopefully safe
+  opts_chunk$set(echo=FALSE, cache=FALSE, warning=FALSE, message=FALSE)
+  opts_knit$set(out.format="html", progress=FALSE, upload.fun = image_uri)
+}
 
 call_page <- function(text_or_fn, id, period, params) {
   if (is.character(text_or_fn)) return(text_or_fn)
