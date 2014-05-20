@@ -58,7 +58,7 @@ b_brew <- function(filename) {
 
 b_knit <- function(filename) {
   function(id, period, params) {
-    capture.output(knit(filename, output=stdout()))
+    capture.output(knit(filename, output=stdout(), quiet=TRUE))
   }
 }
 
