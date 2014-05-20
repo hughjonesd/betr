@@ -8,7 +8,7 @@ BUGS
 - [] how to move on manually from TextStages? autorefresh?
 - [] ReplayServer gets put in .oldserver
 - [x] problem with timed() in PG game?
-- [ ] knit still showing too much output
+- [] knitr options infecting my Rmd files from pages.R!
 
 TODO
 ----
