@@ -6,6 +6,7 @@
 library(betr)
 opts_chunk$restore()
 opts_knit$restore()
+opts_chunk$set(tidy=FALSE)
 ```
 
 
@@ -141,10 +142,10 @@ s1 <- function(id, period, params) {
   return(c(header(), sprintf("<p color='red'>%s</p>", last_guess),
     "<p>Pick a number</p>",
     "<form action='' method='post'><select name='guess'>",
-    paste0("<option value='", 1:10,"'>", 1:10, "</option>", collapse="")),
+    paste0("<option value='", 1:10,"'>", 1:10, "</option>", collapse=""),
     "</select>",
     "<input type='submit' value='Submit'></form>",
-    footer())
+    footer()))
 }
 
 add_stage(expt, period(), s1, times=5)
@@ -282,17 +283,17 @@ can connect to this to view the experiment. You can do this manually: open your
 web browser and go to the URL `r paste0(get_url(expt), "/client-1")`. Or,
 for a convenient shortcut, enter:
 
-```{r eval=FALSE}
-web_test(expt)
-```
-on the R command line. You should see a page saying "Waiting to start". It will 
-refresh regularly. (If you don't see that, check your computer settings. You may
-need to allow access to certain ports.)
-
-
 ```{r echo=FALSE, results='hide'}
 expt$handle_request("client-1", list())
 ```
+
+```{r eval=FALSE}
+web_test(expt)
+```
+
+on the R command line. You should see a page saying "Waiting to start". It will 
+refresh regularly. (If you get an error message, check your computer's firewall 
+settings. You may need to allow access to certain ports.)
 
 Before we start, let's see a bit more information about our experiment. Type:
 

@@ -2,6 +2,10 @@
 %\VignetteEngine{knitr::knitr}
 %\VignetteIndexEntry{A tutorial on writing and running experiments}
 
+
+
+
+
 Writing experiments with betr
 =============================
 
@@ -102,9 +106,9 @@ To install betr just run:
 
 
 ```splus
-install.packages("devtools")  # if not already installed
+install.packages("devtools") # if not already installed
 library(devtools)
-install_github("betr", "hughjonesd")  # for the latest version
+install_github("betr", "hughjonesd") # for the latest version
 ```
 
 
@@ -120,35 +124,32 @@ simple guessing game experiment.
 library(betr)
 
 initialize_data_frame <- function() {
-    mydf <<- experiment_data_frame(expt)
-    mydf$guess <<- NA
-    mydf$correct <<- NA
+  mydf <<- experiment_data_frame(expt, guess=NA, correct=NA)
 }
-expt <- experiment(N = 1, clients_in_url = TRUE, on_ready = initialize_data_frame, 
-    seats_file = NULL)
+expt <- experiment(N=1, clients_in_url=TRUE, on_ready=initialize_data_frame,
+      seats_file=NULL)
 
 s1 <- function(id, period, params) {
-    
-    me_now <- mydf$id == id & mydf$period == period
-    gg <- !missing(params) && "guess" %in% names(params)
-    if (gg) {
-        mydf$guess[me_now] <<- params$guess
-        mydf$correct[me_now] <<- if (params$guess == sample(1:10, 1)) 
-            1 else 0
-        return(NEXT)
-    }
-    last_guess <- ""
-    me_before <- mydf$id == id & mydf$period == period - 1
-    if (period > 1) 
-        last_guess <- paste("You guessed ", mydf$guess[me_before], "... you were ", 
-            if (mydf$correct[me_before] > 0) 
-                "right!" else "wrong!", sep = "")
-    return(paste(header(), sprintf("<p color='red'>%s</p>\n    <p>Pick a number</p>\n    <form action='' method='post'><select name='guess'>%s</select>\n    <input type='submit' value='Submit'></form>", 
-        last_guess, paste("<option value='", 1:10, "'>", 1:10, "</option>", 
-            sep = "", collapse = "")), footer()))
+  me_now <- mydf$id==id & mydf$period==period
+  if ('guess' %in% names(params)) {
+    mydf$guess[me_now] <<- as.numeric(params$guess)
+    mydf$correct[me_now] <<- if (params$guess == sample(1:10,1)) 1 else 0
+    return(NEXT)
+  }
+  last_guess <- ''
+  me_before <- mydf$id==id & mydf$period == period -1
+  if (period > 1) last_guess <- paste0('You guessed ', mydf$guess[me_before], 
+        '... you were ', if(mydf$correct[me_before]>0) 'right!' else 'wrong!')
+  return(c(header(), sprintf("<p color='red'>%s</p>", last_guess),
+    "<p>Pick a number</p>",
+    "<form action='' method='post'><select name='guess'>",
+    paste0("<option value='", 1:10,"'>", 1:10, "</option>", collapse=""),
+    "</select>",
+    "<input type='submit' value='Submit'></form>",
+    footer()))
 }
 
-add_stage(expt, period(), s1, times = 5)
+add_stage(expt, period(), s1, times=5)
 ```
 
 
@@ -159,7 +160,7 @@ do this by calling
 
 
 ```splus
-mydf <<- data.frame(id = 1, period = 1:5, guess = NA, correct = NA)
+mydf <<- data.frame(id=1, period=1:5, guess=NA, correct=NA)
 ```
 
 
@@ -190,10 +191,10 @@ is like:
 
 ```splus
 s1 <- function(id, period, params) {
-    # ...
-    return(NEXT)
-    # or ...
-    return("some HTML")
+  # ...
+  return(NEXT)
+  # or ...
+  return("some HTML")
 }
 ```
 
@@ -235,7 +236,7 @@ Lastly, we add our stage `s1` to the experiment:
 
 
 ```splus
-add_stage(expt, period(), s1, times = 5)
+add_stage(expt, period(), s1, times=5)
 ```
 
 
@@ -309,28 +310,28 @@ expt
 ```
 
 ```
-## Session: betr-2014-05-18-104815	Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
+## Session: betr-2014-05-20-232616	Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr
 ```
 
 
 The status has changed, and we see the session name. We also have a URL. Clients
 can connect to this to view the experiment. You can do this manually: open your 
-web browser and go to the URL http://127.0.0.1:35538/custom/betrclient-1. Or,
+web browser and go to the URL http://127.0.0.1:35538/custom/betr/client-1. Or,
 for a convenient shortcut, enter:
+
+
+
 
 
 ```splus
 web_test(expt)
 ```
 
+
 on the R command line. You should see a page saying "Waiting to start". It will 
-refresh regularly. (If you don't see that, check your computer settings. You may
-need to allow access to certain ports.)
-
-
-
-
+refresh regularly. (If you get an error message, check your computer's firewall 
+settings. You may need to allow access to certain ports.)
 
 Before we start, let's see a bit more information about our experiment. Type:
 
@@ -340,11 +341,11 @@ info(expt)
 ```
 
 ```
-## Session: betr-2014-05-18-104815	Status: Waiting	Clients: 1/1	Periods: 5	Stages: 10
+## Session: betr-2014-05-20-232616	Status: Waiting	Clients: 1/1	Periods: 5	Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr 
 ## Subjects:
-##     client id seat period stage  status
-## 1 client-1  1   NA      0     0 Running
+##     client IP id seat period stage  status
+## 1 client-1 NA  1   NA      0     0 Running
 ## Period progression:
 ## 0: . [1]
 ```
@@ -377,9 +378,9 @@ mydf
 ##   id period guess correct
 ## 1  1      1     6       0
 ## 2  1      2     2       0
-## 3  1      3  <NA>      NA
-## 4  1      4  <NA>      NA
-## 5  1      5  <NA>      NA
+## 3  1      3    NA      NA
+## 4  1      4    NA      NA
+## 5  1      5    NA      NA
 ```
 
 
@@ -404,14 +405,14 @@ type `mydf`. To save it to a CSV file, run:
 
 
 ```splus
-write.csv(mydf, file = "my-first-data.csv")
+write.csv(mydf, file="my-first-data.csv")
 ```
 
 Lastly, let's replay our experiment. Enter
 
 
 ```splus
-replay(expt, ask = TRUE)
+replay(expt, ask=TRUE)
 ```
 
 
@@ -448,25 +449,21 @@ library(betr)
 N <- 8
 nreps <- 4
 groupsize <- 2
-reward <- 5  # reward in $
+reward <- 5 # reward in $
 
-if (N%%groupsize > 0) stop("N must be an exact multiple of groupsize")
+if (N %% groupsize > 0) stop("N must be an exact multiple of groupsize")
 Ngroups <- N/groupsize
 
 
 initialize <- function() {
-    mydf <<- experiment_data_frame(N = N, periods = nreps)
-    mydf$guess <<- NA
-    # mydf$correct <<- NA
-    mydf$group <<- rep(rep(1:Ngroups, each = groupsize), nreps)
+  mydf <<- experiment_data_frame(N=N, periods=nreps)
+  mydf$guess <<- NA
+#   mydf$correct <<- NA
+  mydf$group <<- rep(rep(1:Ngroups, each=groupsize), nreps)
 }
 
-expt <- experiment(N = N, clients_in_url = TRUE, on_ready = initialize, seed = seed, 
-    seats_file = NULL)
-```
-
-```
-## Error: object 'seed' not found
+expt <- experiment(N=N, clients_in_url=TRUE, on_ready=initialize,
+      seats_file=NULL)
 ```
 
 
@@ -491,8 +488,8 @@ If you wanted to redraw groups each round, you could do something like:
 
 
 ```splus
-groups <- rep(1:Ngroups, each = groupsize)
-for (i in 1:nperiods(expt)) mydf$group[mydf$period == i] <<- sample(groups)
+groups <- rep(1:Ngroups, each=groupsize)
+for (i in 1:nperiods(expt)) mydf$group[mydf$period==i] <<- sample(groups)
 ```
 
 
@@ -506,9 +503,13 @@ object.
 
 
 ```splus
-ins <- text_stage(text = c(header(), "You will be matched in groups of size", 
-    groupsize, ". If you each guess the same number, you will get a reward of $", 
-    reward, ". <form action=''><input type='Submit' value='OK'></form>", footer()))
+ins <- text_stage(page=c(
+  header(), 
+  "You will be matched in groups of size", groupsize,
+  ". If you each guess the same number, you will get a reward of $", reward,
+  ". <form action=''><input type='Submit' value='OK'></form>",
+  footer()
+))
 add_stage(expt, ins)
 ```
 
@@ -525,8 +526,11 @@ make them wait until the experimenter moves them on. Doing this is simple:
 
 
 ```splus
-ins2 <- text_stage(text = c(header(), "Please wait for the experiment to begin!", 
-    footer()), wait = TRUE)
+ins2 <- text_stage(page=c(
+  header(), 
+  "Please wait for the experiment to begin!",
+  footer()
+), wait=TRUE)
 add_stage(expt, ins2)
 ```
 
@@ -555,12 +559,18 @@ created by the `form_stage` function.
 
 
 ```splus
-myform <- c(header(), "<p style='color:red;'><% errors %></p>", "<p>Pick a number:</p>", 
-    "<form action='' method='POST'><select name='guess'>", paste0("<option>", 
-        1:10, "</option>"), "</select>", "<input type='submit' value='Submit'></form>", 
-    footer())
-guess_s <- form_stage(form_page = myform, fields = list(guess = all_of(is_whole_number(), 
-    is_between(1, 10))), data_frame = "mydf")
+myform <- c(
+  header(), "<p style='color:red;'><% errors %></p>",
+  "<p>Pick a number:</p>",
+  "<form action='' method='POST'><select name='guess'>",
+  paste0('<option>', 1:10, '</option>'), 
+  "</select>",
+  "<input type='submit' value='Submit'></form>", 
+  footer()
+)
+guess_s <- form_stage(page=myform, fields=list(
+      guess=all_of(is_whole_number(), is_between(1, 10))
+      ), data_frame="mydf")
 ```
 
 
@@ -605,10 +615,10 @@ another kind of Stage called a CheckPoint.
 
 
 ```splus
-initialize()  # creates mydf so we can use mydf$group
-grp <- mydf$group[mydf$period == 1]
-grp <- grp[order(mydf$id[mydf$period == 1])]
-check_s <- checkpoint(wait_for = grp)
+initialize() # creates mydf so we can use mydf$group
+grp <- mydf$group[mydf$period==1]
+grp <- grp[order(mydf$id[mydf$period==1])]
+check_s <-checkpoint(wait_for=grp)
 ```
 
 
@@ -622,7 +632,7 @@ until everyone in his or her group has arrived. For example, if
 
 
 ```splus
-wait_for = c("a", "b", "a", "b", "c")
+wait_for=c("a", "b", "a", "b", "c")
 ```
 
 
@@ -640,17 +650,16 @@ on to the next stage.
 
 ```splus
 calculate_profit <- function(id, period) {
-    mydf$guess <<- as.numeric(mydf$guess)
-    me_now <- mydf$id == id & mydf$period == period
-    
-    mygroup <- mydf$group[me_now]
-    myguesses <- mydf$guess[mydf$group == mygroup & mydf$period == period]
-    profit <- if (min(myguesses) == max(myguesses)) 
-        reward else 0
-    mydf$profit[me_now] <<- profit
-    
+  mydf$guess <<- as.numeric(mydf$guess)
+  me_now <- mydf$id == id & mydf$period == period
+  
+  mygroup <- mydf$group[me_now]
+  myguesses <- mydf$guess[mydf$group == mygroup & mydf$period == period]
+  profit <- if (min(myguesses) == max(myguesses)) reward else 0
+  mydf$profit[me_now] <<- profit
+  
 }
-calc_s <- program(run = "all", fn = calculate_profit)
+calc_s <- program(run="all", fn=calculate_profit)
 ```
 
 
@@ -671,7 +680,7 @@ using `period()`.
 
 
 ```splus
-add_stage(expt, period(), guess_s, check_s, calc_s, times = nreps)
+add_stage(expt, period(), guess_s, check_s, calc_s, times=nreps)
 ```
 
 
@@ -686,7 +695,7 @@ timeouts to stages. The syntax is like:
 
 
 ```splus
-timed(stage, timeout = 60)
+timed(stage, timeout=60)
 ```
 
 
@@ -697,7 +706,7 @@ could write:
 
 
 ```splus
-add_stage(expt, period(), timed(guess_s, 30), check_s, calc_s, times = nreps)
+add_stage(expt, period(), timed(guess_s, 30), check_s, calc_s, times=nreps)
 ```
 
 
@@ -709,11 +718,199 @@ can do this by adding an `on_timeout` argument to `timed`.
 
 
 ```splus
-timed(stage, timeout = 60, on_timeout = function(id, period) {
-    mydf[mydf$id == id & mydf$period == period, "timed_out_on_me"] <<- TRUE
+timed(stage, timeout=60, on_timeout=function(id, period) {
+  mydf[mydf$id==id & mydf$period==period, "timed_out_on_me"] <<- TRUE
 })
 ```
 
+
+### Dynamic pages and images
+
+So far we have only shown the user static pages of HTML. That is rather limited.
+We also want to customize the HTML to print out e.g. the past history of play.
+We might also want to use R's powerful graphics facilities. 
+
+Actually, you have already seen one way to print HTML dynamically, which is 
+just to use a `stage` function. For example, here's how to print out the 
+subject's name, assuming they have already submitted it:
+
+
+```splus
+stg <- function(id, period, params) {
+  c(header(), "Your name is:", mydf$name[mydf$id==id & mydf$period==period],
+        footer())
+}
+```
+
+
+You can do something very similar within a `text_stage` or `form_stage`. Instead
+of passing a character vector of HTML to the `page` argument, pass a function:
+
+
+```splus
+ts <- text_stage(page=function(id, period, params, errors) {
+  c(header(), "Your name is:", mydf$name[mydf$id==id & mydf$period==period],
+        footer())  
+})
+```
+
+
+The `params` and `errors` parameters will never be used in a text stage, since 
+the stage prints only once after the last stage called `NEXT`. However, your 
+function should always have them as arguments. 
+
+In a form stage you can do the same thing. The `params` argument will be a
+list of the user-submitted parameters. It will be empty when the form is displayed
+for the first time, but will have elements if the form redisplays because of user
+errors. `error` is a named vector of error messages from form submission.
+For example, the following prints out a simple HTML form, keeping user's previous
+inputs and displaying any error messages:
+
+
+```splus
+myfun <- function(id, period, params, errors) {
+  name <- if ('name' %in% names(params)) params$name else ''
+  age <-  if ('age' %in% names(params)) params$age else ''
+  html <- header()
+  if (length(errors) > 0) html <- c(html, 
+        "<div style='color:red; border: 1px solid red;'>",
+        paste(errors, collapse="<br />"), "</div>")
+  html <- c(html, 
+        "<form action='' method='POST'>",
+        sprintf("<h1>Period %s: enter your details</h1>", period),
+        sprintf("<p>Name: <input type='text' name='name' value='%s'></p>", name),
+        sprintf("<p>Age: <input type='number' name='age' value='%s'></p>", age),
+        "</form>", 
+        footer())
+  return(html)
+}
+
+fs <- form_stage(page=myfun, fields=list(
+        name=has_value(), 
+        age=is_between(18,110)
+      ), data_frame="mydf")
+
+# test how this works:
+myfun(id=1, period=3, params=list(name='John', age='19'), errors='')
+```
+
+```
+##  [1] "<html><head><title>Experiment</title></head>\n        <body style='background-color: #CCCCCC; padding: 2% 4%;'>\n        <div style='background-color: white; padding: 3% 3%; \n        border: 1px solid #888888; border-radius: 10px;'>"
+##  [2] "<div style='color:red; border: 1px solid red;'>"                                                                                                                                                                                          
+##  [3] ""                                                                                                                                                                                                                                         
+##  [4] "</div>"                                                                                                                                                                                                                                   
+##  [5] "<form action='' method='POST'>"                                                                                                                                                                                                           
+##  [6] "<h1>Period 3: enter your details</h1>"                                                                                                                                                                                                    
+##  [7] "<p>Name: <input type='text' name='name' value='John'></p>"                                                                                                                                                                                
+##  [8] "<p>Age: <input type='number' name='age' value='19'></p>"                                                                                                                                                                                  
+##  [9] "</form>"                                                                                                                                                                                                                                  
+## [10] "</div><div align='center' style='padding: 10px 10px;'>betr</div></body></html>"
+```
+
+
+### Brew and knitr
+
+Using functions which mix R and HTML can start to look rather messy, as the code
+above shows. A nicer solution is to use a templating package. This means
+you create your HTML pages in a separate file, and mix in a little R, keeping
+most of your experiment logic separate. R has two powerful templating packages,
+[brew](http://cran.r-project.org/package=brew) and [knitr](http://yihui.name/knitr/).
+
+Brew is almost self-explanatory. Here's a brew file that would recreate the HTML
+form above:
+
+```html
+<%
+name <- if ('name' %in% names(params)) params$name else ''
+age <-  if ('age' %in% names(params)) params$age else ''
+%>
+<html>
+<body>
+<% if (length(errors) > 0) { %>
+  <div style='color:red; border: 1px solid red;'>
+  <%= paste(errors, collapse="<br />") %>
+  </div>
+<% } %>
+<form action='' method='POST'>
+<h1>Period <%= period %>: enter your details</h1>
+<p>Name: <input type='text' name='name' value='<%= name %>'></p>
+<p>Age: <input type='number' name='age' value='<%= age %>'></p>
+</form>
+</body>
+</html>
+```
+
+Code between `<% %>` tags is evaluated. Code between `<%= %>` tags is 
+evaluated and printed out. Notice that the values of `id`, `period`, `params` and 
+`errors` are available within the brew file.
+
+To use this within your form stage, use `b_brew`:
+
+
+```splus
+fs <- form_stage(page=b_brew("path_to_brew.html"), fields=list(
+        name=has_value(), 
+        age=is_between(18,110)
+      ), data_frame="mydf")
+```
+
+
+knitr is a similar templating framework. Its syntax is slightly more complex, 
+but it has a powerful advantage: it can dynamically generate graphics.
+
+Here's a knitr HTML file that might be part of a public goods game.
+
+```
+<!--begin.rcode results='hide'
+
+myid <- which(mydf$id==id & mydf$period==period)
+mygroup <- mydf$group[myid]
+contribs <- mydf[mydf$group==mygroup, c("contrib", "period", "id")]
+contribs <- contribs[order(contribs$period, contribs$id),]
+last_contribs <- tail(contribs$contrib, groupsize)
+
+end.rcode-->
+<html>
+<body>
+<h1>Period <!--rinline I(period) --></h1>
+
+<p>Group contributions were:</p>
+<!--begin.rcode 
+cat(paste(last_contribs, collapse="<br />"))
+end.rcode-->. 
+
+<p>History of contributions:</p>
+
+<!--begin.rcode
+plot(contribs$period, contribs$contrib, col=contribs$id, type="n",
+    xlab="Period", ylab="Contribution", ylim=c(0,50))
+for (mem_id in unique(contribs$id)) {
+  ct <- contribs[contribs$id==mem_id,]
+  lines(ct$period, ct$contrib, col=mem_id, type="b")
+}
+end.rcode-->
+
+</body>
+</html>
+
+```
+
+This prints out an HTML page with an embedded image something like this:
+
+![plot of chunk unnamed-chunk-35](figure/unnamed-chunk-35.pdf) 
+
+
+The equivalent of `<% ... %>` in knitr is `<!--begin.rcode ... end.rcode-->`.
+You can also use `<!--rinline ... -->` for small chunks of code. knitr prints
+images directly in the HTML page, so you don't need to worry about where to put
+separate image files. Note that unlike brew, you have to actually print out
+the results you want to see using e.g. `cat`. However, `rinline` chunks are
+printed out verbatim. A helpful trick which we used above 
+is to wrap items in `<!--rinline ... -->` blocks in the function `I()`. 
+This prevents knitr surrounding them with special formatting.
+
+betr customizes knitr's options to produce suitable output. See `?b_knit` and 
+the [knitr documentation](http://yihui.name/knitr/) for more details. 
 
 Debugging experiments
 ---------------------
@@ -727,15 +924,16 @@ Here's part of a dictator game experiment:
 
 ```splus
 init_df <- function() {
-    mydf <- experiment_data_frame(expt)
-    mydf$give <- NA
+  mydf <- experiment_data_frame(expt)
+  mydf$give <- NA
 }
-expt <- experiment(N = 2, autostart = TRUE, clients_in_url = TRUE, on_ready = init_df)
-dict_form <- c(header(), "Choose how much to give: <form method='POST' action=''>", 
-    "<input type='text' name='give' maxlength='2'>", "<input type='submit' value='Submit'></form>", 
-    footer())
-dict_stage <- form_stage(dict_form, fields = list(give = is_between(0, 10)), 
-    data_frame = "mydf")
+expt <- experiment(N=2, autostart=TRUE, clients_in_url=TRUE, on_ready=init_df)
+dict_form <- c(header(), 
+      "Choose how much to give: <form method='POST' action=''>",
+      "<input type='text' name='give' maxlength='2'>", 
+      "<input type='submit' value='Submit'></form>",footer())
+dict_stage <- form_stage(dict_form, fields=list(give=is_between(0, 10)), 
+      data_frame="mydf")
 add_stage(expt, period(), dict_stage)
 ```
 
@@ -759,15 +957,11 @@ ready(expt)
 ```
 
 ```splus
-## web_test(expt)  # and submit a number in your browser
+## web_test(expt) # and submit a number in your browser
 ```
 
 ```
-## Error: 'params' is missing
-```
-
-```
-## [1] "<html><head><title>Experiment</title><meta http-equiv='refresh' content='10'></head><body style='background-color: #CCCCCC; padding: 2% 4%;'>\n        <div style='background-color: white; padding: 3% 3%'>Waiting to start</div><div align='center' style='padding: 10px 10px;'>betr</div></body></html>"
+## [1] "<html><head><title>Experiment</title><meta http-equiv='refresh' content='5'></head>\n        <body style='background-color: #CCCCCC; padding: 2% 4%;'>\n        <div style='background-color: white; padding: 3% 3%; \n        border: 1px solid #888888; border-radius: 10px;'>Waiting to start</div><div align='center' style='padding: 10px 10px;'>betr</div></body></html>"
 ```
 
 
@@ -845,7 +1039,7 @@ Now, make some changes to your code. After you've saved the experiment file and
 
 ```splus
 ready(expt)
-replay(expt, folder = "[the folder name you noted earlier]")
+replay(expt, folder="[the folder name you noted earlier]")
 ```
 
 
@@ -860,10 +1054,10 @@ and that the `give` field is always defined.
 
 ```splus
 test_that("Data frame created OK", {
-    source("my-experiment-file.R")  # defines an experiment myexp
-    replay(myexp, folder = "myexp-2014-05-15-120000")  # test from 12 pm on 15 May 
-    expect_that(nrow(mydf), equals(32))
-    expect_false(is.na(mydf$give))  # 
+  source("my-experiment-file.R") # defines an experiment myexp
+  replay(myexp, folder="myexp-2014-05-15-120000") # test from 12 pm on 15 May 
+  expect_that(nrow(mydf), equals(32)) 
+  expect_false(is.na(mydf$give)) # 
 })
 ```
 
@@ -922,7 +1116,7 @@ You can check this works by running something like this in R:
 
 
 ```splus
-experiment(N = 1, name = "foo", autostart = TRUE)
+experiment(N=1, name="foo", autostart=TRUE)
 add_stage(experiment, text_stage(c(header(), "Success!", footer())))
 ready(expt)
 ```
@@ -957,7 +1151,7 @@ connect to your experiment. You can do this with the `auth` argument to
 
 
 ```splus
-expt <- experiment(N = 1, auth = c("123.121.123.*", "127.0.0.1"))
+expt <- experiment(N=1, auth=c("123.121.123.*", "127.0.0.1"))
 ```
 
 ```
@@ -971,7 +1165,52 @@ If you need more complex authentication, then you can pass a function to
 
 ### Seats and client IDs
 
-TODO...
+In the lab, you need to know how much to pay your subjects. This is typically 
+done by seat number. To identify subject seats, betr looks for a _seats file_, 
+with the standard name `betr_SEATS.txt`, in its working directory.
+
+The seats file is a tab separated data file which looks like this:
+
+seat | IP | cookie
+-----|----|-------
+1 | 111.1.1.123 | AFDJKLRE
+2 | 111.1.1.124 | REAJKJKL
+
+betr identifies seats either by IP address, or by a cookie set on a client 
+machine. (The latter is useful if your lab machines do not have static IP
+addresses.)
+
+You can create the seats file by hand, but it easier to use the function 
+`identify_seats()`. This starts a simple web application on your server and
+tells you the web address it is serving on. You can then go to this address
+on each of your lab client computers, and enter the computer's seat number. 
+The seats file will be created automatically.
+
+When you call `experiment()`, betr looks for the seats file and prints a warning
+if it can't be found. You can pass a non-standard path to the `seats_file` 
+argument, or `seats_file=NULL` to suppress this warning and not look for seats
+(e.g. in an internet experiment). If the seats file is found, `info(expt)` will
+print out clients' seats along with their ID.
+
+At payment time, you can match your data to seats by running `merge_subjects`:
+
+
+```splus
+mydf <<- merge_subjects(expt, mydf)
+```
+
+
+This assumes that `mydf` has a column named `id`. It will add columns including
+`seat` to the data. You can then print a list of payments by doing something
+like:
+
+
+```splus
+profits <- mydf$[mydf$period=10, c("profit", "seat")]
+profits <- profits[order(profits$seat),]
+write.csv(profits, file="profits.csv")
+```
+
 
 ### Easy commands
 
@@ -984,7 +1223,7 @@ just type `READY`:
 
 
 ```splus
-myexpt <- experiment(N = 3, seats_file = NULL, record = FALSE)
+myexpt <- experiment(N=3, seats_file=NULL, record=FALSE)
 info(expt)
 ```
 
@@ -1013,7 +1252,7 @@ INFO
 ```
 
 ```
-## Session: betr-2014-05-18-104816	Status: Waiting	Clients: 0/3	Periods: 0	Stages: 0
+## Session: betr-2014-05-20-232617	Status: Waiting	Clients: 0/3	Periods: 0	Stages: 0
 ## Serving at http://127.0.0.1:35538/custom/betr
 ```
 
@@ -1023,3 +1262,5 @@ The commands that can be used are `READY`, `START`, `PAUSE`, `RESTART`, `HALT`,
 
 Running experiments online
 --------------------------
+
+TODO...
