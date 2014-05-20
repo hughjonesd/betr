@@ -28,13 +28,12 @@ seat IP  cookie
 2  111.1.1.124 REAJKJKL
 ...
 }
-Either IP or cookie may be NA. If the (default) IP method is used,
-seats will be identified by IP address: this requires static
-IP addresses for your clients. The cookie method sets a cookie
-on the client browser, which will only work on a per-browser basis.
-If method is 'both' then both cookie and IP address will be used;
-if both cookie and IP address match the seat file, betr will use
-the cookie.
+Either IP or cookie may be NA. If the (default) IP method is used, seats will
+be identified by IP address: this requires static IP addresses for your
+clients. The cookie method sets a cookie named \code{betr-seat} on the client
+browser, which will only work on a per-browser basis. If method is 'both'
+then both cookie and IP address will be used; if both cookie and IP address
+match the seat file, betr will use the cookie.
 }
 \seealso{
 Other development tools: \code{\link{experiment_data_frame}};

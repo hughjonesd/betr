@@ -54,7 +54,8 @@ expt # on the command line, calls info()
 }
 \seealso{
 Other command line functions: \code{\link{halt}};
-  \code{\link{load_commands}}; \code{\link{next_stage}};
+  \code{\link{load_commands}};
+  \code{\link{merge_subjects}}; \code{\link{next_stage}};
   \code{\link{pause}}; \code{\link{ready}};
   \code{\link{replay}}; \code{\link{restart}};
   \code{\link{start.Experiment}};

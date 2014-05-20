@@ -24,7 +24,8 @@ Other command line functions: \code{\link{get_url}},
   \code{\link{print,Experiment,ANY-method}},
   \code{\link{print,Experiment-method}},
   \code{\link{print_stages}}, \code{\link{session_name}};
-  \code{\link{load_commands}}; \code{\link{next_stage}};
+  \code{\link{load_commands}};
+  \code{\link{merge_subjects}}; \code{\link{next_stage}};
   \code{\link{pause}}; \code{\link{ready}};
   \code{\link{replay}}; \code{\link{restart}};
   \code{\link{start.Experiment}};

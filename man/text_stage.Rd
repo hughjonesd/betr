@@ -6,18 +6,15 @@
 text_stage(...)
 }
 \arguments{
-\item{text}{A character vector of HTML. Only one of \code{file} and
-\code{text} should be passed.}
-
-\item{file}{A filepath. If the file ends in ".brew" then it is passed to
-\code{brew} for processing. Otherwise it is shown to the subject as-is.}
+\item{page}{A character vector containing HTML, or a function to be called
+with parameters \code{id, period, params}.}
 
 \item{wait}{Wait to move on?}
 }
 \value{
 An object of class TextStage. When called the first time, this will
         display the HTML in \code{file} or \code{text} to the participant.
-        If \çode{wait} is \code{FALSE} (the default), subsequent calls
+        If \code{wait} is \code{FALSE} (the default), subsequent calls
         will return \code{NEXT}. If \code{wait} is \code{TRUE}, subsequent
         calls return the same page.
 }
@@ -27,6 +24,9 @@ A text stage presents some HTML once to each subject.
 \details{
 It is always safe to call \code{next_stage} on a participant who
          is at a TextStage.
+
+         Functions such as \code{\link{b_brew}} can be used as arguments to
+         \code{page}.
 }
 \seealso{
 Other stages: \code{\link{NEXT}}, \code{\link{WAIT}},
