@@ -217,12 +217,27 @@ unload_commands <- function() {
 
 #' Simple HTML header and footer
 #' 
-#' Convenience functions to print a simple HTML header and footer, optionally
-#' with a title
+#' Convenience functions to print some simple HTML
 #'  
 #' @family HTML utilities
+#' 
+#' @param title Page title.
+#' @param refresh Number of seconds after which the page should refresh from the
+#'        server.
+#' @param text Text of the submit button.
+#' @details
+#' \code{header} prints an HTML header with an optional title and refresh time.
+#' 
+#' \code{footer} prints the corresponding footer.
+#' 
+#' \code{next_form} prints a simple HTML form with a single submit button. NB: do
+#' not use \code{next_form} within your own <form> tags. That will cause malformed
+#' HTML and break your web page. Instead just do it yourself:
+#' "<input type='submit' value='Next'>"
+#' 
 #' @examples
-#' s1 <- text_stage(text=paste0(header(), "<b>Got here!</b>", footer()))
+#' s1 <- text_stage(page=paste0(header(), "<b>Got here!</b>", next_form(), 
+#'      footer()))
 #' @export
 header <- function(title="Experiment", refresh=NA) {
   paste0("<html><head><title>", title, "</title>", 
@@ -236,3 +251,8 @@ header <- function(title="Experiment", refresh=NA) {
 footer <- function() {
   "</div><div align='center' style='padding: 10px 10px;'>betr</div></body></html>"
 }
+
+#' @rdname header
+#' @export
+next_form <- function(text='Next') sprintf("<form action='' method='POST'>
+      <input type='submit' value='%s' /></form", text)

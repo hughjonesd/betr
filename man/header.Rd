@@ -2,17 +2,38 @@
 \name{header}
 \alias{footer}
 \alias{header}
+\alias{next_form}
 \title{Simple HTML header and footer}
 \usage{
 header(title = "Experiment", refresh = NA)
 
 footer()
+
+next_form(text = "Next")
+}
+\arguments{
+\item{title}{Page title.}
+
+\item{refresh}{Number of seconds after which the page should refresh from the
+server.}
+
+\item{text}{Text of the submit button.}
 }
 \description{
-Convenience functions to print a simple HTML header and footer, optionally
-with a title
+Convenience functions to print some simple HTML
+}
+\details{
+\code{header} prints an HTML header with an optional title and refresh time.
+
+\code{footer} prints the corresponding footer.
+
+\code{next_form} prints a simple HTML form with a single submit button. NB: do
+not use \code{next_form} within your own <form> tags. That will cause malformed
+HTML and break your web page. Instead just do it yourself:
+"<input type='submit' value='Next'>"
 }
 \examples{
-s1 <- text_stage(text=paste0(header(), "<b>Got here!</b>", footer()))
+s1 <- text_stage(page=paste0(header(), "<b>Got here!</b>", next_form(),
+     footer()))
 }
 
