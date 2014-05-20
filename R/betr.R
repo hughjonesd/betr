@@ -119,7 +119,8 @@ Experiment <- setRefClass("Experiment",
       paste0(header(refresh=client_refresh), message, footer())
     },
     
-    authorize = function(client, params, ip=NA, cookies) {
+    authorize = function(client, params, ip, cookies) {
+      if (is.null(ip)) ip <- NA
       if (client %in% subjects$client) return(subjects[subjects$client==client,])
       
       # we have a new client:
