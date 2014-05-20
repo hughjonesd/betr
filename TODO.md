@@ -24,6 +24,7 @@ TODO
 - [x] general framework for HTML pages
   - [] how to deal with 'errors'?
 - [] proper readline for replay
+- [] is_email, is_date?
 - [] HTML form elements in separate package
   - checker functions
   - javascript attribute?
