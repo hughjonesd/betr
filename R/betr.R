@@ -119,7 +119,7 @@ Experiment <- setRefClass("Experiment",
       paste0(header(refresh=client_refresh), message, footer())
     },
     
-    authorize = function(client, params, ip, cookies) {
+    authorize = function(client, params, ip=NA, cookies) {
       if (client %in% subjects$client) return(subjects[subjects$client==client,])
       
       # we have a new client:
@@ -142,13 +142,12 @@ Experiment <- setRefClass("Experiment",
       if (nrow(seats)>0) {
         if (! is.null(cookies) && "betr-seat" %in% cookies && nrow(seats)>0) {
           seat <- seats$seat[ seats$cookie==cookies[["betr-seat"]] ] 
-        } else if (! is.null(ip)) {
+        } else if (! is.na(ip)) {
           seat <- seats$seat[seats$IP==ip] 
-        } else {
-          warning("Seat not found for client with IP address '", ip, 
+        } 
+        if (is.na(seat)) warning("Seat not found for client with IP address '", ip, 
                 if (! is.null(cookies)) paste0(", cookie '", 
                 cookies[["betr-seat"]], "'"))
-        }
       }
       subjects <<- rbind(subjects, data.frame(client=client, IP=ip, id=id, 
             seat=seat, period=0, stage=0, status=factor("Running", 
@@ -231,7 +230,8 @@ Experiment <- setRefClass("Experiment",
           if (is.next(result)) {
             next_stage(subject)
             # NB we clean the params when the subject moves on. Is this OK?
-            return(.handle_request(subjects[subjects$id==subject$id,], client=client))
+            return(.handle_request(subjects[subjects$id==subject$id,], 
+                  client=client, params=list()))
           } else if (is.wait(result)) {
             subjects$status[subjects$id==subject$id] <<- "Waiting"
             return(waiting_page("Waiting for experiment to continue"))
