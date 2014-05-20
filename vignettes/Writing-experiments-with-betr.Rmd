@@ -450,7 +450,7 @@ We don't always want the user to be able to move on. Sometimes we would rather
 make them wait until the experimenter moves them on. Doing this is simple:
 
 ```{r}
-ins2 <- text_stage(text=c(
+ins2 <- text_stage(page=c(
   header(), 
   "Please wait for the experiment to begin!",
   footer()
@@ -632,8 +632,179 @@ timed(stage, timeout=60, on_timeout=function(id, period) {
 
 ### Dynamic pages and images
 
-TODO
+So far we have only shown the user static pages of HTML. That is rather limited.
+We also want to customize the HTML to print out e.g. the past history of play.
+We might also want to use R's powerful graphics facilities. 
 
+Actually, you have already seen one way to print HTML dynamically, which is 
+just to use a `stage` function. For example, here's how to print out the 
+subject's name, assuming they have already submitted it:
+
+```{r}
+stg <- function(id, period, params) {
+  c(header(), "Your name is:", mydf$name[mydf$id==id & mydf$period==period],
+        footer())
+}
+```
+
+You can do something very similar within a `text_stage` or `form_stage`. Instead
+of passing a character vector of HTML to the `page` argument, pass a function:
+
+```{r}
+ts <- text_stage(page=function(id, period, params, errors) {
+  c(header(), "Your name is:", mydf$name[mydf$id==id & mydf$period==period],
+        footer())  
+})
+```
+
+The `params` and `errors` parameters will never be used in a text stage, since 
+the stage prints only once after the last stage called `NEXT`. However, your 
+function should always have them as arguments. 
+
+In a form stage you can do the same thing. The `params` argument will be a
+list of the user-submitted parameters. It will be empty when the form is displayed
+for the first time, but will have elements if the form redisplays because of user
+errors. `error` is a named vector of error messages from form submission.
+For example, the following prints out a simple HTML form, keeping user's previous
+inputs and displaying any error messages:
+
+```{r}
+myfun <- function(id, period, params, errors) {
+  name <- if ('name' %in% names(params)) params$name else ''
+  age <-  if ('age' %in% names(params)) params$age else ''
+  html <- header()
+  if (length(errors) > 0) html <- c(html, 
+        "<div style='color:red; border: 1px solid red;'>",
+        paste(errors, collapse="<br />"), "</div>")
+  html <- c(html, 
+        "<form action='' method='POST'>",
+        sprintf("<h1>Period %s: enter your details</h1>", period),
+        sprintf("<p>Name: <input type='text' name='name' value='%s'></p>", name),
+        sprintf("<p>Age: <input type='number' name='age' value='%s'></p>", age),
+        "</form>", 
+        footer())
+  return(html)
+}
+
+fs <- form_stage(page=myfun, fields=list(
+        name=has_value(), 
+        age=is_between(18,110)
+      ), data_frame="mydf")
+
+# test how this works:
+myfun(id=1, period=3, params=list(name='John', age='19'), errors='')
+```
+
+### Brew and knitr
+
+Using functions which mix R and HTML can start to look rather messy, as the code
+above shows. A nicer solution is to use a templating package. This means
+you create your HTML pages in a separate file, and mix in a little R, keeping
+most of your experiment logic separate. R has two powerful templating packages,
+[brew](http://cran.r-project.org/package=brew) and [knitr](http://yihui.name/knitr/).
+
+Brew is almost self-explanatory. Here's a brew file that would recreate the HTML
+form above:
+
+```html
+<%
+name <- if ('name' %in% names(params)) params$name else ''
+age <-  if ('age' %in% names(params)) params$age else ''
+%>
+<html>
+<body>
+<% if (length(errors) > 0) { %>
+  <div style='color:red; border: 1px solid red;'>
+  <%= paste(errors, collapse="<br />") %>
+  </div>
+<% } %>
+<form action='' method='POST'>
+<h1>Period <%= period %>: enter your details</h1>
+<p>Name: <input type='text' name='name' value='<%= name %>'></p>
+<p>Age: <input type='number' name='age' value='<%= age %>'></p>
+</form>
+</body>
+</html>
+```
+
+Code between `<% %>` tags is evaluated. Code between `<%= %>` tags is 
+evaluated and printed out. Notice that the values of `id`, `period`, `params` and 
+`errors` are available within the brew file.
+
+To use this within your form stage, use `b_brew`:
+
+```{r}
+fs <- form_stage(page=b_brew("path_to_brew.html"), fields=list(
+        name=has_value(), 
+        age=is_between(18,110)
+      ), data_frame="mydf")
+```
+
+knitr is a similar templating framework. Its syntax is slightly more complex, 
+but it has a powerful advantage: it can dynamically generate graphics.
+
+Here's a knitr HTML file that might be part of a public goods game.
+
+```
+<!--begin.rcode results='hide'
+
+myid <- which(mydf$id==id & mydf$period==period)
+mygroup <- mydf$group[myid]
+contribs <- mydf[mydf$group==mygroup, c("contrib", "period", "id")]
+contribs <- contribs[order(contribs$period, contribs$id),]
+last_contribs <- tail(contribs$contrib, groupsize)
+
+end.rcode-->
+<html>
+<body>
+<h1>Period <!--rinline I(period) --></h1>
+
+<p>Group contributions were:</p>
+<!--begin.rcode 
+cat(paste(last_contribs, collapse="<br />"))
+end.rcode-->. 
+
+<p>History of contributions:</p>
+
+<!--begin.rcode
+plot(contribs$period, contribs$contrib, col=contribs$id, type="n",
+    xlab="Period", ylab="Contribution", ylim=c(0,50))
+for (mem_id in unique(contribs$id)) {
+  ct <- contribs[contribs$id==mem_id,]
+  lines(ct$period, ct$contrib, col=mem_id, type="b")
+}
+end.rcode-->
+
+</body>
+</html>
+
+```
+
+This prints out an HTML page with an embedded image something like this:
+
+```{r echo=FALSE, fig.width=6, fig.height=6}
+contribs <- experiment_data_frame(N=4, period=7, contrib=sample(1:50, 28, 
+      replace=TRUE))
+plot(contribs$period, contribs$contrib, col=contribs$id, type="n",
+      xlab="Period", ylab="Contribution", ylim=c(0,50))
+for (mem_id in unique(contribs$id)) {
+  ct <- contribs[contribs$id==mem_id,]
+  lines(ct$period, ct$contrib, col=mem_id, type="b")
+}
+
+```
+
+The equivalent of `<% ... %>` in knitr is `<!--begin.rcode ... end.rcode-->`.
+You can also use `<!--rinline ... -->` for small chunks of code. knitr prints
+images directly in the HTML page, so you don't need to worry about where to put
+separate image files. Note that unlike brew, you have to actually print out
+the results you want to see using e.g. `cat`. However, `rinline` chunks are
+printed out verbatim. A helpful trick which we used above 
+is to wrap items in `<!--rinline ... -->` blocks in the function `I()`. 
+This prevents knitr surrounding them with special formatting.
+
+betr customizes knitr's options to produce suitable output. See `?b_knit` and 
+the [knitr documentation](http://yihui.name/knitr/) for more details. 
 
 Debugging experiments
 ---------------------
@@ -860,7 +1031,7 @@ with the standard name `betr_SEATS.txt`, in its working directory.
 The seats file is a tab separated data file which looks like this:
 
 seat | IP | cookie
-------------------
+-----|----|-------
 1 | 111.1.1.123 | AFDJKLRE
 2 | 111.1.1.124 | REAJKJKL
 
@@ -918,3 +1089,5 @@ The commands that can be used are `READY`, `START`, `PAUSE`, `RESTART`, `HALT`,
 
 Running experiments online
 --------------------------
+
+TODO...

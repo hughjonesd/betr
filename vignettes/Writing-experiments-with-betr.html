@@ -333,9 +333,6 @@ add_stage(expt, period(), s1, times = 5)
 <p>Our first task is to prepare a data frame for our experiment. We could just 
 do this by calling</p>
 
-<pre><code class="r">mydf &lt;&lt;- data.frame(id = 1, period = 1:5, guess = NA, correct = NA)
-</code></pre>
-
 <p>However, we want to make sure that our experiment is <em>replay-safe</em>. If we 
 replay our experiment, either during testing or to recover from a problem in a
 session, our experiment will be rerun from the start. But if our data has 
@@ -359,14 +356,6 @@ options for now.</p>
 <em>stages</em>. The next piece of code defines a function <code>s1</code>, which will be one of 
 our experiment&#39;s stages. Ignoring the details, the structure of <code>s1</code>
 is like:</p>
-
-<pre><code class="r">s1 &lt;- function(id, period, params) {
-    # ...
-    return(NEXT)
-    # or ...
-    return(&quot;some HTML&quot;)
-}
-</code></pre>
 
 <p>Here&#39;s how this works. When a subject makes an HTTP request to betr, the current
 stage is called with the subject&#39;s <code>id</code> (a number from 1 to N), the
@@ -406,9 +395,6 @@ then print out the guessing form so the subject can choose another number.</p>
 
 <p>Lastly, we add our stage <code>s1</code> to the experiment:</p>
 
-<pre><code class="r">add_stage(expt, period(), s1, times = 5)
-</code></pre>
-
 <p>What about the other thing here, <code>period()</code>? In fact, <code>period()</code> creates another
 kind of stage, called (guess what?) a Period. This stage is very simple: it 
 adds 1 to the subject&#39;s period counter, then returns <code>NEXT</code>. </p>
@@ -423,13 +409,7 @@ our experiment&#39;s stages are now:</p>
 <p>OK, we&#39;ve created our experiment. Now, we need to run it. Run the code above, or
 put it in a file called <code>my_experiment.R</code> and source it:</p>
 
-<pre><code class="r">source(&quot;my_experiment.R&quot;)
-</code></pre>
-
 <p>Before we run it, let&#39;s take a look at it. On the command line, type</p>
-
-<pre><code class="r">expt
-</code></pre>
 
 <pre><code>## Name: betr   Status: Stopped Clients: 0/1    Periods: 5  Stages: 10
 </code></pre>
@@ -441,13 +421,6 @@ had 5 periods in its stages. There are 10 stages including the 5 periods and
 the 5 <code>s1</code> objects. Lastly, the <em>Status</em> tells us whether the experiment is 
 <em>Stopped</em>, <em>Waiting</em>, <em>Started</em> or <em>Paused</em>. Right now it is <em>Stopped</em>. Let&#39;s
 change that. On the command line, run:</p>
-
-<pre><code class="r">ready(expt)
-</code></pre>
-
-<pre><code>## Loading required package: tools
-## starting httpd help server ... done
-</code></pre>
 
 <pre><code>## 
 ## Server started on host 127.0.0.1 and port 35538 . App urls are:
@@ -467,10 +440,7 @@ on disk to hold data about it;</li>
 
 <p>Now, <code>expt</code> will report more information:</p>
 
-<pre><code class="r">expt
-</code></pre>
-
-<pre><code>## Session: betr-2014-05-18-104815  Status: Waiting Clients: 0/1    Periods: 5  Stages: 10
+<pre><code>## Session: betr-2014-05-20-073703  Status: Waiting Clients: 0/1    Periods: 5  Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr
 </code></pre>
 
@@ -479,48 +449,31 @@ can connect to this to view the experiment. You can do this manually: open your
 web browser and go to the URL <a href="http://127.0.0.1:35538/custom/betrclient-1">http://127.0.0.1:35538/custom/betrclient-1</a>. Or,
 for a convenient shortcut, enter:</p>
 
-<pre><code class="r">web_test(expt)
-</code></pre>
-
 <p>on the R command line. You should see a page saying &ldquo;Waiting to start&rdquo;. It will 
 refresh regularly. (If you don&#39;t see that, check your computer settings. You may
 need to allow access to certain ports.)</p>
 
 <p>Before we start, let&#39;s see a bit more information about our experiment. Type:</p>
 
-<pre><code class="r">info(expt)
-</code></pre>
-
-<pre><code>## Session: betr-2014-05-18-104815  Status: Waiting Clients: 1/1    Periods: 5  Stages: 10
-## Serving at http://127.0.0.1:35538/custom/betr 
-## Subjects:
-##     client id seat period stage  status
-## 1 client-1  1   NA      0     0 Running
-## Period progression:
-## 0: . [1]
+<pre><code>## Session: betr-2014-05-20-073703  Status: Waiting Clients: 0/1    Periods: 5  Stages: 10
+## Serving at http://127.0.0.1:35538/custom/betr
 </code></pre>
 
 <p>This shows the same info as before, plus a list of subjects &ndash; just one.</p>
 
 <p>Now we&#39;ve got our 1 subject, we&#39;re ready to start. On the command line, type:</p>
 
-<pre><code class="r">start(expt)
-</code></pre>
-
 <p>Now, when your browser page refreshes, you will see the first period of the 
 guessing game. Complete a couple of guesses (good luck!). Use <code>info(expt)</code>
 to watch your subject progressing. You can also look directly at your 
 experimental data frame:</p>
 
-<pre><code class="r">mydf
-</code></pre>
-
 <pre><code>##   id period guess correct
-## 1  1      1     6       0
-## 2  1      2     2       0
-## 3  1      3  &lt;NA&gt;      NA
-## 4  1      4  &lt;NA&gt;      NA
-## 5  1      5  &lt;NA&gt;      NA
+## 1  1      1    NA      NA
+## 2  1      2    NA      NA
+## 3  1      3    NA      NA
+## 4  1      4    NA      NA
+## 5  1      5    NA      NA
 </code></pre>
 
 <p>At the end, you will see an &ldquo;experiment finished&rdquo; page in your browser, and
@@ -528,22 +481,13 @@ experimental data frame:</p>
 
 <p>To stop the experiment serving, run</p>
 
-<pre><code class="r">halt(expt)
-</code></pre>
-
 <p>Now the server will halt, so clients can no longer connect, and the status
 of the experiment will be &ldquo;Stopped&rdquo;. </p>
 
 <p>Our experiment is finished, but our data is still there, as you can see if you
 type <code>mydf</code>. To save it to a CSV file, run:</p>
 
-<pre><code class="r">write.csv(mydf, file = &quot;my-first-data.csv&quot;)
-</code></pre>
-
 <p>Lastly, let&#39;s replay our experiment. Enter</p>
-
-<pre><code class="r">replay(expt, ask = TRUE)
-</code></pre>
 
 <p>The command prompt should show </p>
 
@@ -570,27 +514,6 @@ HTML; and Period objects created using <code>period</code>. </p>
 
 <p>We&#39;ll set up our data frame much as before:</p>
 
-<pre><code class="r">library(betr)
-N &lt;- 8
-nreps &lt;- 4
-groupsize &lt;- 2
-reward &lt;- 5  # reward in $
-
-if (N%%groupsize &gt; 0) stop(&quot;N must be an exact multiple of groupsize&quot;)
-Ngroups &lt;- N/groupsize
-
-
-initialize &lt;- function() {
-    mydf &lt;&lt;- experiment_data_frame(N = N, periods = nreps)
-    mydf$guess &lt;&lt;- NA
-    # mydf$correct &lt;&lt;- NA
-    mydf$group &lt;&lt;- rep(rep(1:Ngroups, each = groupsize), nreps)
-}
-
-expt &lt;- experiment(N = N, clients_in_url = TRUE, on_ready = initialize, seed = seed, 
-    seats_file = NULL)
-</code></pre>
-
 <pre><code>## Error: object &#39;seed&#39; not found
 </code></pre>
 
@@ -606,14 +529,7 @@ If you wanted to explicitly randomize you could just add the following line to
 <code>initialize</code>:</p></li>
 </ul>
 
-<pre><code class="r">mydf$group &lt;&lt;- sample(mydf$group)
-</code></pre>
-
 <p>If you wanted to redraw groups each round, you could do something like:</p>
-
-<pre><code class="r">groups &lt;- rep(1:Ngroups, each = groupsize)
-for (i in 1:nperiods(expt)) mydf$group[mydf$period == i] &lt;&lt;- sample(groups)
-</code></pre>
 
 <ul>
 <li>Notice as before that when we assign to <code>mydf</code>, we use the global assignment 
@@ -625,12 +541,6 @@ operator <code>&lt;&lt;-</code>.</li>
 <p>Let&#39;s add some instructions to our experiment. To do this, we&#39;ll use a TextStage
 object.</p>
 
-<pre><code class="r">ins &lt;- text_stage(text = c(header(), &quot;You will be matched in groups of size&quot;, 
-    groupsize, &quot;. If you each guess the same number, you will get a reward of $&quot;, 
-    reward, &quot;. &lt;form action=&#39;&#39;&gt;&lt;input type=&#39;Submit&#39; value=&#39;OK&#39;&gt;&lt;/form&gt;&quot;, footer()))
-add_stage(expt, ins)
-</code></pre>
-
 <p><code>text_stage</code> creates very simple stages: they display some text to the user, then
 return <code>NEXT</code>. At the bottom of our text, we add an HTML form with a single submit
 button. When the subject clicks this, he or she will move on to the next stage.</p>
@@ -641,18 +551,10 @@ finish the web page. They are there for convenience. </p>
 <p>We don&#39;t always want the user to be able to move on. Sometimes we would rather 
 make them wait until the experimenter moves them on. Doing this is simple:</p>
 
-<pre><code class="r">ins2 &lt;- text_stage(text = c(header(), &quot;Please wait for the experiment to begin!&quot;, 
-    footer()), wait = TRUE)
-add_stage(expt, ins2)
-</code></pre>
-
 <p>Now the user can&#39;t move on because there is no submit button. In addition,
 even if the browser were refreshed, the text will simply redisplay because
 of the <code>wait=TRUE</code> option. To move all subjects on manually from the command
 line:</p>
-
-<pre><code class="r">next_stage(expt, 1:N)
-</code></pre>
 
 <p>Here <code>1:N</code> gives the subject ids as shown by <code>info(expt)</code>. Moving subjects
 on manually might risk losing data, but as this stage is just displaying some 
@@ -664,14 +566,6 @@ text, we&#39;re fine.</p>
 function which either displayed an HTML form, or stored the subject&#39;s guess.
 We can do this even more simply using a new kind of Stage: a FormStage object,
 created by the <code>form_stage</code> function.</p>
-
-<pre><code class="r">myform &lt;- c(header(), &quot;&lt;p style=&#39;color:red;&#39;&gt;&lt;% errors %&gt;&lt;/p&gt;&quot;, &quot;&lt;p&gt;Pick a number:&lt;/p&gt;&quot;, 
-    &quot;&lt;form action=&#39;&#39; method=&#39;POST&#39;&gt;&lt;select name=&#39;guess&#39;&gt;&quot;, paste0(&quot;&lt;option&gt;&quot;, 
-        1:10, &quot;&lt;/option&gt;&quot;), &quot;&lt;/select&gt;&quot;, &quot;&lt;input type=&#39;submit&#39; value=&#39;Submit&#39;&gt;&lt;/form&gt;&quot;, 
-    footer())
-guess_s &lt;- form_stage(form_page = myform, fields = list(guess = all_of(is_whole_number(), 
-    is_between(1, 10))), data_frame = &quot;mydf&quot;)
-</code></pre>
 
 <p>A form stage prints out an HTML form for the subject. When the form is submitted,
 it is checked for errors. If there are no errors, the corresponding fields
@@ -747,12 +641,6 @@ such (even if you&#39;ve checked them with e.g. <code>is_whole_number()</code>).
 experiment at their own speed. They have to wait for each other. For this we need 
 another kind of Stage called a CheckPoint.</p>
 
-<pre><code class="r">initialize()  # creates mydf so we can use mydf$group
-grp &lt;- mydf$group[mydf$period == 1]
-grp &lt;- grp[order(mydf$id[mydf$period == 1])]
-check_s &lt;- checkpoint(wait_for = grp)
-</code></pre>
-
 <p>CheckPoints simply hold subjects at a waiting page until some subjects have also
 arrived at the checkpoint. You can specify which subjects to wait for by the 
 <code>wait_for</code> argument to <code>checkpoint</code>. This can be <code>&quot;all&quot;</code> to wait for all subjects, or 
@@ -760,9 +648,6 @@ arrived at the checkpoint. You can specify which subjects to wait for by the
 move on subjects manually using <code>next_stage</code>.) Or, as in our example, it can be 
 a vector of group names, sorted by id. When this happens, each subject will wait 
 until everyone in his or her group has arrived. For example, if </p>
-
-<pre><code class="r">wait_for = c(&quot;a&quot;, &quot;b&quot;, &quot;a&quot;, &quot;b&quot;, &quot;c&quot;)
-</code></pre>
 
 <p>then subject IDs 1 and 3 will wait for each other, subject IDs 2 and 4 will wait
 for each other, and subject ID 5 will not wait for anyone.</p>
@@ -774,20 +659,6 @@ their guess. Now we can calculate if they&#39;ve coordinated correctly. We&#39;l
 a Program stage for this. A Program simply runs some code at a particular point
 in the experiment. It doesn&#39;t display anything to the subjects &ndash; they just move
 on to the next stage.</p>
-
-<pre><code class="r">calculate_profit &lt;- function(id, period) {
-    mydf$guess &lt;&lt;- as.numeric(mydf$guess)
-    me_now &lt;- mydf$id == id &amp; mydf$period == period
-
-    mygroup &lt;- mydf$group[me_now]
-    myguesses &lt;- mydf$guess[mydf$group == mygroup &amp; mydf$period == period]
-    profit &lt;- if (min(myguesses) == max(myguesses)) 
-        reward else 0
-    mydf$profit[me_now] &lt;&lt;- profit
-
-}
-calc_s &lt;- program(run = &quot;all&quot;, fn = calculate_profit)
-</code></pre>
 
 <p>Here <code>calculate_profit</code> does just what it says. Note that the first line turns
 <code>mydf$guess</code> into a numeric variable. Also, note how the first and last lines
@@ -804,9 +675,6 @@ arrives, respectively.</p>
 <p>Lastly, we&#39;ll add our stages to the experiment - not forgetting a period counter
 using <code>period()</code>.</p>
 
-<pre><code class="r">add_stage(expt, period(), guess_s, check_s, calc_s, times = nreps)
-</code></pre>
-
 <p>The basic pattern here is: form stage, checkpoint, program. You can use this 
 simple pattern in many experiments.</p>
 
@@ -816,16 +684,10 @@ simple pattern in many experiments.</p>
 answer a question, view instructions etc. In betr, you can do this by adding
 timeouts to stages. The syntax is like:</p>
 
-<pre><code class="r">timed(stage, timeout = 60)
-</code></pre>
-
 <p>where <code>stage</code> is the original stage, and <code>timeout</code> gives the number of seconds
 before the stage times out. <code>timed</code> creates a new stage object of class Timed. 
 So, for example, if we wanted to give subjects 30 seconds to guess a number , we
 could write:</p>
-
-<pre><code class="r">add_stage(expt, period(), timed(guess_s, 30), check_s, calc_s, times = nreps)
-</code></pre>
 
 <p>Timeouts work by adding a <code>Refresh:</code> header to the http request. Client browsers
 will automatically refresh after the timeout is called. If the timeout expires,
@@ -833,10 +695,126 @@ then the Timed stage returns <code>NEXT</code>. You may want to do something ext
 case, like set some default values, or record that the subject timed out. You
 can do this by adding an <code>on_timeout</code> argument to <code>timed</code>.</p>
 
-<pre><code class="r">timed(stage, timeout = 60, on_timeout = function(id, period) {
-    mydf[mydf$id == id &amp; mydf$period == period, &quot;timed_out_on_me&quot;] &lt;&lt;- TRUE
-})
+<h3>Dynamic pages and images</h3>
+
+<p>So far we have only shown the user static pages of HTML. That is rather limited.
+We also want to customize the HTML to print out e.g. the past history of play.
+We might also want to use R&#39;s powerful graphics facilities. </p>
+
+<p>Actually, you have already seen one way to print HTML dynamically, which is 
+just to use a <code>stage</code> function. For example, here&#39;s how to print out the 
+subject&#39;s name, assuming they have already submitted it:</p>
+
+<p>You can do something very similar within a <code>text_stage</code> or <code>form_stage</code>. Instead
+of passing a character vector of HTML to the <code>page</code> argument, pass a function:</p>
+
+<p>The <code>params</code> and <code>errors</code> parameters will never be used in a text stage, since 
+the stage prints only once after the last stage called <code>NEXT</code>. However, your 
+function should always have them as arguments. </p>
+
+<p>In a form stage you can do the same thing. The <code>params</code> argument will be a
+list of the user-submitted parameters. It will be empty when the form is displayed
+for the first time, but will have elements if the form redisplays because of user
+errors. <code>error</code> is a named vector of error messages from form submission.
+For example, the following prints out a simple HTML form, keeping user&#39;s previous
+inputs and displaying any error messages:</p>
+
+<pre><code>##  [1] &quot;&lt;html&gt;&lt;head&gt;&lt;title&gt;Experiment&lt;/title&gt;&lt;/head&gt;&lt;body style=&#39;background-color: #CCCCCC; padding: 2% 4%;&#39;&gt;\n        &lt;div style=&#39;background-color: white; padding: 3% 3%&#39;&gt;&quot;
+##  [2] &quot;&lt;div style=&#39;color:red; border: 1px solid red;&#39;&gt;&quot;                                                                                                                     
+##  [3] &quot;&quot;                                                                                                                                                                    
+##  [4] &quot;&lt;/div&gt;&quot;                                                                                                                                                              
+##  [5] &quot;&lt;form action=&#39;&#39; method=&#39;POST&#39;&gt;&quot;                                                                                                                                      
+##  [6] &quot;&lt;h1&gt;Period 3: enter your details&lt;/h1&gt;&quot;                                                                                                                               
+##  [7] &quot;&lt;p&gt;Name: &lt;input type=&#39;text&#39; name=&#39;name&#39; value=&#39;John&#39;&gt;&lt;/p&gt;&quot;                                                                                                           
+##  [8] &quot;&lt;p&gt;Age: &lt;input type=&#39;number&#39; name=&#39;age&#39; value=&#39;19&#39;&gt;&lt;/p&gt;&quot;                                                                                                             
+##  [9] &quot;&lt;/form&gt;&quot;                                                                                                                                                             
+## [10] &quot;&lt;/div&gt;&lt;div align=&#39;center&#39; style=&#39;padding: 10px 10px;&#39;&gt;betr&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;&quot;
 </code></pre>
+
+<h3>Brew and knitr</h3>
+
+<p>Using functions which mix R and HTML can start to look rather messy, as the code
+above shows. A nicer solution is to use a templating package. This means
+you create your HTML pages in a separate file, and mix in a little R, keeping
+most of your experiment logic separate. R has two powerful templating packages,
+<a href="http://cran.r-project.org/package=brew">brew</a> and <a href="http://yihui.name/knitr/">knitr</a>.</p>
+
+<p>Brew is almost self-explanatory. Here&#39;s a brew file that would recreate the HTML
+form above:</p>
+
+<pre><code class="html">&lt;%
+name &lt;- if (&#39;name&#39; %in% names(params)) params$name else &#39;&#39;
+age &lt;-  if (&#39;age&#39; %in% names(params)) params$age else &#39;&#39;
+%&gt;
+&lt;html&gt;
+&lt;body&gt;
+&lt;% if (length(errors) &gt; 0) { %&gt;
+  &lt;div style=&#39;color:red; border: 1px solid red;&#39;&gt;
+  &lt;%= paste(errors, collapse=&quot;&lt;br /&gt;&quot;) %&gt;
+  &lt;/div&gt;
+&lt;% } %&gt;
+&lt;form action=&#39;&#39; method=&#39;POST&#39;&gt;
+&lt;h1&gt;Period &lt;%= period %&gt;: enter your details&lt;/h1&gt;
+&lt;p&gt;Name: &lt;input type=&#39;text&#39; name=&#39;name&#39; value=&#39;&lt;%= name %&gt;&#39;&gt;&lt;/p&gt;
+&lt;p&gt;Age: &lt;input type=&#39;number&#39; name=&#39;age&#39; value=&#39;&lt;%= age %&gt;&#39;&gt;&lt;/p&gt;
+&lt;/form&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p>Code between <code>&lt;% %&gt;</code> tags is evaluated. Code between <code>&lt;%= %&gt;</code> tags is 
+evaluated and printed out. Notice that the values of <code>id</code>, <code>period</code>, <code>params</code> and 
+<code>errors</code> are available within the brew file.</p>
+
+<p>To use this within your form stage, use <code>b_brew</code>:</p>
+
+<p>knitr is a similar templating framework. Its syntax is slightly more complex, 
+but it has a powerful advantage: it can dynamically generate graphics.</p>
+
+<p>Here&#39;s a knitr HTML file that might be part of a public goods game.</p>
+
+<pre><code>&lt;!--begin.rcode results=&#39;hide&#39;
+
+myid &lt;- which(mydf$id==id &amp; mydf$period==period)
+mygroup &lt;- mydf$group[myid]
+contribs &lt;- mydf[mydf$group==mygroup, c(&quot;contrib&quot;, &quot;period&quot;, &quot;id&quot;)]
+contribs &lt;- contribs[order(contribs$period, contribs$id),]
+last_contribs &lt;- tail(contribs$contrib, groupsize)
+
+end.rcode--&gt;
+&lt;html&gt;
+&lt;body&gt;
+&lt;h1&gt;Period &lt;!--rinline period --&gt;&lt;/h1&gt;
+
+&lt;p&gt;Group contributions were:&lt;/p&gt;
+&lt;!--begin.rcode 
+cat(paste(last_contribs, collapse=&quot;&lt;br /&gt;&quot;))
+end.rcode--&gt;. 
+
+&lt;p&gt;History of contributions:&lt;/p&gt;
+
+&lt;!--begin.rcode
+plot(contribs$period, contribs$contrib, col=contribs$id, type=&quot;n&quot;,
+    xlab=&quot;Period&quot;, ylab=&quot;Contribution&quot;, ylim=c(0,50))
+for (mem_id in unique(contribs$id)) {
+  ct &lt;- contribs[contribs$id==mem_id,]
+  lines(ct$period, ct$contrib, col=mem_id, type=&quot;b&quot;)
+}
+end.rcode--&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+
+</code></pre>
+
+<p>This prints out an HTML page with an embedded image something like this:</p>
+
+<p><img src="data:image/png;base64,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" alt="plot of chunk unnamed-chunk-34"/> </p>
+
+<p>The equivalent of <code>&lt;% ... %&gt;</code> in knitr is <code>&lt;!--begin.rcode ... end.rcode--&gt;</code>.
+You can also use <code>&lt;!--rinline period--&gt;</code> for small chunks of code. knitr prints
+forms directly in the HTML page, so you don&#39;t need to worry about where to put
+separate image files.</p>
 
 <h2>Debugging experiments</h2>
 
@@ -846,25 +824,9 @@ Luckily, R has powerful facilities for debugging.</p>
 
 <p>Here&#39;s part of a dictator game experiment:</p>
 
-<pre><code class="r">init_df &lt;- function() {
-    mydf &lt;- experiment_data_frame(expt)
-    mydf$give &lt;- NA
-}
-expt &lt;- experiment(N = 2, autostart = TRUE, clients_in_url = TRUE, on_ready = init_df)
-dict_form &lt;- c(header(), &quot;Choose how much to give: &lt;form method=&#39;POST&#39; action=&#39;&#39;&gt;&quot;, 
-    &quot;&lt;input type=&#39;text&#39; name=&#39;give&#39; maxlength=&#39;2&#39;&gt;&quot;, &quot;&lt;input type=&#39;submit&#39; value=&#39;Submit&#39;&gt;&lt;/form&gt;&quot;, 
-    footer())
-dict_stage &lt;- form_stage(dict_form, fields = list(give = is_between(0, 10)), 
-    data_frame = &quot;mydf&quot;)
-add_stage(expt, period(), dict_stage)
-</code></pre>
-
 <p>If you run this experiment, you&#39;ll get an error:</p>
 
 <pre><code class="r">ready(expt)
-</code></pre>
-
-<pre><code>## starting httpd help server ... done
 </code></pre>
 
 <pre><code>## 
@@ -879,7 +841,7 @@ add_stage(expt, period(), dict_stage)
 <pre><code>## Error: &#39;params&#39; is missing
 </code></pre>
 
-<pre><code>## [1] &quot;&lt;html&gt;&lt;head&gt;&lt;title&gt;Experiment&lt;/title&gt;&lt;meta http-equiv=&#39;refresh&#39; content=&#39;10&#39;&gt;&lt;/head&gt;&lt;body style=&#39;background-color: #CCCCCC; padding: 2% 4%;&#39;&gt;\n        &lt;div style=&#39;background-color: white; padding: 3% 3%&#39;&gt;Waiting to start&lt;/div&gt;&lt;div align=&#39;center&#39; style=&#39;padding: 10px 10px;&#39;&gt;betr&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;&quot;
+<pre><code>## [1] &quot;&lt;html&gt;&lt;head&gt;&lt;title&gt;Experiment&lt;/title&gt;&lt;meta http-equiv=&#39;refresh&#39; content=&#39;5&#39;&gt;&lt;/head&gt;&lt;body style=&#39;background-color: #CCCCCC; padding: 2% 4%;&#39;&gt;\n        &lt;div style=&#39;background-color: white; padding: 3% 3%&#39;&gt;arguments imply differing number of rows: 1, 0&lt;/div&gt;&lt;div align=&#39;center&#39; style=&#39;padding: 10px 10px;&#39;&gt;betr&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;&quot;
 </code></pre>
 
 <p>This tells us what is wrong: <code>mydf</code> has not been created in the global 
@@ -889,10 +851,6 @@ you&#39;ll notice that it is using <code>&lt;-</code> instead of <code>&lt;&lt;-
 only within the function, not in the global environment. Let&#39;s suppose you are
 unlucky and don&#39;t know why <code>mydf</code> isn&#39;t being created. We can check what&#39;s
 happening by using the built-in debugger.</p>
-
-<pre><code class="r">debug(init_df)
-init_df()
-</code></pre>
 
 <p>The call to <code>debug</code> means that when <code>init_df()</code> is called, you step into it and
 evaluate it one line at a time. In the debugger, enter &#39;n&#39; to move on a line. 
@@ -949,10 +907,6 @@ Note the folder name.</p>
 <p>Now, make some changes to your code. After you&#39;ve saved the experiment file and
 (perhaps) restarted R, source the file again and enter:</p>
 
-<pre><code class="r">ready(expt)
-replay(expt, folder = &quot;[the folder name you noted earlier]&quot;)
-</code></pre>
-
 <p>This will replay your previous session <em>instantly</em>. Afterwards, you can check again
 that things are still as you expect. You don&#39;t have to include the folder name:
 if you don&#39;t, betr will try to find the most recent folder that looks like a
@@ -960,14 +914,6 @@ session record.</p>
 
 <p>You can automate the process still further by a testing package such as <code>testthat</code>. Here&#39;s a simple example, checking that a data frame has the right number of rows
 and that the <code>give</code> field is always defined.</p>
-
-<pre><code class="r">test_that(&quot;Data frame created OK&quot;, {
-    source(&quot;my-experiment-file.R&quot;)  # defines an experiment myexp
-    replay(myexp, folder = &quot;myexp-2014-05-15-120000&quot;)  # test from 12 pm on 15 May 
-    expect_that(nrow(mydf), equals(32))
-    expect_false(is.na(mydf$give))  # 
-})
-</code></pre>
 
 <p>Automated testing makes it easier to run tests &ndash; which should make your
 experiments more reliable.</p>
@@ -1022,11 +968,6 @@ sudo service apache2 restart
 port: you can change it using the <code>port</code> argument to <code>experiment()</code>.)
 You can check this works by running something like this in R:</p>
 
-<pre><code class="r">experiment(N = 1, name = &quot;foo&quot;, autostart = TRUE)
-add_stage(experiment, text_stage(c(header(), &quot;Success!&quot;, footer())))
-ready(expt)
-</code></pre>
-
 <p>Now, if you request the web page <code>http://your.server.name/betr/foo</code>, Apache will 
 forward this to <code>http://127.0.0.1:35538/custom/foo</code>. </p>
 
@@ -1056,19 +997,57 @@ connect to your experiment. You can do this with the <code>auth</code> argument 
 <code>experiment</code>. Here&#39;s how to allow only IP addresses starting with
 \code{123.121.123}:</p>
 
-<pre><code class="r">expt &lt;- experiment(N = 1, auth = c(&quot;123.121.123.*&quot;, &quot;127.0.0.1&quot;))
-</code></pre>
-
-<pre><code>## Warning: cannot open file &#39;betr-SEATS.txt&#39;: No such file or directory
-## Warning: Problem reading seats file betr-SEATS.txt
-</code></pre>
-
 <p>If you need more complex authentication, then you can pass a function to 
 <code>auth</code>: see <code>?experiment</code> for more information.</p>
 
 <h3>Seats and client IDs</h3>
 
-<p>TODO&hellip;</p>
+<p>In the lab, you need to know how much to pay your subjects. This is typically 
+done by seat number. To identify subject seats, betr looks for a <em>seats file</em>, 
+with the standard name <code>betr_SEATS.txt</code>, in its working directory.</p>
+
+<p>The seats file is a tab separated data file which looks like this:</p>
+
+<table><thead>
+<tr>
+<th>seat</th>
+<th>IP</th>
+<th>cookie</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>1</td>
+<td>111.1.1.123</td>
+<td>AFDJKLRE</td>
+</tr>
+<tr>
+<td>2</td>
+<td>111.1.1.124</td>
+<td>REAJKJKL</td>
+</tr>
+</tbody></table>
+
+<p>betr identifies seats either by IP address, or by a cookie set on a client 
+machine. (The latter is useful if your lab machines do not have static IP
+addresses.)</p>
+
+<p>You can create the seats file by hand, but it easier to use the function 
+<code>identify_seats()</code>. This starts a simple web application on your server and
+tells you the web address it is serving on. You can then go to this address
+on each of your lab client computers, and enter the computer&#39;s seat number. 
+The seats file will be created automatically.</p>
+
+<p>When you call <code>experiment()</code>, betr looks for the seats file and prints a warning
+if it can&#39;t be found. You can pass a non-standard path to the <code>seats_file</code> 
+argument, or <code>seats_file=NULL</code> to suppress this warning and not look for seats
+(e.g. in an internet experiment). If the seats file is found, <code>info(expt)</code> will
+print out clients&#39; seats along with their ID.</p>
+
+<p>At payment time, you can match your data to seats by running <code>merge_subjects</code>:</p>
+
+<p>This assumes that <code>mydf</code> has a column named <code>id</code>. It will add columns including
+<code>seat</code> to the data. You can then print a list of payments by doing something
+like:</p>
 
 <h3>Easy commands</h3>
 
@@ -1078,18 +1057,7 @@ intimidating. To simplify, you can add the line <code>load_commands(expt)</code>
 source file. Then, instead of typing e.g. <code>ready(expt)</code>, the administrator can
 just type <code>READY</code>:</p>
 
-<pre><code class="r">myexpt &lt;- experiment(N = 3, seats_file = NULL, record = FALSE)
-info(expt)
-</code></pre>
-
 <pre><code>## Name: betr   Status: Stopped Clients: 0/1    Periods: 0  Stages: 0
-</code></pre>
-
-<pre><code class="r">load_commands(myexpt)
-READY
-</code></pre>
-
-<pre><code>## starting httpd help server ... done
 </code></pre>
 
 <pre><code>## 
@@ -1098,10 +1066,7 @@ READY
 ##  http://127.0.0.1:35538/custom/betr
 </code></pre>
 
-<pre><code class="r">INFO
-</code></pre>
-
-<pre><code>## Session: betr-2014-05-18-104816  Status: Waiting Clients: 0/3    Periods: 0  Stages: 0
+<pre><code>## Session: betr-2014-05-20-073704  Status: Waiting Clients: 0/3    Periods: 0  Stages: 0
 ## Serving at http://127.0.0.1:35538/custom/betr
 </code></pre>
 
@@ -1109,6 +1074,8 @@ READY
 <code>INFO</code>, <code>MAP</code> and <code>WEB_TEST</code>. </p>
 
 <h2>Running experiments online</h2>
+
+<p>TODO&hellip;</p>
 
 </body>
 
