@@ -41,10 +41,9 @@ test_that("Experiment stages work", {
 })
 
 
-Sys.sleep(1) # new session name
 test_that("Experiment starting, status, pause, restart & halt work", {
   expt <- experiment(N=2, server="CommandLineServer", record=FALSE, seats_file=NULL)
-  add_stage(expt, period(), text_stage(text="foo"))
+  add_stage(expt, period(), text_stage(page="foo"))
   expect_that(expt$N, equals(2))
   expect_that(expt$status <- "B0rked", throws_error())
   expect_that(show(expt), prints_text("Stopped"))
@@ -93,8 +92,6 @@ test_that("Experiment starting, status, pause, restart & halt work", {
     throws_error())
 })
 
-
-Sys.sleep(1) # new session name
 test_that("Command line server & client work", {
   expt <- experiment(N=1, server=CommandLineServer, record=FALSE, seats_file=NULL)
   s1 <- stage(handler=function(...) "Got to stage s1")
@@ -107,7 +104,6 @@ test_that("Command line server & client work", {
 })
 
 
-Sys.sleep(1) # new session name
 test_that("Rook server works with experiment", {
   expt <- experiment(N=1, server="RookServer", autostart=TRUE, record=FALSE,
         seats_file=NULL)
@@ -129,34 +125,22 @@ test_that("Rook server works with experiment", {
 })
 
 test_that("TextStages work", {
-  s1 <- text_stage(text="Foo")
+  s1 <- text_stage(page="Foo")
   expect_that(s1$handle_request(1,1, list()), equals("Foo"))
   expect_that(s1$handle_request(2,1, list()), equals("Foo"))
   expect_that(s1$handle_request(2,1, list()), equals(NEXT))
-  t1 <- tempfile("text_stage_test", fileext=".html")
-  cat("foo\n", file=t1)
-  s2 <- text_stage(file=t1)
-  expect_that(s2$handle_request(1,1, list()), equals("foo"))
+
+ 
+})
+
+test_that("brew pages work", {
   t2 <- tempfile("text_stage_test", fileext=".brew")
-  cat("foo<%= bar %>\n", file=t2)
+  cat("bar:<%= bar %> id:<%= id %> period:<%= period %>\n", file=t2)
   bar <<- "boing"
-  s3 <- text_stage(file=t2)
-  expect_that(s3$handle_request(1,1, list()), equals("fooboing"))
-  expect_that(text_stage(file="whatever", text="foo"), throws_error())
+  s3 <- text_stage(page=b_brew(t2))
+  expect_that(s3$handle_request(1,1, list()), equals("bar:boing id:1 period:1"))  
 })
 
-test_that("StructuredStages work", {
-  s1 <- structured_stage(
-    form=function(id, period, params, error='') paste("Foo", error),
-    process=function(id, period, params) stop("barf!")
-  )
-  expect_that(s1$handle_request(1,1, list())$body, equals("Foo "))
-  expect_that(s1$handle_request(1,1, list()), equals("Foo barf!"), 
-        info="Errors in process not being caught")
-})
-
-
-Sys.sleep(1)
 test_that("Checkpoints work", {  
   expt <- experiment(N=4, server="RookServer", autostart=FALSE, 
     randomize_ids=FALSE, record=FALSE, seats_file=NULL)
@@ -181,7 +165,6 @@ test_that("Checkpoints work", {
   expect_that(sapply(clients[1:2], rfrom), matches("foo"))  
 })
 
-Sys.sleep(1)
 test_that("Programs work", {
   first <- NA
   seen <- numeric(0)
@@ -205,7 +188,6 @@ test_that("Programs work", {
   expect_that(seen, equals(1:3))
 })
   
-Sys.sleep(1)
 test_that("Periods work", {
   init_data <- function() {
     myperiods <<- rep(NA,4) 
@@ -256,7 +238,6 @@ test_that("Periods work", {
   expect_that(myperiods, equals(rep(4,4)))
 })
 
-Sys.sleep(1)
 test_that("Timed periods work", {
   init_data <- function () {
     mydf <<- experiment_data_frame(expt)
@@ -293,7 +274,6 @@ test_that("Timed periods work", {
   expect_that(mydf$timed_out[mydf$id==2 & mydf$period==1], is_true())
 })
 
-Sys.sleep(1)
 test_that("Experiment replay works", {
   td <- tempdir()
   od <- setwd(td)
