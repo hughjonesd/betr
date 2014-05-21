@@ -392,10 +392,8 @@ Ngroups <- N/groupsize
 
 
 initialize <- function() {
-  mydf <<- experiment_data_frame(N=N, periods=nreps)
-  mydf$guess <<- NA
-#   mydf$correct <<- NA
-  mydf$group <<- rep(rep(1:Ngroups, each=groupsize), nreps)
+  mydf <<- experiment_data_frame(N=N, periods=nreps, guess=NA,
+        group=rep(rep(1:Ngroups, each=groupsize), nreps))
 }
 
 expt <- experiment(N=N, clients_in_url=TRUE, on_ready=initialize,
