@@ -23,7 +23,7 @@ TODO
   an on_request hook?
 - [x] general framework for HTML pages
   - [] how to deal with 'errors'?
-- [] proper readline for replay
+- [] proper readline for replay - not now, seems hard!
 - [] is_email, is_date?
 - [] HTML form elements in separate package
   - checker functions
@@ -31,13 +31,18 @@ TODO
   - using Twitter Bootstrap?
 - [x] mergewithsubjects function
 - [x] IP address in subjects table
-- [] vignette: include graphics with knitr/brew
-- [] vignette: using brew
+- [x] vignette: include graphics with knitr/brew
+- [x] vignette: using brew
 - [] vignette: tips/tricks/bugs
+
+Next iteration
+--------------
 - [] chat box with Rook?
 - [] media server with Rook?
 - [] JSON server with Rook?
+- [] dynamics with Shiny?
 - [] admin interface with Rook or gtk?
+- [] include the subjects data frame in a standard location on a per period basis
 
 
 
