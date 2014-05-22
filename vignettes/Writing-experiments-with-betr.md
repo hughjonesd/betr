@@ -1,6 +1,7 @@
-
+<!--
 %\VignetteEngine{knitr::knitr}
 %\VignetteIndexEntry{A tutorial on writing and running experiments}
+-->
 
 
 
@@ -322,7 +323,7 @@ expt
 ```
 
 ```
-## Session: betr-2014-05-22-145145	Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
+## Session: betr-2014-05-22-194503	Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr
 ```
 
@@ -353,7 +354,7 @@ info(expt)
 ```
 
 ```
-## Session: betr-2014-05-22-145145	Status: Waiting	Clients: 1/1	Periods: 5	Stages: 10
+## Session: betr-2014-05-22-194503	Status: Waiting	Clients: 1/1	Periods: 5	Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr 
 ## Subjects:
 ##     client IP id seat period stage  status
@@ -1262,7 +1263,7 @@ INFO
 ```
 
 ```
-## Session: betr-2014-05-22-145147	Status: Waiting	Clients: 0/3	Periods: 0	Stages: 0
+## Session: betr-2014-05-22-194505	Status: Waiting	Clients: 0/3	Periods: 0	Stages: 0
 ## Serving at http://127.0.0.1:35538/custom/betr
 ```
 

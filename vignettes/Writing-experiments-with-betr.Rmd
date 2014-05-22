@@ -1,6 +1,7 @@
-
+<!--
 %\VignetteEngine{knitr::knitr}
 %\VignetteIndexEntry{A tutorial on writing and running experiments}
+-->
 
 ```{r echo=FALSE, results='hide'}
 library(betr)
