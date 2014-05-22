@@ -147,13 +147,13 @@ hr {
 <h2>Contents</h2>
 
 <ul>
-<li>(Rationale)[#Rationale]</li>
-<li>(Installing betr)[#Installing-betr]</li>
-<li>(An example betr experiment)[#An-example-betr-experiment]</li>
-<li>(Writing experiments)[#Writing-experiments]</li>
-<li>(Debugging experiments)[#Debugging-experiments]</li>
-<li>(Testing experiments)[#Testing-experiments]</li>
-<li>(Running your experiment in the lab)[#Running-your-experiment-in-the-lab]</li>
+<li><a href="#Rationale">Rationale</a></li>
+<li><a href="#Installing-betr">Installing betr</a></li>
+<li><a href="#An-example-betr-experiment">An example betr experiment</a></li>
+<li><a href="#Writing-experiments">Writing experiments</a></li>
+<li><a href="#Debugging-experiments">Debugging experiments</a></li>
+<li><a href="#Testing-experiments">Testing experiments</a></li>
+<li><a href="#Running-your-experiment-in-the-lab">Running your experiment in the lab</a></li>
 </ul>
 
 <h2>Rationale</h2>
@@ -442,7 +442,7 @@ on disk to hold data about it;</li>
 <pre><code class="splus">expt
 </code></pre>
 
-<pre><code>## Session: betr-2014-05-22-144204  Status: Waiting Clients: 0/1    Periods: 5  Stages: 10
+<pre><code>## Session: betr-2014-05-22-145145  Status: Waiting Clients: 0/1    Periods: 5  Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr
 </code></pre>
 
@@ -463,7 +463,7 @@ settings. You may need to allow access to certain ports.)</p>
 <pre><code class="splus">info(expt)
 </code></pre>
 
-<pre><code>## Session: betr-2014-05-22-144204  Status: Waiting Clients: 1/1    Periods: 5  Stages: 10
+<pre><code>## Session: betr-2014-05-22-145145  Status: Waiting Clients: 1/1    Periods: 5  Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr 
 ## Subjects:
 ##     client IP id seat period stage  status
@@ -488,7 +488,7 @@ experimental data frame:</p>
 </code></pre>
 
 <pre><code>##   id period guess correct
-## 1  1      1     6       1
+## 1  1      1     6       0
 ## 2  1      2     2       0
 ## 3  1      3    NA      NA
 ## 4  1      4    NA      NA
@@ -1303,7 +1303,7 @@ READY
 <pre><code class="splus">INFO
 </code></pre>
 
-<pre><code>## Session: betr-2014-05-22-144206  Status: Waiting Clients: 0/3    Periods: 0  Stages: 0
+<pre><code>## Session: betr-2014-05-22-145147  Status: Waiting Clients: 0/3    Periods: 0  Stages: 0
 ## Serving at http://127.0.0.1:35538/custom/betr
 </code></pre>
 

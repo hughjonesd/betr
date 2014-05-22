@@ -12,13 +12,13 @@ Writing experiments with betr
 Contents
 -----------------
 
-* (Rationale)[#Rationale]
-* (Installing betr)[#Installing-betr]
-* (An example betr experiment)[#An-example-betr-experiment]
-* (Writing experiments)[#Writing-experiments]
-* (Debugging experiments)[#Debugging-experiments]
-* (Testing experiments)[#Testing-experiments]
-* (Running your experiment in the lab)[#Running-your-experiment-in-the-lab]
+* [Rationale](#Rationale)
+* [Installing betr](#Installing-betr)
+* [An example betr experiment](#An-example-betr-experiment)
+* [Writing experiments](#Writing-experiments)
+* [Debugging experiments](#Debugging-experiments)
+* [Testing experiments](#Testing-experiments)
+* [Running your experiment in the lab](#Running-your-experiment-in-the-lab)
 
 
 Rationale
@@ -322,7 +322,7 @@ expt
 ```
 
 ```
-## Session: betr-2014-05-22-144204	Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
+## Session: betr-2014-05-22-145145	Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr
 ```
 
@@ -353,7 +353,7 @@ info(expt)
 ```
 
 ```
-## Session: betr-2014-05-22-144204	Status: Waiting	Clients: 1/1	Periods: 5	Stages: 10
+## Session: betr-2014-05-22-145145	Status: Waiting	Clients: 1/1	Periods: 5	Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr 
 ## Subjects:
 ##     client IP id seat period stage  status
@@ -388,7 +388,7 @@ mydf
 
 ```
 ##   id period guess correct
-## 1  1      1     6       1
+## 1  1      1     6       0
 ## 2  1      2     2       0
 ## 3  1      3    NA      NA
 ## 4  1      4    NA      NA
@@ -1262,7 +1262,7 @@ INFO
 ```
 
 ```
-## Session: betr-2014-05-22-144206	Status: Waiting	Clients: 0/3	Periods: 0	Stages: 0
+## Session: betr-2014-05-22-145147	Status: Waiting	Clients: 0/3	Periods: 0	Stages: 0
 ## Serving at http://127.0.0.1:35538/custom/betr
 ```
 
