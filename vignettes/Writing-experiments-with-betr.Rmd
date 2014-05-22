@@ -15,6 +15,18 @@ knit_hooks$set(document=function(x, options) gsub("```r", "```splus", x))
 Writing experiments with betr
 =============================
 
+Contents
+-----------------
+
+* (Rationale)[#Rationale]
+* (Installing betr)[#Installing-betr]
+* (An example betr experiment)[#An-example-betr-experiment]
+* (Writing experiments)[#Writing-experiments]
+* (Debugging experiments)[#Debugging-experiments]
+* (Testing experiments)[#Testing-experiments]
+* (Running your experiment in the lab)[#Running-your-experiment-in-the-lab]
+
+
 Rationale
 ---------
 
