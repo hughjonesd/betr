@@ -43,7 +43,7 @@ Typically, social science experiments are run using computer software. The most
 widely used software by economists is [zTree](www.iew.uzh.ch/ztree/). Others 
 are written in Java, Python, or PHP. So, why use betr? 
 
-The most important advantageis:
+The most important advantage is:
 
 * betr is written in R, so you don't need to learn a new programming language
 to use it.
