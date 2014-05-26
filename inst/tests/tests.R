@@ -131,6 +131,25 @@ test_that("TextStages work", {
   expect_that(s1$handle_request(2,1, list()), equals(NEXT))
 })
 
+test_that("Stage naming works", {
+  s1 <- text_stage(page="Foo", name="my text stage")
+  s2 <- period(name="my period")
+  s3 <- checkpoint(name="my checkpoint")
+  s4 <- stage(name="my stage", handler=function(...) NEXT)
+  s5 <- program("all", function(...) NEXT, name="my program")
+  s6 <- timed(stage(name="my timed stage", handler=function(...) NEXT), 
+        timeout=10)
+  ex <- experiment(N=1)
+  add_stage(ex, s1, s2, s3, s4, s5, s6)
+  tmp <- capture.output(print_stages(ex))
+  expect_that(tmp[1], matches("my text stage"))
+  expect_that(tmp[2], matches("my period"))
+  expect_that(tmp[3], matches("my checkpoint"))
+  expect_that(tmp[4], matches("my stage"))
+  expect_that(tmp[5], matches("my program"))
+  expect_that(tmp[6], matches("my timed stage"))
+})
+
 test_that("brew pages work", {
   t2 <- tempfile("text_stage_test", fileext=".brew")
   cat("bar:<%= bar %> id:<%= id %> period:<%= period %>\n", file=t2)
