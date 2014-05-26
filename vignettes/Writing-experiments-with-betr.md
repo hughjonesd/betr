@@ -1,6 +1,7 @@
-
+<!--
 %\VignetteEngine{knitr::knitr}
 %\VignetteIndexEntry{A tutorial on writing and running experiments}
+-->
 
 
 
@@ -8,6 +9,18 @@
 
 Writing experiments with betr
 =============================
+
+Contents
+-----------------
+
+* [Rationale](#Rationale)
+* [Installing betr](#Installing-betr)
+* [An example betr experiment](#An-example-betr-experiment)
+* [Writing experiments](#Writing-experiments)
+* [Debugging experiments](#Debugging-experiments)
+* [Testing experiments](#Testing-experiments)
+* [Running your experiment in the lab](#Running-your-experiment-in-the-lab)
+
 
 Rationale
 ---------
@@ -310,7 +323,7 @@ expt
 ```
 
 ```
-## Session: betr-2014-05-20-232616	Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
+## Session: betr-2014-05-22-194503	Status: Waiting	Clients: 0/1	Periods: 5	Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr
 ```
 
@@ -341,7 +354,7 @@ info(expt)
 ```
 
 ```
-## Session: betr-2014-05-20-232616	Status: Waiting	Clients: 1/1	Periods: 5	Stages: 10
+## Session: betr-2014-05-22-194503	Status: Waiting	Clients: 1/1	Periods: 5	Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr 
 ## Subjects:
 ##     client IP id seat period stage  status
@@ -456,10 +469,8 @@ Ngroups <- N/groupsize
 
 
 initialize <- function() {
-  mydf <<- experiment_data_frame(N=N, periods=nreps)
-  mydf$guess <<- NA
-#   mydf$correct <<- NA
-  mydf$group <<- rep(rep(1:Ngroups, each=groupsize), nreps)
+  mydf <<- experiment_data_frame(N=N, periods=nreps, guess=NA,
+        group=rep(rep(1:Ngroups, each=groupsize), nreps))
 }
 
 expt <- experiment(N=N, clients_in_url=TRUE, on_ready=initialize,
@@ -1252,7 +1263,7 @@ INFO
 ```
 
 ```
-## Session: betr-2014-05-20-232617	Status: Waiting	Clients: 0/3	Periods: 0	Stages: 0
+## Session: betr-2014-05-22-194505	Status: Waiting	Clients: 0/3	Periods: 0	Stages: 0
 ## Serving at http://127.0.0.1:35538/custom/betr
 ```
 

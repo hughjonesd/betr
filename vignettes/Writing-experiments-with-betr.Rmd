@@ -1,6 +1,7 @@
-
+<!--
 %\VignetteEngine{knitr::knitr}
 %\VignetteIndexEntry{A tutorial on writing and running experiments}
+-->
 
 ```{r echo=FALSE, results='hide'}
 library(betr)
@@ -14,6 +15,18 @@ knit_hooks$set(document=function(x, options) gsub("```r", "```splus", x))
 
 Writing experiments with betr
 =============================
+
+Contents
+-----------------
+
+* [Rationale](#Rationale)
+* [Installing betr](#Installing-betr)
+* [An example betr experiment](#An-example-betr-experiment)
+* [Writing experiments](#Writing-experiments)
+* [Debugging experiments](#Debugging-experiments)
+* [Testing experiments](#Testing-experiments)
+* [Running your experiment in the lab](#Running-your-experiment-in-the-lab)
+
 
 Rationale
 ---------
@@ -30,7 +43,7 @@ Typically, social science experiments are run using computer software. The most
 widely used software by economists is [zTree](www.iew.uzh.ch/ztree/). Others 
 are written in Java, Python, or PHP. So, why use betr? 
 
-The most important advantageis:
+The most important advantage is:
 
 * betr is written in R, so you don't need to learn a new programming language
 to use it.

@@ -142,7 +142,24 @@ hr {
 </head>
 
 <body>
+<!--
+%\VignetteEngine{knitr::knitr}
+%\VignetteIndexEntry{A tutorial on writing and running experiments}
+-->
+
 <h1>Writing experiments with betr</h1>
+
+<h2>Contents</h2>
+
+<ul>
+<li><a href="#Rationale">Rationale</a></li>
+<li><a href="#Installing-betr">Installing betr</a></li>
+<li><a href="#An-example-betr-experiment">An example betr experiment</a></li>
+<li><a href="#Writing-experiments">Writing experiments</a></li>
+<li><a href="#Debugging-experiments">Debugging experiments</a></li>
+<li><a href="#Testing-experiments">Testing experiments</a></li>
+<li><a href="#Running-your-experiment-in-the-lab">Running your experiment in the lab</a></li>
+</ul>
 
 <h2>Rationale</h2>
 
@@ -430,7 +447,7 @@ on disk to hold data about it;</li>
 <pre><code class="splus">expt
 </code></pre>
 
-<pre><code>## Session: betr-2014-05-20-232616  Status: Waiting Clients: 0/1    Periods: 5  Stages: 10
+<pre><code>## Session: betr-2014-05-22-194503  Status: Waiting Clients: 0/1    Periods: 5  Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr
 </code></pre>
 
@@ -451,7 +468,7 @@ settings. You may need to allow access to certain ports.)</p>
 <pre><code class="splus">info(expt)
 </code></pre>
 
-<pre><code>## Session: betr-2014-05-20-232616  Status: Waiting Clients: 1/1    Periods: 5  Stages: 10
+<pre><code>## Session: betr-2014-05-22-194503  Status: Waiting Clients: 1/1    Periods: 5  Stages: 10
 ## Serving at http://127.0.0.1:35538/custom/betr 
 ## Subjects:
 ##     client IP id seat period stage  status
@@ -541,10 +558,8 @@ Ngroups &lt;- N/groupsize
 
 
 initialize &lt;- function() {
-  mydf &lt;&lt;- experiment_data_frame(N=N, periods=nreps)
-  mydf$guess &lt;&lt;- NA
-#   mydf$correct &lt;&lt;- NA
-  mydf$group &lt;&lt;- rep(rep(1:Ngroups, each=groupsize), nreps)
+  mydf &lt;&lt;- experiment_data_frame(N=N, periods=nreps, guess=NA,
+        group=rep(rep(1:Ngroups, each=groupsize), nreps))
 }
 
 expt &lt;- experiment(N=N, clients_in_url=TRUE, on_ready=initialize,
@@ -1293,7 +1308,7 @@ READY
 <pre><code class="splus">INFO
 </code></pre>
 
-<pre><code>## Session: betr-2014-05-20-232617  Status: Waiting Clients: 0/3    Periods: 0  Stages: 0
+<pre><code>## Session: betr-2014-05-22-194505  Status: Waiting Clients: 0/3    Periods: 0  Stages: 0
 ## Serving at http://127.0.0.1:35538/custom/betr
 </code></pre>
 
