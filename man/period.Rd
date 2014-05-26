@@ -7,6 +7,8 @@ period(wait_for="none")
 }
 \arguments{
 \item{wait_for}{}
+
+\item{name}{Optional name of the stage}
 }
 \value{
 An object of class Period

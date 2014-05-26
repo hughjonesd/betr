@@ -3,10 +3,12 @@
 \alias{checkpoint}
 \title{Make subjects wait for other subjects.}
 \usage{
-checkpoint(...)
+checkpoint(wait_for, name = "No name")
 }
 \arguments{
 \item{wait_for}{"all", "none", "ever" or a vector of length N}
+
+\item{name}{optional name of the stage.}
 }
 \value{
 An object of class CheckPoint

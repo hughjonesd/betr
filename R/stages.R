@@ -3,12 +3,17 @@
 #' @export AbstractStage
 #' @exportClass AbstractStage
 AbstractStage <- setRefClass("AbstractStage",
-  fields=list(expt="ANY"),
+  fields=list(expt="ANY", name="character"),
   methods=list(
-    initialize = function(...) callSuper(...),
+    initialize = function(name="Unnamed", ...) {
+      name <<- name
+      callSuper(...)
+    },
     
     handle_request = function(id, period, params) stop(
-          "handle_request called on object of class AbstractStage")
+          "handle_request called on object of class AbstractStage"),
+    
+    description = function() paste0(name, " (", class(.self) ,")")
   )
 )
 
@@ -34,6 +39,7 @@ Stage <- setRefClass("Stage", contains="AbstractStage",
 #' 
 #' Stages are the building blocks of experiments. A single stage can
 #' result in one or more HTML pages shown to participants.
+#' @param name optional name of the stage.
 #' @param handler A function which returns either a character string 
 #'        containing HTML, a \code{\link{Rook::Response}} object, the constant 
 #'        \code{WAIT}, or the constant \code{NEXT}.
@@ -54,7 +60,7 @@ Stage <- setRefClass("Stage", contains="AbstractStage",
 #' })
 #' @family stages
 #' @export
-stage <- function (handler) Stage$new(handler)
+stage <- function (handler, name="No name") Stage$new(handler=handler, name=name)
 
 
 #' @export TextStage
@@ -85,6 +91,7 @@ TextStage <- setRefClass("TextStage", contains="AbstractStage",
 #' 
 #' A text stage presents some HTML once to each subject.
 #' 
+#' @param name optional name of the stage.
 #' @param page A character vector containing HTML, or a function to be called 
 #'        with parameters \code{id, period, params}.
 #' @param wait Wait to move on?
@@ -102,7 +109,8 @@ TextStage <- setRefClass("TextStage", contains="AbstractStage",
 #'          
 #' @family stages  
 #' @export
-text_stage <- function (page, wait=FALSE) TextStage$new(page=page, wait=wait)
+text_stage <- function (page, wait=FALSE, name="No name") 
+      TextStage$new(page=page, wait=wait, name=name)
 
 rookify <- function (thing) {
   if (inherits(thing, "Response")) return(thing)
@@ -294,6 +302,7 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' @param titles A list of field titles, like \code{list(field_name=title,...)}
 #' @param data_frame The quoted string name of the data frame to be updated.
 #'        This should exist in the global environment.
+#' @param name optional name of the stage.
 #' 
 #' @details 
 #' 
@@ -345,13 +354,13 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' @return An object of class FormStage
 #' @family stages
 #' @export
-form_stage <- function (page, fields, titles=NULL, data_frame) {
+form_stage <- function (page, fields, titles=NULL, data_frame, name="No name") {
   if (missing(page) || is.null(page)) stop("page must be specified")
   if (missing(data_frame) || ! is.character(data_frame)) 
         stop("data_frame must be a string")
   if (missing(fields)) stop("Please specify a list of fields")
   FormStage$new(page=page, fields=fields, titles=titles, 
-        data_frame=data_frame)
+        data_frame=data_frame, name=name)
 }
 
 
@@ -361,8 +370,8 @@ CheckPoint <- setRefClass("CheckPoint", contains="AbstractStage",
     ready = "numeric"
   ),
   methods = list(
-    initialize = function(wait_for="all") {
-      callSuper(wait_for=wait_for, ready=numeric(0)) 
+    initialize = function(wait_for="all", ...) {
+      callSuper(wait_for=wait_for, ready=numeric(0, ...)) 
     },
     
     check_ready = function(id) {
@@ -384,6 +393,7 @@ CheckPoint <- setRefClass("CheckPoint", contains="AbstractStage",
 #' Make subjects wait for other subjects.
 #' 
 #' @param wait_for "all", "none", "ever" or a vector of length N
+#' @param name optional name of the stage.
 #' 
 #' @details 
 #' 
@@ -416,7 +426,8 @@ CheckPoint <- setRefClass("CheckPoint", contains="AbstractStage",
 #' @return An object of class CheckPoint
 #' @family stages
 #' @export
-checkpoint <- function (...) CheckPoint$new(...)
+checkpoint <- function (wait_for, name="No name") 
+      CheckPoint$new(wait_for=wait_for, name=name)
 
 Period <- setRefClass("Period", contains="CheckPoint",
   fields = list(
@@ -450,6 +461,7 @@ Period <- setRefClass("Period", contains="CheckPoint",
 #' 
 #' @usage period(wait_for="none")
 #' @param wait_for 
+#' @param name Optional name of the stage 
 #' 
 #' @details 
 #' 
@@ -476,7 +488,8 @@ Period <- setRefClass("Period", contains="CheckPoint",
 #' @return An object of class Period
 #' @family stages
 #' @export
-period <- function (wait_for="none") Period$new(wait_for=wait_for)
+period <- function (wait_for="none", name="No name") Period$new(
+      wait_for=wait_for, name=name)
 
 
 
@@ -507,6 +520,7 @@ Program <- setRefClass("Program", contains="AbstractStage",
 #' @param run "first", "last", or "all".
 #' @param fn a function which should take two arguments, \code{id} and 
 #' \code{period}.
+#' @param name optional name of the stage.
 #' 
 #' @details 
 #' If
@@ -547,7 +561,11 @@ Program <- setRefClass("Program", contains="AbstractStage",
 #' @return A Stage object of class Program
 #' @family stages
 #' @export
-program <- function (run, fn) {list(run,fn);Program$new(run, fn)} # list() to catch errors
+#                                       list() to catch errors
+program <- function (run, fn, name="No name") {
+  list(run,fn);
+  Program$new(run=run, fn=fn, name=name)
+} 
 
 Timed <- setRefClass("Timed", contains="AbstractStage",
   fields=list(
@@ -587,7 +605,9 @@ Timed <- setRefClass("Timed", contains="AbstractStage",
       if (! is(res, "Response")) res <- rookify(res)
       res$header("Refresh", time_remaining)  
       return(res)
-    }
+    },
+    
+    description = function() paste0(stage$name, " (Timed ", class(stage), ")")
   )
 )
 
@@ -628,6 +648,8 @@ timed <- function (stage, timeout, on_timeout=function(...) NULL) {
         stop("timeout must be a positive number, was ", timeout)
   Timed$new(stage=stage, timeout=timeout, on_timeout=on_timeout)
 }
+
+description <- function(stage) stage$description()
 
 #' @rdname stage
 #' @export

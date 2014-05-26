@@ -3,9 +3,11 @@
 \alias{text_stage}
 \title{Create a stage which does nothing but display HTML to the subject.}
 \usage{
-text_stage(page, wait = FALSE)
+text_stage(page, wait = FALSE, name = "No name")
 }
 \arguments{
+\item{name}{optional name of the stage.}
+
 \item{page}{A character vector containing HTML, or a function to be called
 with parameters \code{id, period, params}.}
 

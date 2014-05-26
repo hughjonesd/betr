@@ -8,13 +8,15 @@
 \format{\preformatted{Class 'NEXT'  num -1
 }}
 \usage{
-stage(handler)
+stage(handler, name = "No name")
 
 NEXT
 
 WAIT
 }
 \arguments{
+\item{name}{optional name of the stage.}
+
 \item{handler}{A function which returns either a character string
 containing HTML, a \code{\link{Rook::Response}} object, the constant
 \code{WAIT}, or the constant \code{NEXT}.}

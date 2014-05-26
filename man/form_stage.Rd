@@ -4,7 +4,7 @@
 \title{Print out a form and store the subject's inputs in a data frame, after
 checking for errors}
 \usage{
-form_stage(page, fields, titles = NULL, data_frame)
+form_stage(page, fields, titles = NULL, data_frame, name = "No name")
 }
 \arguments{
 \item{page}{A character vector containing HTML, or a function to be called
@@ -16,7 +16,9 @@ with parameters \code{id, period, params, errors}.}
 \item{titles}{A list of field titles, like \code{list(field_name=title,...)}}
 
 \item{data_frame}{The quoted string name of the data frame to be updated.
-       This should exist in the global environment.}
+This should exist in the global environment.}
+
+\item{name}{optional name of the stage.}
 }
 \value{
 An object of class FormStage

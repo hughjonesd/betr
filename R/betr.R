@@ -75,9 +75,9 @@ Experiment <- setRefClass("Experiment",
     
     initialize_subjects = function() {
       subjects <<- data.frame(client=character(0), IP=character(0), 
-            id=numeric(0), seat=character(0), period=numeric(0), stage=numeric(0), 
+            id=numeric(0), seat=character(0), period=numeric(0), 
             status=factor(, levels=c("Running", "Waiting", "Finished")), 
-            stringsAsFactors=FALSE)
+            stage=numeric(0), stringsAsFactors=FALSE)
     },
     
     finalize = function(...) {
@@ -151,8 +151,9 @@ Experiment <- setRefClass("Experiment",
                 cookies[["betr-seat"]], "'"))
       }
       subjects <<- rbind(subjects, data.frame(client=client, IP=ip, id=id, 
-            seat=seat, period=0, stage=0, status=factor("Running", 
-            levels=c("Running", "Waiting", "Finished")), stringsAsFactors=FALSE))
+            seat=seat, period=0, status=factor("Running", 
+            levels=c("Running", "Waiting", "Finished")), stage=0, 
+            stringsAsFactors=FALSE))
           
       if (status=="Started") next_period(subjects[subjects$client==client,])
       # if we reach N, trigger a change of state
@@ -254,7 +255,9 @@ Experiment <- setRefClass("Experiment",
       if (status != "Stopped") server$info()
       if (subj && nrow(subjects) > 0) {
         cat("Subjects:\n")
-        print(subjects[order(subjects$id),])
+        print(cbind(subjects[order(subjects$id),], 
+              desc=sapply(subjects$stage, function(x) if (x==0) "" else 
+              description(stages[[x]]))))
       }
       if (map) .self$map()
       invisible(TRUE)
@@ -280,7 +283,7 @@ Experiment <- setRefClass("Experiment",
     
     print_stages = function() {
       for (i in 1:length(stages)) {
-        cat(i, ": ", class(stages[[i]]), "\n", sep="")
+        cat(i, ": ", description(stages[[i]]), "\n", sep="")
       }
     },
     

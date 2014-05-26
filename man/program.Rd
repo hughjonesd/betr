@@ -3,13 +3,15 @@
 \alias{program}
 \title{Run a function, either once or for each subject}
 \usage{
-program(run, fn)
+program(run, fn, name = "No name")
 }
 \arguments{
 \item{run}{"first", "last", or "all".}
 
 \item{fn}{a function which should take two arguments, \code{id} and
 \code{period}.}
+
+\item{name}{optional name of the stage.}
 }
 \value{
 A Stage object of class Program
