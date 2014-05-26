@@ -371,7 +371,7 @@ CheckPoint <- setRefClass("CheckPoint", contains="AbstractStage",
   ),
   methods = list(
     initialize = function(wait_for="all", ...) {
-      callSuper(wait_for=wait_for, ready=numeric(0, ...)) 
+      callSuper(wait_for=wait_for, ready=numeric(0), ...) 
     },
     
     check_ready = function(id) {
@@ -426,7 +426,7 @@ CheckPoint <- setRefClass("CheckPoint", contains="AbstractStage",
 #' @return An object of class CheckPoint
 #' @family stages
 #' @export
-checkpoint <- function (wait_for, name="No name") 
+checkpoint <- function (wait_for="all", name="No name") 
       CheckPoint$new(wait_for=wait_for, name=name)
 
 Period <- setRefClass("Period", contains="CheckPoint",

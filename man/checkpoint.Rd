@@ -3,7 +3,7 @@
 \alias{checkpoint}
 \title{Make subjects wait for other subjects.}
 \usage{
-checkpoint(wait_for, name = "No name")
+checkpoint(wait_for = "all", name = "No name")
 }
 \arguments{
 \item{wait_for}{"all", "none", "ever" or a vector of length N}

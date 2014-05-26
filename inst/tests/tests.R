@@ -129,8 +129,6 @@ test_that("TextStages work", {
   expect_that(s1$handle_request(1,1, list()), equals("Foo"))
   expect_that(s1$handle_request(2,1, list()), equals("Foo"))
   expect_that(s1$handle_request(2,1, list()), equals(NEXT))
-
- 
 })
 
 test_that("brew pages work", {
