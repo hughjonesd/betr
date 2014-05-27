@@ -112,6 +112,7 @@ identify_seats <- function (method="IP", serve=TRUE) {
     svr <- Rhttpd$new()
     rhapp <- RhttpdApp$new(name="seats", app=app)
     svr$add(rhapp)
+    require(tools)
     svr$start()
     cat("Serving on", svr$full_url(1))
   } else {
