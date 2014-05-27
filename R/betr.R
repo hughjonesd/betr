@@ -153,7 +153,7 @@ Experiment <- setRefClass("Experiment",
       command <- list(name=command, params=params)
       commands <<- append(commands, command)
       tm=Sys.time() - start_time
-      cat(as.yaml(command), file=file.path(session_name, "record", paste0("command-", 
+      dput(command, file=file.path(session_name, "record", paste0("command-", 
             as.character(tm))))
     },
     
