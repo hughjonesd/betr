@@ -1,5 +1,13 @@
+---
+title: "Writing experiments with betr"
+author: "David Hugh-Jones"
+date: "4 November 2014"
+output:
+  html_document:
+    toc: yes
+---
 <!--
-%\VignetteEngine{knitr::knitr}
+%\VignetteEngine{knitr::rmarkdown}
 %\VignetteIndexEntry{A tutorial on writing and running experiments}
 -->
 
@@ -16,16 +24,6 @@ knit_hooks$set(document=function(x, options) gsub("```r", "```splus", x))
 Writing experiments with betr
 =============================
 
-Contents
------------------
-
-* [Rationale](#Rationale)
-* [Installing betr](#Installing-betr)
-* [An example betr experiment](#An-example-betr-experiment)
-* [Writing experiments](#Writing-experiments)
-* [Debugging experiments](#Debugging-experiments)
-* [Testing experiments](#Testing-experiments)
-* [Running your experiment in the lab](#Running-your-experiment-in-the-lab)
 
 
 Rationale
@@ -282,9 +280,12 @@ ready(expt)
 
 Typically, you will call `ready` when you want to start connecting subjects to
 the experiment. `ready` does several things:
+
 * Starts the web server so that subject computers can connect to the experiment;
+
 * Creates a new experiment session, with a date and time, and creates a folder
 on disk to hold data about it;
+
 * Calls any function passed to `on_ready`, e.g. initializing your data.
 
 Now, `expt` will report more information:
@@ -435,7 +436,7 @@ groups <- rep(1:Ngroups, each=groupsize)
 for (i in 1:nperiods(expt)) mydf$group[mydf$period==i] <<- sample(groups)
 ```
 
-* Notice as before that when we assign to `mydf`, we use the global assignment 
+* As before, when we assign to `mydf`, we use the global assignment 
 operator `<<-`.
 
 ### Text Stages
@@ -526,10 +527,10 @@ updated. Note that:
 
 * `data_frame` should be the name of the data frame, not the data frame itself -- i.e.
   `"mydf"` not `mydf`. 
-* The data frame must exist in the global environment
+* The data frame must exist in the global environment.
 * The data frame is expected to be in the standard form returned by 
   `experiment_data_frame`, that is:
-  
+
 id | period | ...
 ---|--------|----
 1 | 1 | ...
@@ -538,6 +539,7 @@ id | period | ...
 2 | 1 | ...
 2 | 1 | ...
 ... | ... | ...
+
 * Form parameters are character vectors and will be stored in the database as
   such (even if you've checked them with e.g. `is_whole_number()`). 
   
@@ -566,8 +568,7 @@ until everyone in his or her group has arrived. For example, if
 wait_for=c("a", "b", "a", "b", "c")
 ```
 
-then subject IDs 1 and 3 will wait for each other, subject IDs 2 and 4 will wait
-for each other, and subject ID 5 will not wait for anyone.
+then subject IDs 1 and 3 will wait for each other, because they are in group "a".  Subject IDs 2 and 4 will wait for each other, and subject ID 5 will not wait for anyone.
 
 ### Programs 
 
@@ -611,8 +612,8 @@ using `period()`.
 add_stage(expt, period(), guess_s, check_s, calc_s, times=nreps)
 ```
 
-The basic pattern here is: form stage, checkpoint, program. You can use this 
-simple pattern in many experiments.
+> The basic pattern here is: form stage, checkpoint, program. You can use this 
+> simple pattern in many experiments.
 
 ### Adding timeouts
 

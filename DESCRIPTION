@@ -15,9 +15,9 @@ Imports:
     Rook,
     testthat,
     brew,
-    tools
-Suggests:
-    knitr
+    tools,
+    knitr,
+    yaml
 Collate:
     'stages.R'
     'servers.R'
