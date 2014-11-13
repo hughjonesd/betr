@@ -23,6 +23,7 @@ TODO
   an on_request hook?
 - [x] general framework for HTML pages
   - [] how to deal with 'errors'?
+- [] check function errors should be translatable
 - [] is_email, is_date?
 - [] HTML form elements in separate package
   - checker functions
