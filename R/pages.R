@@ -66,7 +66,7 @@ b_brew <- function(filename) {
 #' @export
 b_knit <- function(filename) {
   function(id, period, params, errors) {
-    capture.output(knit(filename, output=stdout(), quiet=TRUE))
+    capture.output(invisible(knit(filename, output=stdout(), quiet=TRUE)))
   }
 }
 
