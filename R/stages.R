@@ -162,6 +162,19 @@ is_at_least <- function(min) {
 
 #' @rdname all_of
 #' @export
+is_one_of <- function(...) {
+  dots <- list(...)
+  function(ftitle, val, ...) {
+    if (! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
+    if (! val %in% dots) paste0(ftitle, " must be one of:", paste(dots, 
+          collapse=", ")) else NULL
+  }   
+}
+
+
+
+#' @rdname all_of
+#' @export
 has_value <- function() {
   function(ftitle, val, ...) {
     if (is.null(val) || is.na(val) || nchar(val)==0 ) paste0("Please submit a
