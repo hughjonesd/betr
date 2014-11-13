@@ -12,27 +12,20 @@ BUGS
 
 TODO
 ----
-- [x] replay() 
-- [x] try live replay by not halting main server
-- [x] use mAB to implement single-word commands (`READY`, `START`, `INFO`)
-- [x] run without a record
-- [x] experiment has own time() function to make sure replay gets timeouts right
 - [x] timeout stage to wrap other stages
   - would be nice to do this for "wait" also but hard to "redisplay the page"
 - [] use makeActiveBinding to "watch" data frames etc.... or define
   an on_request hook?
+- [] easy equivalent to zTree Participate=0, i.e. make some subjects skip a stage
 - [x] general framework for HTML pages
   - [] how to deal with 'errors'?
 - [] check function errors should be translatable
-- [] is_email, is_date?
+
+- [] is_email, is_date
 - [] HTML form elements in separate package
   - checker functions
   - javascript attribute?
   - using Twitter Bootstrap?
-- [x] mergewithsubjects function
-- [x] IP address in subjects table
-- [x] vignette: include graphics with knitr/brew
-- [x] vignette: using brew
 - [] vignette: tips/tricks/bugs
 
 Next iteration
@@ -41,6 +34,7 @@ Next iteration
 - [] media server with Rook?
 - [] JSON server with Rook?
 - [] dynamics with Shiny?
+- [] package for updatable views in R?
 - [] admin interface with Rook or gtk?
 - [] include the subjects data frame in a standard location on a per period basis
   - integrate existing subjects df; also Profit, Group?
