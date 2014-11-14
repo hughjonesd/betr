@@ -387,7 +387,7 @@ Experiment <- setRefClass("Experiment",
       # clean up the subjects table etc.
       requests <<- commands <<- list()
       initialize_subjects()
-      fp <- file.path(session_name, "seed")
+      fp <- file.path(folder, "seed")
       err <- try(seed <<- as.integer(readLines(fp, warn=FALSE)), silent=TRUE)
       if (inherits(err, "try-error")) stop("Couldn't read seed file in ", fp)
       # start a replayserver which runs the commands
