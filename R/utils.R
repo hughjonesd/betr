@@ -258,4 +258,4 @@ footer <- function() {
 #' @rdname header
 #' @export
 next_form <- function(text='Next') sprintf("<form action='' method='POST'>
-      <input type='submit' value='%s' /></form", text)
+      <input type='submit' value='%s' /></form>", text)
