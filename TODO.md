@@ -7,8 +7,7 @@ BUGS
 - [] FormStage doesn't like not getting params...?
 - [] how to move on manually from TextStages? autorefresh?
 - [] ReplayServer gets put in .oldserver
-- [x] problem with timed() in PG game?
-- [x] knitr options infecting my Rmd files from pages.R!
+- [] documentation doesn't show default values e.g. in experiment(...)
 
 TODO
 ----
