@@ -596,10 +596,11 @@ session_name <- function(experiment) experiment$get_session_name()
 #' session of interest.
 #' 
 #' @examples
+#' \dontrun{
 #' start(expt)
 #' # something goes wrong after 2 minutes
 #' replay(expt, maxTime=120)
-#' 
+#' }
 #' @family command line functions
 #' @export
 replay <- function(experiment, folder=NULL, maxtime=Inf, speed=NULL, ask=FALSE) 
