@@ -341,8 +341,19 @@ Period <- setRefClass("Period", contains="CheckPoint",
 
 #' Begin a new period, optionally waiting for other subjects
 #' 
+#' This creates a period object which can be passed to \code{\link{add_stage}}.
+#' Periods do nothing but add one to the period counter, and optionally
+#' wait for all subjects to reach the same position.
+#' 
+#' @usage period(wait_for="none")
+#' @param wait_for 
+#' @param name Optional name of the stage 
+#' 
+#' @details 
+#' 
 #' A period may contain one or more stages. When the experiment is started,
-#' all subjects are in period 1. Typically, you will want a new period for each
+#' all subjects are in period 0, which can be used for e.g. instructions.
+#' Typically, you will want to put a new period before each
 #' "repetition" of an experiment. You can then store the data in a data frame
 #' which looks like:
 #' 
@@ -354,12 +365,6 @@ Period <- setRefClass("Period", contains="CheckPoint",
 #' 2 \tab 1 \tab ... \cr
 #' ... \tab ... \tab ... \cr
 #' }
-#' 
-#' @usage period(wait_for="none")
-#' @param wait_for 
-#' @param name Optional name of the stage 
-#' 
-#' @details 
 #' 
 #' I\code{wait_for} is interpreted just as in \code{\link{checkpoint}}.
 #' 
@@ -403,8 +408,8 @@ Program <- setRefClass("Program", contains="AbstractStage",
     
     handle_request = function(id, period, params) {
       if (! id %in% ready) ready <<- c(ready, id)
-      if (length(ready) == 1 && run == "first" || run == "all" || 
-            length(ready) == expt$N && run == "last") fn(id, period)    
+      if ((length(ready) == 1 && run == "first") || run == "all" || 
+            (length(ready) == expt$N && run == "last")) fn(id, period)    
       return(NEXT)
     }
   )
