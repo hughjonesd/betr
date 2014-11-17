@@ -163,6 +163,7 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
           if (! is.null(err)) {names(err) <- fname; errs <- c(errs, err)}
         }
         if (length(errs) == 0) {
+          params <- lapply(params, type.convert, as.is=TRUE)
           update_data_frame(id, period, params[names(fields)])
           return(NEXT)
         } else {
