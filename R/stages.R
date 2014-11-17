@@ -155,7 +155,7 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
     handle_request = function(id, period, params) {
       if (id %in% seenonce) {
         errs <- character(0)
-        for (f in 1:length(fields)) {
+        for (f in seq_along(fields)) {
           fname <- names(fields[f])
           f <- fields[[f]]
           ftitle <- if(is.null(titles)) fname else titles[[fname]]
