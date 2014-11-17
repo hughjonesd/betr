@@ -28,6 +28,17 @@ TODO
   - using Twitter Bootstrap?
 - [] vignette: tips/tricks/bugs
 
+Other thoughts
+--------------
+- HTML form checks could be expressions: `is_numeric(x) && x %in% 1:10`
+- with error messages
+- way to make parameters numeric. (`type.convert` everything?)
+- make matching and within-group calculations simple:
+- builtin data in "tidy" form: subject/period, subject, period, global?
+- data frame "views" in some way... separate package?
+- what if you want to ask someone the same Q repeatedly (e.g. eliciting more
+reasons)
+
 Next iteration
 --------------
 - [] chat box with Rook/websockets?
