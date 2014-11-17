@@ -31,9 +31,11 @@ TODO
 Other thoughts
 --------------
 - HTML form checks could be expressions: `is_numeric(x) && x %in% 1:10`
-- with error messages
-- way to make parameters numeric. (`type.convert` everything?)
-- make matching and within-group calculations simple:
+- with error messages in separate array?
+- make matching and within-group calculations simple, e.g. 
+  `group`, `role` primitives?
+- pass in code, not just functions, with id, period, params etc. in environment
+  - use `substitute` and a decent package for evaluation
 - builtin data in "tidy" form: subject/period, subject, period, global?
 - data frame "views" in some way... separate package?
 - what if you want to ask someone the same Q repeatedly (e.g. eliciting more
