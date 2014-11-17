@@ -34,9 +34,18 @@ Other thoughts
 - with error messages in separate array?
 - make matching and within-group calculations simple, e.g. 
   `group`, `role` primitives?
+  - The dplyr way: ultimatum game.
+
+```splus
+subject %<>% group_by(pair) %>% mutate(
+      accepted=accept[role==1] <= offer[role==2], 
+      payoff=accepted*ifelse(role==1, 10 - offer, offer))
+```
+
 - pass in code, not just functions, with id, period, params etc. in environment
   - use `substitute` and a decent package for evaluation
-- builtin data in "tidy" form: subject/period, subject, period, global?
+- put builtin data in "tidy" form: subject/period, subject, period, global?
+  - but what if it's hard to merge things?
 - data frame "views" in some way... separate package?
 - what if you want to ask someone the same Q repeatedly (e.g. eliciting more
 reasons)
