@@ -736,10 +736,11 @@ merge_subjects <- function(experiment, data_frame) {
 #' session of interest.
 #' 
 #' @examples
+#' \dontrun{
 #' start(expt)
 #' # something goes wrong after 2 minutes
 #' replay(expt, maxTime=120)
-#' 
+#' }
 #' @family command line functions
 #' @export
 replay <- function(experiment, folder=NULL, maxtime=Inf, speed=NULL, ask=FALSE,
