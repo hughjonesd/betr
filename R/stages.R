@@ -448,7 +448,7 @@ Program <- setRefClass("Program", contains="AbstractStage",
 #' }
 #' 
 #' s2 <- program("last", function(id, period) {
-#'  mydf$profit <<- with(mydf[mydf$period==period,] 
+#'  mydf$profit <<- with(mydf[mydf$period==period,],
 #'        ave(contrib, group, FUN=function(x) 50 - x + mpcr * mean(x)))
 #' })
 #' 
