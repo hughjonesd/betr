@@ -589,7 +589,7 @@ restart <- function(experiment) experiment$handle_command("restart")
 #' @return TRUE or FALSE, invisibly
 #' @family command line functions
 #' @export
-next_stage <- function(experiment, subjid) {
+next_stage <- function(experiment, subjid=1:experiment$N) {
   warning("Moving subjects on manually")
   experiment$handle_command("next_stage", list(subj=subjid))
 }
