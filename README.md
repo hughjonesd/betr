@@ -1,6 +1,9 @@
 betr
 ====
 
+
+<a href="https://travis-ci.org/hughjonesd/betr"><img src='https://travis-ci.org/hughjonesd/betr.svg?branch=master'></a>
+
 Behavioral Experiments Toolkit in R
 -----------------------------------
 
