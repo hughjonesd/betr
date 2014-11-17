@@ -8,6 +8,7 @@ BUGS
 - [] how to move on manually from TextStages? autorefresh?
 - [] ReplayServer gets put in .oldserver
 - [] documentation doesn't show default values e.g. in experiment(...)
+- [] ?? ready isn't reinitialized in Programs on replay?
 
 TODO
 ----
