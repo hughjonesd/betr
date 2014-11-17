@@ -14,12 +14,17 @@ period(wait_for="none")
 An object of class Period
 }
 \description{
-A period may contain one or more stages. When the experiment is started,
-all subjects are in period 1. Typically, you will want a new period for each
-"repetition" of an experiment. You can then store the data in a data frame
-which looks like:
+This creates a period object which can be passed to \code{\link{add_stage}}.
+Periods do nothing but add one to the period counter, and optionally
+wait for all subjects to reach the same position.
 }
 \details{
+A period may contain one or more stages. When the experiment is started,
+all subjects are in period 0, which can be used for e.g. instructions.
+Typically, you will want to put a new period before each
+"repetition" of an experiment. You can then store the data in a data frame
+which looks like:
+
 \tabular{lll}{
 ID \tab period \tab ...  \cr
 1 \tab 1 \tab ... \cr
