@@ -44,7 +44,7 @@ is_at_least <- function(min) {
   function(ftitle, val, ...) {
     if (! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
     val <- as.numeric(val)
-    if (! val >= min) paste0(ftitle, 
+    if (! val >= min) paste0(sQuote(ftitle), 
       " must be at least ", min) else NULL
   }
 }
@@ -55,7 +55,7 @@ is_one_of <- function(...) {
   dots <- unlist(list(...))
   function(ftitle, val, ...) {
     if (! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
-    if (! val %in% dots) paste0(ftitle, " must be one of: ", 
+    if (! val %in% dots) paste0(sQuote(ftitle), " must be one of: ", 
           paste(dots, collapse=", ")) else NULL
   }   
 }
@@ -65,7 +65,7 @@ is_one_of <- function(...) {
 has_value <- function() {
   function(ftitle, val, ...) {
     if (is.null(val) || is.na(val) || nchar(val)==0 ) paste0("Please submit a
-      value for ", ftitle) else NULL
+      value for ", sQuote(ftitle)) else NULL
   }
   }
 
@@ -75,7 +75,7 @@ is_at_most <- function(max) {
   function(ftitle, val, ...) {
     if (! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
     val <- as.numeric(val)
-    if (is.null(val) || is.na(val) || ! val <= max) paste0(ftitle, 
+    if (is.null(val) || is.na(val) || ! val <= max) paste0(sQuote(ftitle), 
       " must be no more than ", max) else NULL
   }
 }
@@ -87,7 +87,7 @@ is_whole_number <- function() {
     if (! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
     val <- as.numeric(val)
     tol = .Machine$double.eps^0.5  
-    if (is.null(val) || is.na(val) || abs(val - round(val)) >= tol) paste0(ftitle, 
+    if (is.null(val) || is.na(val) || abs(val - round(val)) >= tol) paste0(sQuote(ftitle), 
       " must be a whole number") else NULL
   }
 }
@@ -98,7 +98,7 @@ is_between <- function(min, max) {
   function(ftitle, val, ...) {
     if (! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
     val <- as.numeric(val)
-    if (is.null(val) || is.na(val) || ! (val >= min && val <= max)) paste0(ftitle, 
+    if (is.null(val) || is.na(val) || ! (val >= min && val <= max)) paste0(sQuote(ftitle), 
       " must be between ", min, " and ", max) else NULL
   }
 }
@@ -109,7 +109,7 @@ length_between <- function(min, max) {
   function(ftitle, val, ...) {
     if (min > 0 && ! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
     nc <- nchar(val)
-    if (! (nc >= min && nc <= max)) paste0(ftitle, 
+    if (! (nc >= min && nc <= max)) paste0(sQuote(ftitle), 
       " must be between ", min, " and ", max, " characters long") else NULL
   }
 }
@@ -121,7 +121,7 @@ length_at_least <- function(min) {
   function(ftitle, val, ...) {
     nc <- nchar(val)
     if (min > 0 && ! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
-    if (! nc >= min) paste0(ftitle, " must be at least ", min, 
+    if (! nc >= min) paste0(sQuote(ftitle), " must be at least ", min, 
       " characters long") else NULL
   }
 }
