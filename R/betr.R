@@ -251,8 +251,10 @@ Experiment <- setRefClass("Experiment",
       cat(sprintf(
             "%s\tStatus: %s\tElapsed time:%0.1f\nClients: %d/%0.0f\tPeriods: %d\tStages: %d\n", 
             ifelse(status=="Stopped", paste("Name:", name), paste("Session:",
-            session_name)), status, elapsed_time(), nrow(subjects), N, 
-            nperiods(), length(stages)))
+            session_name)), 
+            status, 
+            ifelse(status=="Stopped", NA, elapsed_time()), 
+            nrow(subjects), N, nperiods(), length(stages)))
       if (status != "Stopped") server$info()
       if (subj && nrow(subjects) > 0) {
         cat("Subjects:\n")
