@@ -23,7 +23,7 @@ TODO
 - [] ways to have arbitrary variables in (different) stages, e.g. for 'brew'
 - [] simple way to make multiple, slightly different stages (e.g. copy +
   interface to various object fields)?
-
+- [] way to go to a particular period in `replay`
 - [] is_email, is_date
 - [] HTML form elements in separate package
   - checker functions
@@ -31,6 +31,7 @@ TODO
   - using Twitter Bootstrap?
 - [] vignette: tips/tricks/bugs
 - [] vignette: using multiple parameters
+- [] option (or default) to put experiments in folder hierarchy (expt/date/time)?
 
 Other thoughts
 --------------
