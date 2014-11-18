@@ -95,7 +95,7 @@ TextStage <- setRefClass("TextStage", contains="AbstractStage",
 #' @param page A character vector containing HTML, or a function to be called 
 #'        with parameters \code{id, period, params}.
 #' @param wait Wait to move on?
-#'         
+#' 
 #' @return An object of class TextStage. When called the first time, this will
 #'         display the HTML in \code{file} or \code{text} to the participant. 
 #'         If \code{wait} is \code{FALSE} (the default), subsequent calls
@@ -129,11 +129,12 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
     page    = "ANY",
     titles       = "ANY",
     data_frame   = "character",
-    seenonce     = "numeric"
+    seenonce     = "numeric",
+    multi_params = "character"
   ),
   methods = list(
     initialize = function(page=NULL, fields=list(), titles=NULL, 
-          data_frame="", ...) {
+          data_frame="", multi_params="AsIs", ...) {
       page <<- page
       if (! is.list(fields)) {
         fnames <- fields
@@ -143,6 +144,7 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
       }
       fields <<- fields
       titles <<- titles
+      multi_params <<- multi_params
       if (! is.null(titles) && length(mf <- setdiff(names(fields), 
             names(titles)))) {
         stop("Missing fields from titles: ", paste(mf, sep=", "))
@@ -164,6 +166,9 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
         }
         if (length(errs) == 0) {
           params <- lapply(params, type.convert, as.is=TRUE)
+          # for inserting multiple values into an AsIs column
+          f <- switch(multi_params, AsIs=I, paste=function(x) paste(x, sep=","))
+          params <- lapply(params, function(x) if (length(x)>1) f(x) else x )
           update_data_frame(id, period, params[names(fields)])
           return(NEXT)
         } else {
@@ -200,6 +205,10 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' @param data_frame The quoted string name of the data frame to be updated.
 #'        This should exist in the global environment.
 #' @param name optional name of the stage.
+#' @param multi_params How to deal with multi-valued parameters. "AsIs"
+#'        enters them as a list in a single column (which should be of type 
+#'        AsIs); "paste" pastes them, separated by commas, in a single column.
+#'         
 #' 
 #' @details 
 #' 
@@ -231,6 +240,18 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' \code{\link{is_whole_number}} and similar functions return functions suitable
 #' for use in the fields list.
 #' 
+#' Multiple parameters can be created by writing e.g.
+#' 
+#' \code{<input type='checkbox' name='fruit[]' value='banana'>
+#' <input type='checkbox' name='fruit[]' value='peach'>
+#' ...}
+#' 
+#' in the HTML page. Note that if \code{multi_params="paste"},
+#' parameters are comma-separated without being quoted. This will cause problems
+#' if you e.g. allow free text entry and subjects use commas. In these cases
+#' it is better to use one of the other alternatives.
+#' 
+#' 
 #' @examples
 #' 
 #' mydf <- data.frame(id=rep(1:5, each=5), period=rep(1:5, times=5), 
@@ -251,13 +272,14 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' @return An object of class FormStage
 #' @family stages
 #' @export
-form_stage <- function (page, fields, titles=NULL, data_frame, name="No name") {
+form_stage <- function (page, fields, titles=NULL, data_frame, name="No name",
+      multi_params="AsIs") {
   if (missing(page) || is.null(page)) stop("page must be specified")
   if (missing(data_frame) || ! is.character(data_frame)) 
         stop("data_frame must be a string")
   if (missing(fields)) stop("Please specify a list of fields")
   FormStage$new(page=page, fields=fields, titles=titles, 
-        data_frame=data_frame, name=name)
+        data_frame=data_frame, name=name, multi_params=multi_params)
 }
 
 
