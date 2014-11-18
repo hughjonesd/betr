@@ -20,6 +20,9 @@ TODO
 - [x] general framework for HTML pages
   - [] how to deal with 'errors'?
 - [] check function errors should be translatable
+- [] ways to have arbitrary variables in (different) stages, e.g. for 'brew'
+- [] simple way to make multiple, slightly different stages (e.g. copy +
+  interface to various object fields)?
 
 - [] is_email, is_date
 - [] HTML form elements in separate package
@@ -27,6 +30,7 @@ TODO
   - javascript attribute?
   - using Twitter Bootstrap?
 - [] vignette: tips/tricks/bugs
+- [] vignette: using multiple parameters
 
 Other thoughts
 --------------
