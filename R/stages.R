@@ -369,8 +369,8 @@ Period <- setRefClass("Period", contains="CheckPoint",
 #' Periods do nothing but add one to the period counter, and optionally
 #' wait for all subjects to reach the same position.
 #' 
-#' @usage period(wait_for="none")
-#' @param wait_for 
+#' @param wait_for "all", "none", "ever" or a length-N vector. 
+#'   See \code{\link{checkpoint}}
 #' @param name Optional name of the stage 
 #' 
 #' @details 
@@ -389,8 +389,6 @@ Period <- setRefClass("Period", contains="CheckPoint",
 #' 2 \tab 1 \tab ... \cr
 #' ... \tab ... \tab ... \cr
 #' }
-#' 
-#' I\code{wait_for} is interpreted just as in \code{\link{checkpoint}}.
 #' 
 #' If all relevant subjects are ready, the subject's period counter is
 #' incremented and the subject moves on.
@@ -481,7 +479,7 @@ Program <- setRefClass("Program", contains="AbstractStage",
 #'        ave(contrib, group, FUN=function(x) 50 - x + mpcr * mean(x)))
 #' })
 #' 
-#' add_stage(expt, period(), s1, checkpoint("all"), s2, s3, times=10)
+#' add_stage(expt, period(), s1, checkpoint("all"), s2, times=10)
 #'      
 #' @return A Stage object of class Program
 #' @family stages

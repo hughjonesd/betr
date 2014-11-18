@@ -29,6 +29,13 @@ length_between(min, max)
 
 length_at_least(min)
 }
+\arguments{
+\item{...}{\code{all_of}: other functions to be checked individually;
+\code{is_one_of}: or values to check against}
+
+\item{min,max}{minimum and maximum values/lengths
+\code{all_of} checks each of the functions it is passed.}
+}
 \value{
 A function for checking a form input
 }
@@ -36,11 +43,6 @@ A function for checking a form input
 These functions return functions which can be passed to the \code{fields}
 list of a \code{\link[form_stage]{FormStage}} object. The created functions
 check their inputs and return \code{NULL} or an error message.
-}
-\details{
-The examples are mostly self-explanatory.
-
-\code{all_of} checks each of the functions it is passed.
 }
 \examples{
 f1 <- is_whole_number()

@@ -3,10 +3,11 @@
 \alias{period}
 \title{Begin a new period, optionally waiting for other subjects}
 \usage{
-period(wait_for="none")
+period(wait_for = "none", name = "No name")
 }
 \arguments{
-\item{wait_for}{}
+\item{wait_for}{"all", "none", "ever" or a length-N vector.
+See \code{\link{checkpoint}}}
 
 \item{name}{Optional name of the stage}
 }
@@ -33,8 +34,6 @@ ID \tab period \tab ...  \cr
 2 \tab 1 \tab ... \cr
 ... \tab ... \tab ... \cr
 }
-
-I\code{wait_for} is interpreted just as in \code{\link{checkpoint}}.
 
 If all relevant subjects are ready, the subject's period counter is
 incremented and the subject moves on.

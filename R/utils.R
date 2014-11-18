@@ -185,10 +185,11 @@ write_data <- function(experiment, data_frame) {
 #' \code{MAP} or \code{WEB_TEST} will call the corresponding command on the 
 #' experiment, with no arguments.
 #' 
+#' @param expt An object of class \code{Experiment}
 #' @details
 #' \code{load_commands} is implemented using \code{\link{makeActiveBinding}}.
-#' For obvious reasons, don't assign to the values \code{READY} etc. either before
-#' or after this is called! 
+#' For obvious reasons, don't assign to the values \code{READY} etc. either
+#'  before or after this is called! 
 #' 
 #' \code{unload_commands} simply removes the command names from the global 
 #' environment.
@@ -209,7 +210,6 @@ load_commands <- function(expt) {
   makeActiveBinding("INFO", function(x) info(expt), env=globalenv())
   makeActiveBinding("MAP", function(x) map(expt), env=globalenv())
   makeActiveBinding("WEB_TEST", function(x) web_test(expt), env=globalenv())
-  
 }
 
 unload_commands <- function() {

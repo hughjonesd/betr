@@ -3,8 +3,6 @@
 
 # what do do about 'error'?
 .onLoad <- function(libname, pkgname) {
-  library(knitr)
-  library(brew)
   brewCacheOn() # just does parsing, hopefully safe
   opts_chunk$set(echo=FALSE, cache=FALSE, warning=FALSE, message=FALSE,
         results='asis')

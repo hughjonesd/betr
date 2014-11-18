@@ -52,7 +52,7 @@ s2 <- program("last", function(id, period) {
        ave(contrib, group, FUN=function(x) 50 - x + mpcr * mean(x)))
 })
 
-add_stage(expt, period(), s1, checkpoint("all"), s2, s3, times=10)
+add_stage(expt, period(), s1, checkpoint("all"), s2, times=10)
 }
 \seealso{
 Other stages: \code{\link{NEXT}}, \code{\link{WAIT}},

@@ -25,7 +25,9 @@ Note that \code{start} is an S3 generic to avoid clashes with \code{start} in
 the stats package.
 }
 \examples{
+\dontrun{
 start(expt)
+}
 }
 \seealso{
 Other command line functions: \code{\link{get_url}},

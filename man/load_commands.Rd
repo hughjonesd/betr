@@ -5,6 +5,9 @@
 \usage{
 load_commands(expt)
 }
+\arguments{
+\item{expt}{An object of class \code{Experiment}}
+}
 \description{
 After \code{load_commands(expt)} is called, entering \code{READY},
 \code{START}, \code{HALT}, \code{PAUSE}, \code{RESTART}, \code{INFO},
@@ -13,8 +16,8 @@ experiment, with no arguments.
 }
 \details{
 \code{load_commands} is implemented using \code{\link{makeActiveBinding}}.
-For obvious reasons, don't assign to the values \code{READY} etc. either before
-or after this is called!
+For obvious reasons, don't assign to the values \code{READY} etc. either
+ before or after this is called!
 
 \code{unload_commands} simply removes the command names from the global
 environment.

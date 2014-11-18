@@ -536,7 +536,9 @@ setGeneric("start")
 #' @family command line functions
 #' @method start Experiment
 #' @examples
+#' \dontrun{
 #' start(expt)
+#' }
 #' @export
 start.Experiment <- function(experiment, force=FALSE) experiment$handle_command("start",
       list(force=force))
