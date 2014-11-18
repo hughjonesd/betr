@@ -481,14 +481,13 @@ Program <- setRefClass("Program", contains="AbstractStage",
 #'        ave(contrib, group, FUN=function(x) 50 - x + mpcr * mean(x)))
 #' })
 #' 
-#' add_stage(expt, period(), s1, checkpoint(mydf$group), s2, s3, times=10)
+#' add_stage(expt, period(), s1, checkpoint("all"), s2, s3, times=10)
 #'      
 #' @return A Stage object of class Program
 #' @family stages
 #' @export
-#                                       list() to catch errors
 program <- function (run, fn, name="No name") {
-  list(run,fn);
+  list(run,fn); # to catch errors
   Program$new(run=run, fn=fn, name=name)
 } 
 
