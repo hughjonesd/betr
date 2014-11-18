@@ -559,7 +559,7 @@ Timed <- setRefClass("Timed", contains="AbstractStage",
 #'      fields=list(foo=has_value()), data_frame="mydf")
 #' # set a default value:
 #' s1_timed <- timed(s1, 60, on_timeout=function(id, period) 
-#'      mydf$foo[mydf$id==id & mydf$period==period] <<- "Default value"))
+#'      mydf$foo[mydf$id==id & mydf$period==period] <<- "Default value")
 #' 
 #' @return A Stage object of class Timed
 #' @family stages
