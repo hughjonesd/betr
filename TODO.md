@@ -21,9 +21,12 @@ TODO
   - [] how to deal with 'errors'?
 - [] check function errors should be translatable
 - [] ways to have arbitrary variables in (different) stages, e.g. for 'brew'
+  - needs to be on a per-person basis. Maybe just within the data frame?
 - [] simple way to make multiple, slightly different stages (e.g. copy +
   interface to various object fields)?
-- [] way to go to a particular period in `replay`
+- [] way to go to a particular period in `replay`, and to start live from
+  there
+  - maybe dynamic commands e.g. 'n id:x' 'n period:3' 'n param:x:y' etc.
 - [] is_email, is_date
 - [] HTML form elements in separate package
   - checker functions
@@ -36,7 +39,9 @@ TODO
 Other thoughts
 --------------
 - HTML form checks could be expressions: `is_numeric(x) && x %in% 1:10`
-- with error messages in separate array?
+  - with error messages in separate list, using gettextf?
+- maybe replace `print_stages` with `stages` which returns a list with
+  a `print` method?
 - make matching and within-group calculations simple, e.g. 
   `group`, `role` primitives?
   - The dplyr way: ultimatum game.
@@ -46,14 +51,20 @@ subject %<>% group_by(pair) %>% mutate(
       accepted=accept[role==1] <= offer[role==2], 
       payoff=accepted*ifelse(role==1, 10 - offer, offer))
 ```
-
+  - perhaps we have automatic `role` and `group` fields?
+  - and convenience methods for stranger etc. groups?
 - pass in code, not just functions, with id, period, params etc. in environment
   - use `substitute` and a decent package for evaluation
 - put builtin data in "tidy" form: subject/period, subject, period, global?
   - but what if it's hard to merge things?
 - data frame "views" in some way... separate package?
 - what if you want to ask someone the same Q repeatedly (e.g. eliciting more
-reasons)
+reasons) without a defined endpoint? 
+  - Could be a 'stage' that repeated itself until a defined condition
+  - NB stage objects currently handle both "page display" (e.g. TextStage
+    versus FormStage) and control flow (e.g. Period, Checkpoint)... perhaps
+    should be separated out somehow.
+
 
 Next iteration
 --------------
