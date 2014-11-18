@@ -3,7 +3,7 @@
 \alias{next_stage}
 \title{Move some clients forward one stage}
 \usage{
-next_stage(experiment, subjid)
+next_stage(experiment, subjid = 1:experiment$N)
 }
 \arguments{
 \item{experiment}{Object of class Experiment}
