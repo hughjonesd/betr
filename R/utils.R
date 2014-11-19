@@ -202,18 +202,20 @@ write_data <- function(experiment, data_frame) {
 #' INFO
 #' @export
 load_commands <- function(expt) {
-  makeActiveBinding("READY", function(x) ready(expt), env=globalenv())
-  makeActiveBinding("START", function(x) start(expt), env=globalenv())
-  makeActiveBinding("HALT", function(x) halt(expt), env=globalenv())
-  makeActiveBinding("PAUSE", function(x) pause(expt), env=globalenv())
-  makeActiveBinding("RESTART", function(x) restart(expt), env=globalenv())
-  makeActiveBinding("INFO", function(x) info(expt), env=globalenv())
-  makeActiveBinding("MAP", function(x) map(expt), env=globalenv())
-  makeActiveBinding("WEB_TEST", function(x) web_test(expt), env=globalenv())
+  en <- parent.frame()
+  makeActiveBinding("READY", function(x) ready(expt), env=en)
+  makeActiveBinding("START", function(x) start(expt), env=en)
+  makeActiveBinding("HALT", function(x) halt(expt), env=en)
+  makeActiveBinding("PAUSE", function(x) pause(expt), env=en)
+  makeActiveBinding("RESTART", function(x) restart(expt), env=en)
+  makeActiveBinding("INFO", function(x) info(expt), env=en)
+  makeActiveBinding("MAP", function(x) map(expt), env=en)
+  makeActiveBinding("WEB_TEST", function(x) web_test(expt), env=en)
 }
 
 unload_commands <- function() {
-  rm(READY, START, HALT, PAUSE, RESTART, INFO, MAP, WEB_TEST, envir=globalenv())
+  rm(READY, START, HALT, PAUSE, RESTART, INFO, MAP, WEB_TEST, 
+        envir=parent.frame())
 }
 
 #' Simple HTML header and footer
