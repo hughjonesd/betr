@@ -1,5 +1,5 @@
 
-N <- 4
+N <- 16
 if (getRversion() < "2.15.0") paste0 <- function(...) paste(..., sep="")
 
 
@@ -89,14 +89,18 @@ s2 <- function(id, period, params) {
   points <- rep(NA, nrow(mysubj))
   for (i in 1:prs) {
     payoffs <- payoff_matrix[ ractions[i], cactions[i], ]
+    mydf$matchid[ mydf$id == mysubj$id[rs][i] & 
+          mydf$period==period-1 ] <<- mysubj$id[cs][i]
+    mydf$matchid[ mydf$id == mysubj$id[cs][i] & 
+          mydf$period==period-1 ] <<- mysubj$id[rs][i]
     mydf$payoff[ mydf$id == mysubj$id[rs][i] & 
-          mydf$period==period-1 ] <- payoffs[1]
+          mydf$period==period-1 ] <<- payoffs[1]
     mydf$opp.action[ mydf$id == mysubj$id[rs][i] & 
-        mydf$period==period-1 ] <- cactions[i]
+        mydf$period==period-1 ] <<- cactions[i]
     mydf$payoff[ mydf$id == mysubj$id[cs][i] & 
-          mydf$period==period-1 ] <- payoffs[2]
+          mydf$period==period-1 ] <<- payoffs[2]
     mydf$opp.action[ mydf$id == mysubj$id[cs][i] & 
-        mydf$period==period-1 ] <- ractions[i]
+        mydf$period==period-1 ] <<- ractions[i]
   }
   me <- mydf[mydf$id==id & mydf$period==period-1,]
   html <- paste0("<html>", htmlhead ,
@@ -127,7 +131,7 @@ s2 <- function(id, period, params) {
   return(html)
 }
 
-expt <- experiment(auth=TRUE, server="RookServer", N=N, autostart=TRUE,
-      clients_in_url=TRUE, name="mix")
+expt <- experiment(auth=TRUE, server="RookServer", N=N, autostart=FALSE,
+      clients_in_url=FALSE, name="mix")
 add_stage(expt, s1, s2, times=10) 
 ready(expt)
