@@ -134,7 +134,8 @@ RookServer <- setRefClass("RookServer", contains="Server",
         if (nchar(poss_client)>0) client <- poss_client
       }    
       params <- req$params()
-
+      # workaround Rook bug:
+      names(params)[params==""] <- sub("=$", "", names(params)[params==""])
       result <- .pass_request(client, params, ip, cookies)
          
       if (inherits(result, "Response")) {
