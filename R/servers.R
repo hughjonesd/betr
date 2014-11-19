@@ -119,8 +119,8 @@ RookServer <- setRefClass("RookServer", contains="Server",
         # work around Rook bug
         ip <- "127.0.0.1" 
         if (exists("HTTP_X_FORWARDED_FOR", env)) {
-          ip <- sub("^([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}).*", "\\1",
-                env$HTTP_X_FORWARDED_FOR)
+          ip <- sub("^([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}).*",
+                "\\1", env$HTTP_X_FORWARDED_FOR)
         }
       }
       cookies <- req$cookies()
@@ -134,7 +134,6 @@ RookServer <- setRefClass("RookServer", contains="Server",
         if (nchar(poss_client)>0) client <- poss_client
       }    
       params <- req$params()
-
       result <- .pass_request(client, params, ip, cookies)
          
       if (inherits(result, "Response")) {
