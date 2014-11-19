@@ -168,7 +168,7 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
           params <- lapply(params, type.convert, as.is=TRUE)
           # for inserting multiple values into an AsIs column
           f <- switch(multi_params, AsIs=list, paste=function(x) paste(x, 
-                sep=","))
+                collapse=","))
           params <- lapply(params, function(x) if (length(x)>1) f(x) else x )
           update_data_frame(id, period, params[names(fields)])
           return(NEXT)
