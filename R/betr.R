@@ -769,4 +769,4 @@ trace_stage <- function(experiment, num, ...) for (n in num) experiment$stages[[
 
 #' @rdname trace_stage
 #' @export
-untrace_stage <- function(experiment, num) for (n in num) experiment$stages[[n]]$untrace()
+untrace_stage <- function(experiment, num) for (n in num) experiment$stages[[n]]$untrace("handle_request")
