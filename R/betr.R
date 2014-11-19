@@ -765,8 +765,10 @@ replay <- function(experiment, folder=NULL, maxtime=Inf, speed=NULL, ask=FALSE,
 #' }
 #' @family command line functions
 #' @export
-trace_stage <- function(experiment, num, ...) for (n in num) experiment$stages[[n]]$trace("handle_request", ...)
+trace_stage <- function(experiment, num, ...) for (n in num) 
+      experiment$stages[[n]]$trace("handle_request", ...)
 
 #' @rdname trace_stage
 #' @export
-untrace_stage <- function(experiment, num) for (n in num) experiment$stages[[n]]$untrace("handle_request")
+untrace_stage <- function(experiment, num) for (n in num) 
+      experiment$stages[[n]]$untrace("handle_request")
