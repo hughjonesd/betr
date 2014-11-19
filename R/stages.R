@@ -41,7 +41,7 @@ Stage <- setRefClass("Stage", contains="AbstractStage",
 #' result in one or more HTML pages shown to participants.
 #' @param name optional name of the stage.
 #' @param handler A function which returns either a character string 
-#'        containing HTML, a \code{\link{Rook::Response}} object, the constant 
+#'        containing HTML, a \code{\link[Rook]{Response}} object, the constant 
 #'        \code{WAIT}, or the constant \code{NEXT}.
 #' @return a Stage object suitable for adding to an experiment.
 #' @details If \code{WAIT} is returned, the participant will be shown

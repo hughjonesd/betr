@@ -41,7 +41,7 @@ A function for checking a form input
 }
 \description{
 These functions return functions which can be passed to the \code{fields}
-list of a \code{\link[form_stage]{FormStage}} object. The created functions
+list of a \code{\link[=form_stage]{FormStage}} object. The created functions
 check their inputs and return \code{NULL} or an error message.
 }
 \examples{

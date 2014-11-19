@@ -2,7 +2,7 @@
 #' Functions which return functions that can check a form input for errors.
 #' 
 #' These functions return functions which can be passed to the \code{fields}
-#' list of a \code{\link[form_stage]{FormStage}} object. The created functions 
+#' list of a \code{\link[=form_stage]{FormStage}} object. The created functions 
 #' check their inputs and return \code{NULL} or an error message.
 #' 
 #' @param ... \code{all_of}: other functions to be checked individually;

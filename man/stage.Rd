@@ -16,7 +16,7 @@ WAIT
 }
 \arguments{
 \item{handler}{A function which returns either a character string
-containing HTML, a \code{\link{Rook::Response}} object, the constant
+containing HTML, a \code{\link[Rook]{Response}} object, the constant
 \code{WAIT}, or the constant \code{NEXT}.}
 
 \item{name}{optional name of the stage.}
