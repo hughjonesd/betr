@@ -192,11 +192,15 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
     
     start = function(session_name=NULL) {
       comreq <- list.files(file.path(folder, "record"), 
-        pattern="(command|request)-[0-9\\.]+")
-      if (length(comreq) == 0) stop("Found no commands or requests in ", file.path(folder, "record"))
-      comreq <- data.frame(name=comreq, type=sub("(command|request).*", "\\1", comreq),
-        time=sub("(command|request)-([0-9\\.]+).*", "\\2", comreq), 
-        order=sub(".*-([0-9])", "\\1", comreq), stringsAsFactors=FALSE)
+            pattern="(command|request)-[0-9\\.]+")
+      if (length(comreq) == 0) stop("Found no commands or requests in ", 
+            file.path(folder, "record"))
+      comreq <- data.frame(
+            name=comreq, 
+            type=sub("(command|request).*", "\\1",comreq),
+            time=sub("(command|request)-([0-9\\.]+).*", "\\2", comreq), 
+            order=sub(".*-([0-9])", "\\1", comreq), 
+            stringsAsFactors=FALSE)
       comreq$time <- as.numeric(comreq$time)
       comreq <- comreq[order(comreq$time),]
       comreq <- comreq[comreq$time <= maxtime,]
@@ -220,9 +224,12 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
           skip <- FALSE
           while (! r %in% c("n", "", "c", "q", "s")) {
             r <- readline("replay > ")
-            switch(r, s={skip <- TRUE}, c={ask <<- FALSE}, q={skip <- TRUE; ask <<- FALSE}, d={
-                if (comreq$type[i]=="request") cat("Request from client:", cr.data[[i]]$client) else
-                  cat("Command:", cr.data[[i]]$name)
+            switch(r, s={skip <- TRUE}, c={ask <<- FALSE}, 
+              q={skip <- TRUE; ask <<- FALSE}, 
+              d={
+                if (comreq$type[i]=="request") cat("Request from client:", 
+                      cr.data[[i]]$client) else cat("Command:", 
+                      cr.data[[i]]$name)
                 cat("\nTime from start:", comreq$time[i], "\n")
                 cat("Params:\n")
                 cat(str(cr.data[[i]]$params), "\n")
@@ -230,7 +237,8 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
               h=,
               "?"=cat("[n]ext command/request, [s]kip command/request, [c]ontinue to end, [q]uit, [d]etails, [?h]elp, or enter R expression\n"),
               n=NULL,
-              if (nchar(r)>0) try(print(eval(parse(text=r), envir = globalenv())))
+              if (nchar(r)>0) try(print(eval(parse(text=r), 
+                    envir = globalenv())))
             )
           }
         }
@@ -238,7 +246,8 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
         fake_time <<- comreq$time[i]
         switch(comreq$type[i], 
           command= pass_command(cr.data[[i]]$name, cr.data[[i]]$params),
-          request= .pass_request(cr.data[[i]]$client, cr.data[[i]]$params, cr.data[[i]]$ip, cr.data[[i]]$cookies)
+          request= .pass_request(cr.data[[i]]$client, cr.data[[i]]$params, 
+                cr.data[[i]]$ip, cr.data[[i]]$cookies)
         ) 
       }
     },
