@@ -112,15 +112,13 @@ Experiment <- setRefClass("Experiment",
     },
     
     waiting_page = function(message="") {
-      message <- c("<div style='font-size: large; font-family: Verdana, sans-serif;",
-            message, "</div>")
-      paste0(header(refresh=client_refresh), message, footer())
+      paste0(header(refresh=client_refresh), "<div style='font-size: large;
+            font-family: Verdana, sans-serif;'>", message, "</div>", footer())
     },
     
     special_page = function(message) {
-      message <- c("<div style='font-size: large; font-family: Verdana, sans-serif;",
-        message, "</div>")
-      paste0(header(refresh=client_refresh), message, footer())
+      paste0(header(refresh=client_refresh), "<div style='font-size: large;
+            font-family: Verdana, sans-serif;'>", message, "</div>", footer())
     },
     
     authorize = function(client, params, ip, cookies) {
