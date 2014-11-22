@@ -143,7 +143,7 @@ Experiment <- setRefClass("Experiment",
       if (randomize_ids) id <- random_ids[id]
       seat <- NA
       if (nrow(seats)>0) {
-        if (! is.null(cookies) && "betr-seat" %in% cookies) {
+        if (! is.null(cookies) && "betr-seat" %in% names(cookies)) {
           seat <- seats$seat[ seats$cookie==cookies[["betr-seat"]] ] 
         } else if (! is.na(ip)) {
           seat <- seats$seat[seats$IP==ip] 
