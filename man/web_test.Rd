@@ -4,7 +4,8 @@
 \title{Open multiple browser windows to test an experiment}
 \usage{
 web_test(experiment, N = ifelse(is.finite(experiment$N), experiment$N, 1),
-  clients_in_url = TRUE, ids = paste("client", 1:N, sep = "-"))
+  clients_in_url = TRUE, ids = paste("client", 1:N, sep = "-"),
+  browser = getOption("browser"))
 }
 \arguments{
 \item{experiment}{an object of class Experiment}
@@ -16,6 +17,8 @@ client identifier. This only works if \code{experiment} has
 \code{clients_in_url} set to \code{TRUE}}
 
 \item{ids}{character vector of ids to supply in the URLs opened}
+
+\item{browser}{name of the browser executable. See \code{\link{browseURL}}.}
 }
 \description{
 NB: by default this opens one window for each participant up to a total of

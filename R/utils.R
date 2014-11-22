@@ -11,13 +11,16 @@ NULL
 #'        client identifier. This only works if \code{experiment} has
 #'        \code{clients_in_url} set to \code{TRUE}
 #' @param ids character vector of ids to supply in the URLs opened
+#' @param browser name of the browser executable. See \code{\link{browseURL}}.
 #' @family development tools
 #' @export
 web_test <- function (experiment, N=ifelse(is.finite(experiment$N), 
-      experiment$N, 1), clients_in_url=TRUE, ids=paste("client", 1:N, sep="-")) {
+      experiment$N, 1), clients_in_url=TRUE, ids=paste("client", 1:N, sep="-"),
+      browser=getOption('browser')) {
   if (experiment$status=="Stopped") warning("Experiment status is Stopped. Try calling ready() first")
   for (i in 1:N) {
-    browseURL(paste0(get_url(experiment), if(clients_in_url) paste0("/", ids[[i]])))
+    browseURL(paste0(get_url(experiment), if(clients_in_url) paste0("/", ids[[i]])),
+        browser=browser)
   }
 }
 
