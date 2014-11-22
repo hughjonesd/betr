@@ -143,14 +143,17 @@ Experiment <- setRefClass("Experiment",
       if (randomize_ids) id <- random_ids[id]
       seat <- NA
       if (nrow(seats)>0) {
-        if (! is.null(cookies) && "betr-seat" %in% cookies && nrow(seats)>0) {
+        if (! is.null(cookies) && "betr-seat" %in% cookies) {
           seat <- seats$seat[ seats$cookie==cookies[["betr-seat"]] ] 
         } else if (! is.na(ip)) {
           seat <- seats$seat[seats$IP==ip] 
         } 
-        if (is.na(seat)) warning("Seat not found for client with IP address '", ip, 
-                if (! is.null(cookies)) paste0(", cookie '", 
-                cookies[["betr-seat"]], "'"))
+        if (length(seat)==0 || is.na(seat)) {
+          warning("Seat not found for client with IP address: ",
+              sQuote(ip), if (! is.null(cookies)) paste0(", cookie: ", 
+              sQuote(cookies[["betr-seat"]])))
+          seat <- NA
+        }  
       }
       subjects <<- rbind(subjects, data.frame(client=client, IP=ip, id=id, 
             seat=seat, period=0, status=factor("Running", 
