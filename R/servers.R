@@ -135,7 +135,7 @@ RookServer <- setRefClass("RookServer", contains="Server",
       }    
       params <- req$params()
       # workaround Rook bug:
-      if (packageVersion("Rook") < "1.1.1") names(params)[params==""] <- 
+      if (packageVersion("Rook") <= "1.1.1") names(params)[params==""] <- 
             sub("=$", "", names(params)[params==""])
       result <- .pass_request(client, params, ip, cookies)
          
