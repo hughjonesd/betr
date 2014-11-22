@@ -11,8 +11,8 @@ load_commands(expt)
 \description{
 After \code{load_commands(expt)} is called, entering \code{READY},
 \code{START}, \code{HALT}, \code{PAUSE}, \code{RESTART}, \code{INFO},
-\code{MAP} or \code{WEB_TEST} will call the corresponding command on the
-experiment, with no arguments.
+\code{MAP}, \code{NEXT_STAGE} or \code{WEB_TEST} will call the corresponding
+command on the experiment, with no arguments.
 }
 \details{
 \code{load_commands} is implemented using \code{\link{makeActiveBinding}}.

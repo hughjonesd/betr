@@ -185,8 +185,8 @@ write_data <- function(experiment, data_frame) {
 #' 
 #' After \code{load_commands(expt)} is called, entering \code{READY}, 
 #' \code{START}, \code{HALT}, \code{PAUSE}, \code{RESTART}, \code{INFO},
-#' \code{MAP} or \code{WEB_TEST} will call the corresponding command on the 
-#' experiment, with no arguments.
+#' \code{MAP}, \code{NEXT_STAGE} or \code{WEB_TEST} will call the corresponding 
+#' command on the experiment, with no arguments.
 #' 
 #' @param expt An object of class \code{Experiment}
 #' @details
@@ -214,10 +214,11 @@ load_commands <- function(expt) {
   makeActiveBinding("INFO", function(x) info(expt), env=en)
   makeActiveBinding("MAP", function(x) map(expt), env=en)
   makeActiveBinding("WEB_TEST", function(x) web_test(expt), env=en)
+  makeActiveBinding("NEXT_STAGE", function(x) next_stage(expt), env=en)
 }
 
 unload_commands <- function() {
-  rm(READY, START, HALT, PAUSE, RESTART, INFO, MAP, WEB_TEST, 
+  rm(READY, START, HALT, PAUSE, RESTART, INFO, MAP, WEB_TEST, NEXT_STAGE,
         envir=parent.frame())
 }
 
