@@ -46,12 +46,14 @@ Experiment <- setRefClass("Experiment",
       
       # server can be a class name, a class object (refObjectGenerator), 
       # or an actual Server object
-      if (! inherits(server, "Server")) {
+      if (inherits(server, "Server")) {
+        server$pass_request <<- .self$handle_request 
+      }  else {
         server_args <- list(pass_request=.self$handle_request, 
               clients_in_url=clients_in_url, name=name)
         sclass <- if (is.character(server)) get(server) else server
         if (missing(port) && sclass$className %in% 
-              c("RookServer", "CommandLineServer"))
+              c("RookServer", "CommandLineServer", "HttpServer"))
           server_args$port <- 35538
         server <<- do.call(sclass$new, server_args)
       }
