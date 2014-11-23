@@ -34,7 +34,7 @@ Other command line functions: \code{\link{get_url}},
   \code{\link{halt}}; \code{\link{load_commands}};
   \code{\link{merge_subjects}}; \code{\link{next_stage}};
   \code{\link{pause}}; \code{\link{ready}};
-  \code{\link{replay}}; \code{\link{restart}};
-  \code{\link{start.Experiment}}
+  \code{\link{replay}}, \code{\link{rewind}};
+  \code{\link{restart}}; \code{\link{start.Experiment}}
 }
 
