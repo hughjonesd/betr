@@ -182,7 +182,7 @@ HttpServer <- setRefClass("HttpServer", contains="Server",
     port = "numeric"
   ),
   methods=list(
-    initialize = function(host, port=35538, pass_request=NULL, ...) {
+    initialize = function(host="127.0.0.1", port=35538, pass_request=function(...) NULL, ...) {
       callSuper(host=host, port=port, pass_request=pass_request, ...)
     },
     
@@ -229,16 +229,12 @@ HttpServer <- setRefClass("HttpServer", contains="Server",
     
     start = function (session_name=paste0(name, Sys.time())) {
       session_name <<- session_name
-      httpuv_handle <<- startServer(host, port, self)
+      httpuv_handle <<- startDaemonizedServer(host, port, .self)
       start_time <<- Sys.time()
-      while (TRUE) {
-        service()
-        Sys.sleep(0.001)
-      }
     },
     
     halt = function () {
-      stopServer(httpuv_handle) 
+      stopDaemonizedServer(httpuv_handle) 
       httpuv_handle <<- NULL # so we can't do this twice!
     },
     
