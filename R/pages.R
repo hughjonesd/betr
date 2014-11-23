@@ -12,8 +12,12 @@
 }
 
 call_page <- function(text_or_fn, id, period, params, errors=character(0)) {
-  if (is.character(text_or_fn)) return(text_or_fn)
-  if (is.function(text_or_fn)) return(text_or_fn(id, period, params, errors))
+  if (is.character(text_or_fn)) return(paste(text_or_fn, collapse="\n"))
+  if (is.function(text_or_fn)) {
+    res <- text_or_fn(id, period, params, errors)
+    if (is.next(res) || is.wait(res)) return(res)
+    return(paste(res, collapse="\n"))
+  }
   stop("text_or_fn should be character or function, was ", class(text_or_fn))
 }
 #' Use \code{\link{brew}} within a stage.
