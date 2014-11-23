@@ -17,7 +17,8 @@ Imports:
     brew,
     tools,
     knitr,
-    yaml
+    yaml,
+    httpuv
 Collate:
     'stages.R'
     'servers.R'

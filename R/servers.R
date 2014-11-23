@@ -2,6 +2,7 @@
 #' @import Rook
 #' @import yaml
 #' @import svSocket
+#' @import httpuv
 
 
 
@@ -169,6 +170,79 @@ RookServer <- setRefClass("RookServer", contains="Server",
     get_url = function() return(rhttpd$full_url(1))
   )
 )
+
+
+
+#' @export HttpServer
+#' @exportClass HttpServer
+HttpServer <- setRefClass("HttpServer", contains="Server",
+  fields=list(
+    httpuv_handle = "ANY",
+    host = "character",
+    port = "numeric"
+  ),
+  methods=list(
+    initialize = function(port=35538, pass_request=NULL, ...) {
+      callSuper(port=port, pass_request=pass_request, ...)
+    },
+    
+    finalize = function() stopServer(httpuv_handle),
+    
+    call = function (env) {
+      req <- Rook::Request$new(env)
+      ip <- req$ip()
+      if (length(ip) == 0) {
+        # work around Rook bug
+        ip <- "127.0.0.1" 
+        if (exists("HTTP_X_FORWARDED_FOR", env)) {
+          ip <- sub("^([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}).*",
+            "\\1", env$HTTP_X_FORWARDED_FOR)
+        }
+      }
+      cookies <- req$cookies()
+      # purpose of 'client' is to set a per-session ID in the browser.
+      if (session_name %in% names(cookies))
+        client <- cookies[[session_name]] else 
+          client <- paste0(ip, "-", paste(sample(LETTERS, 10), collapse=''))
+      if (clients_in_url) {
+        # always overrides cookie
+        poss_client <- sub(paste0(".*", name, "/(.*)"), "\\1", req$path())
+        if (nchar(poss_client)>0) client <- poss_client
+      }    
+      params <- req$params()
+      # workaround Rook bug:
+      if (packageVersion("Rook") <= "1.1.1") names(params)[params==""] <- 
+        sub("=$", "", names(params)[params==""])
+      result <- .pass_request(client, params, ip, cookies)
+      
+      if (inherits(result, "Response")) {
+        result$set_cookie(session_name, client)
+        result$finish()
+      }
+      else {
+        res <- Rook::Response$new()
+        res$set_cookie(session_name, client)
+        res$write(result)
+        res$finish()
+      }          
+    },
+    
+    start = function (session_name=paste0(name, Sys.time())) {
+      session_name <<- session_name
+      httpuv_handle <<- startServer(host, port, self)
+      start_time <<- Sys.time()
+    },
+    
+    halt = function () {
+      try(rhttpd$stop(), silent=TRUE) # error from startDynamicHelp  
+    },
+    
+    info = function() cat("Serving at", rhttpd$full_url(1), "\n"),
+    
+    get_url = function() return(rhttpd$full_url(1))
+  )
+)
+
 
 #' @export ReplayServer
 #' @exportClass ReplayServer
