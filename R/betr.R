@@ -745,6 +745,8 @@ merge_subjects <- function(experiment, data_frame) {
 #'   \item Any other item will be evaluated in the global environment
 #' } 
 #' 
+#' If \code{ask} is a number, then the prompt will only be displayed after \code{ask}
+#' seconds of the original experiment have been replayed.
 #' Note that replay creates a new session. This means that you cannot do
 #' 
 #' \code{
@@ -764,7 +766,9 @@ merge_subjects <- function(experiment, data_frame) {
 #' # error recovery:
 #' start(expt)
 #' # something goes wrong after 2 minutes
-#' rewind(expt, maxtime=120)
+#' # run the first two minutes, then check each step 
+#' rewind(expt, ask=120)
+#' # now refresh your clients and continue
 #' 
 #' # testing & debugging 1:
 #' replay(expt, ask=TRUE) # watch your data after every request

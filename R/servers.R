@@ -178,7 +178,7 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
     speed="ANY",
     maxtime="numeric",
     pass_command="function",
-    ask="logical",
+    ask="ANY",
     fake_time="numeric",
     clients="ANY"
   ),
@@ -212,6 +212,7 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
             
       reltimes <- diff(c(0, comreq$time))
       skip <- FALSE
+      fake_time <<- 0
       for (i in 1:nrow(comreq)) {
         # this unfortunately won't let you do anything on command line! or will it...
         if (! is.null(speed)) { 
@@ -219,7 +220,7 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
           if (is.numeric(speed)) Sys.sleep(speed)
         }
         if (! is.null(clients) && ! cr.data[[i]]$client %in% clients) next
-        if (ask) {
+        if (isTRUE(ask) || fake_time > ask) {
           r <- "xxx"
           skip <- FALSE
           while (! r %in% c("n", "", "c", "q", "s")) {
