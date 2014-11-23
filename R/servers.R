@@ -107,7 +107,9 @@ RookServer <- setRefClass("RookServer", contains="Server",
     port = "numeric"
   ),
   methods=list(
-    initialize = function(port=35538, pass_request=NULL, ...) {
+    initialize = function(port=35538, pass_request=NULL, host=NULL, ...) {
+      if (! missing(host) & length(host) & host != "127.0.0.1") 
+            stop("RookServer can only serve on localhost")      
       callSuper(port=port, pass_request=pass_request, ...)
     },
     
@@ -182,31 +184,30 @@ HttpServer <- setRefClass("HttpServer", contains="Server",
     port = "numeric"
   ),
   methods=list(
-    initialize = function(host="127.0.0.1", port=35538, pass_request=function(...) NULL, ...) {
-      callSuper(host=host, port=port, pass_request=pass_request, ...)
+    initialize = function(host="127.0.0.1", port=35538, ...) {
+      callSuper(host=host, port=port, ...)
     },
     
     finalize = function() halt(),
     
     call = function (env) {
+      # workaround httpuv bugs
+      env$rook.request.cookie_list <- NULL
       req <- Rook::Request$new(env)
       ip <- req$ip()
-      if (length(ip) == 0) {
-        # work around Rook bug
-        ip <- "127.0.0.1" 
-        if (exists("HTTP_X_FORWARDED_FOR", env)) {
-          ip <- sub("^([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}).*",
-            "\\1", env$HTTP_X_FORWARDED_FOR)
-        }
+      # wondering whether this necessary...
+      if (exists("HTTP_X_FORWARDED_FOR", env)) {
+        ip <- sub("^([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}).*",
+              "\\1", env$HTTP_X_FORWARDED_FOR)
       }
+      
       cookies <- req$cookies()
       # purpose of 'client' is to set a per-session ID in the browser.
-      if (session_name %in% names(cookies))
-        client <- cookies[[session_name]] else 
-          client <- paste0(ip, "-", paste(sample(LETTERS, 10), collapse=''))
+      if (session_name %in% names(cookies)) client <- cookies[[session_name]] else 
+            client <- paste0(ip, "-", paste(sample(LETTERS, 10), collapse=''))
       if (clients_in_url) {
         # always overrides cookie
-        poss_client <- sub(paste0(".*", name, "/(.*)"), "\\1", req$path())
+        poss_client <- sub(paste0(".*/(.*)"), "\\1", req$path())
         if (nchar(poss_client)>0) client <- poss_client
       }    
       params <- req$params()
@@ -217,13 +218,13 @@ HttpServer <- setRefClass("HttpServer", contains="Server",
       
       if (inherits(result, "Response")) {
         result$set_cookie(session_name, client)
-        result$finish()
+        return(result$finish())
       }
       else {
         res <- Rook::Response$new()
         res$set_cookie(session_name, client)
         res$write(result)
-        res$finish()
+        return(res$finish())
       }          
     },
     

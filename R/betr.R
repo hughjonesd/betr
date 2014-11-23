@@ -36,7 +36,8 @@ Experiment <- setRefClass("Experiment",
     seed="integer"
   ),
   methods=list(
-    initialize = function(..., auth=TRUE, port, autostart=FALSE, 
+    initialize = function(..., auth=TRUE, host="127.0.0.1", port=35538, 
+      autostart=FALSE, 
       allow_latecomers=FALSE, N=Inf, server="RookServer", name="betr", 
       client_refresh=5, clients_in_url=FALSE, seats_file="betr-SEATS.txt",
       on_ready=NULL, randomize_ids=TRUE, record=TRUE, seed=NULL) {
@@ -50,11 +51,8 @@ Experiment <- setRefClass("Experiment",
         server$pass_request <<- .self$handle_request 
       }  else {
         server_args <- list(pass_request=.self$handle_request, 
-              clients_in_url=clients_in_url, name=name)
+              clients_in_url=clients_in_url, name=name, host=host, port=port)
         sclass <- if (is.character(server)) get(server) else server
-        if (missing(port) && sclass$className %in% 
-              c("RookServer", "CommandLineServer", "HttpServer"))
-          server_args$port <- 35538
         server <<- do.call(sclass$new, server_args)
       }
       requests <<- commands <<- list()

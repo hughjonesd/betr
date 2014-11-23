@@ -5,14 +5,10 @@ init <- function() {
   mydf <<- experiment_data_frame(expt, guess=NA, correct=NA)
 }
 
-hs <- HttpServer$new(host="127.0.0.1", port=35538)
-expt <- experiment(N=1, autostart=TRUE, clients_in_url=TRUE, on_ready=init)
-expt$server <- hs
-expt$server$pass_request <- expt$handle_request 
-
+expt <- experiment(N=1, autostart=TRUE, clients_in_url=TRUE, on_ready=init,
+  server="HttpServer")
 
 s1 <- function(id, period, params) {
-
   me_now <- mydf$id==id & mydf$period==period
   gg <- ! missing(params) && 'guess' %in% names(params) 
   if (gg) {
