@@ -374,7 +374,7 @@ Experiment <- setRefClass("Experiment",
     },
     
     replay = function(folder=NULL, maxtime=NULL, speed=NULL, ask=FALSE, 
-          live=FALSE, clients=NULL) {
+          live=FALSE, clients=NULL, rewind=FALSE) {
       if (live && (missing(speed) || is.null(speed))) speed="realtime"
       # if folder is null, use session_name or guess the most recently modified
       if (is.null(folder)) {
@@ -402,6 +402,7 @@ Experiment <- setRefClass("Experiment",
       server <<- ReplayServer$new(folder=folder, 
         pass_request=.self$handle_request, pass_command=.self$handle_command,
         name=name, speed=speed, maxtime=maxtime, ask=ask, clients=clients)
+      old_s_n <- session_name
       ready() # this will create a new session (good idea?)
       # if we have autostart, then ready() will get the server running and do everything
       # if we don't have autostart, then a "start" command will be read in
@@ -410,6 +411,14 @@ Experiment <- setRefClass("Experiment",
       # but do we ever get here?
       server$halt()
       server <<- .oldserver
+      # we have now created a new session. But we may want to pretend to be
+      # the old one.
+      if (rewind) {
+        file.rename(old_s_n, paste0(old_s_n, ".replayed"))
+        new_folder <- session_name
+        session_name <<- old_s_n
+        file.rename(new_folder, session_name)
+      }
       if (! live) server$start()
       # hopefully we are now back at the approp. period and with correct status...
       # need to think, how could we mix manual and automated clients...      
@@ -684,6 +693,7 @@ merge_subjects <- function(experiment, data_frame) {
 #' \code{replay} plays back an experiment using records stored on disk.
 #' All requests from clients, and all commands issued on the command line,
 #' will be replayed. Afterwards the experiment can be continued.
+#' \code{rewind} is a short cut for \code{replay(..., folder=NULL, rewind=TRUE)}
 #' 
 #' @param experiment an object of class Experiment
 #' @param folder which record to use. Default is the current session 
@@ -693,6 +703,8 @@ merge_subjects <- function(experiment, data_frame) {
 #' @param ask ask before replaying each command or request
 #' @param live run the replay "live", with the web server continuing to serve
 #' @param clients (character vector) only replay requests from \code{clients}
+#' @param rewind Set to \code{TRUE} if you are rerunning a live session.
+#' @param ... Arguments passed to \code{replay}
 #' 
 #' @details
 #' betr records requests and commands in a folder named <experiment
@@ -743,21 +755,37 @@ merge_subjects <- function(experiment, data_frame) {
 #' : the first replay will have created a new session with only the commands 
 #' from the first 30 seconds. If you want to move backward and forward
 #' within a session, use \code{replay(expt, folder="xxx")} where xxx is the specific 
-#' session of interest.
+#' session of interest. If you don't want to create a new folder - or if you 
+#' want the session name to be preserved, e.g. for crash recovery during a live
+#' experiment - then use \code{rewind=TRUE}.
 #' 
 #' @examples
 #' \dontrun{
+#' # error recovery:
 #' start(expt)
 #' # something goes wrong after 2 minutes
-#' replay(expt, maxTime=120)
+#' rewind(expt, maxtime=120)
+#' 
+#' # testing & debugging 1:
+#' replay(expt, ask=TRUE) # watch your data after every request
+#' 
+#' # testing & debugging 2:
+#' ready(expt)
+#' replay(expt, live=TRUE, speed="realtime", clients=1:3)
+#' # play live as client 4 yourself
 #' }
 #' @family command line functions
 #' @export
 replay <- function(experiment, folder=NULL, maxtime=Inf, speed=NULL, ask=FALSE,
-      live=FALSE, clients=NULL) {
+      live=FALSE, clients=NULL, rewind=FALSE) {
   experiment$replay(folder=folder, maxtime=maxtime, speed=speed, ask=ask, 
-        clients=clients, live=live)
+        clients=clients, live=live, rewind=rewind)
 }
+
+#' @export
+#' @rdname replay
+rewind <- function(...) replay(..., rewind=TRUE, folder=NULL)
+
 #' Trace one or more experiment stages
 #' @param experiment an object of class Experiment
 #' @param num numbers of stages to trace
