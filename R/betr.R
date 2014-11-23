@@ -256,8 +256,8 @@ Experiment <- setRefClass("Experiment",
       if (subj && nrow(subjects) > 0) {
         cat("Subjects:\n")
         print(cbind(subjects[order(subjects$id),], 
-              desc=sapply(subjects$stage, function(x) if (x==0) "" else 
-              description(stages[[x]]))))
+              desc=sapply(subjects$stage[order(subjects$id)], 
+              function(x) if (x==0) "" else description(stages[[x]]))))
       }
       if (map) .self$map()
       invisible(TRUE)
