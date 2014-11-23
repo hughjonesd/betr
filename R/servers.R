@@ -182,11 +182,11 @@ HttpServer <- setRefClass("HttpServer", contains="Server",
     port = "numeric"
   ),
   methods=list(
-    initialize = function(port=35538, pass_request=NULL, ...) {
-      callSuper(port=port, pass_request=pass_request, ...)
+    initialize = function(host, port=35538, pass_request=NULL, ...) {
+      callSuper(host=host, port=port, pass_request=pass_request, ...)
     },
     
-    finalize = function() stopServer(httpuv_handle),
+    finalize = function() halt(),
     
     call = function (env) {
       req <- Rook::Request$new(env)
@@ -231,15 +231,20 @@ HttpServer <- setRefClass("HttpServer", contains="Server",
       session_name <<- session_name
       httpuv_handle <<- startServer(host, port, self)
       start_time <<- Sys.time()
+      while (TRUE) {
+        service()
+        Sys.sleep(0.001)
+      }
     },
     
     halt = function () {
-      try(rhttpd$stop(), silent=TRUE) # error from startDynamicHelp  
+      stopServer(httpuv_handle) 
+      httpuv_handle <<- NULL # so we can't do this twice!
     },
     
-    info = function() cat("Serving at", rhttpd$full_url(1), "\n"),
+    info = function() cat("Serving at ", get_url(), "\n"),
     
-    get_url = function() return(rhttpd$full_url(1))
+    get_url = function() paste0("http://", host, ":", port, "/")
   )
 )
 
