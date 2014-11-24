@@ -220,7 +220,7 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
           if (is.numeric(speed)) Sys.sleep(speed)
         }
         if (! is.null(clients) && ! cr.data[[i]]$client %in% clients) next
-        if (isTRUE(ask) || fake_time > ask) {
+        if (isTRUE(ask) || is.numeric(ask) && fake_time > ask) {
           r <- "xxx"
           skip <- FALSE
           while (! r %in% c("n", "", "c", "q", "s")) {
