@@ -9,6 +9,10 @@ BUGS
 - [] ReplayServer gets put in .oldserver
 - [] documentation doesn't show default values e.g. in experiment(...)
 - [] ?? ready isn't reinitialized in Programs on replay?
+- [] next_stage() through a Period does not increment period
+  - this is really an architectural bug. We don't differentiate between
+  "doing calculations" and "getting input from the user". If we advance a stage
+  we want to do calculations, but not bother showing input to the user. 
 
 TODO
 ----
