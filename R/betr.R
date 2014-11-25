@@ -415,7 +415,7 @@ Experiment <- setRefClass("Experiment",
       # we have now created a new session. But we may want to pretend to be
       # the old one.
       if (rewind) {
-        file.rename(folder, paste0(folder, ".replayed"))
+        file.rename(folder, paste0(folder, ".old"))
         new_folder <- session_name
         session_name <<- folder
         file.rename(new_folder, session_name)

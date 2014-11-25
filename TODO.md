@@ -9,6 +9,7 @@ BUGS
 - [] ReplayServer gets put in .oldserver
 - [] documentation doesn't show default values e.g. in experiment(...)
 - [] ?? ready isn't reinitialized in Programs on replay?
+- [] empty strings in params become NULL on replay (e.g. for namecheck in expt1)
 - [] next_stage() through a Period does not increment period
   - this is really an architectural bug. We don't differentiate between
   "doing calculations" and "getting input from the user". If we advance a stage
