@@ -377,8 +377,6 @@ Experiment <- setRefClass("Experiment",
           live=FALSE, clients=NULL, rewind=FALSE) {
       if (live && (missing(speed) || is.null(speed))) speed="realtime"
       # if folder is null, use session_name or guess the most recently modified
-      old_s_n <- .self$session_name # not the function!
-      if (rewind && length(old_s_n)==0) stop("Can't rewind without an existing session")
       if (is.null(folder)) {
         if (length(.self$session_name) == 0) {
           dirs <- file.info(list.files(pattern=paste0("^",name, 
@@ -388,6 +386,8 @@ Experiment <- setRefClass("Experiment",
           folder <- rownames(dirs[1,])
         } else folder <- .self$session_name 
       }
+      if (length(folder)==0) stop("Can't find a session to replay!")
+      
       # if we've started, change status and halt the server
       if (status != "Stopped" && ! live) {
         status <<- "Stopped"      
@@ -415,9 +415,9 @@ Experiment <- setRefClass("Experiment",
       # we have now created a new session. But we may want to pretend to be
       # the old one.
       if (rewind) {
-        file.rename(old_s_n, paste0(old_s_n, ".replayed"))
+        file.rename(folder, paste0(folder, ".replayed"))
         new_folder <- session_name
-        session_name <<- old_s_n
+        session_name <<- folder
         file.rename(new_folder, session_name)
       }
       if (! live) server$start()
