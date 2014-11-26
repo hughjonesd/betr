@@ -145,7 +145,9 @@ RookServer <- setRefClass("RookServer", contains="Server",
       }
       else {
         res <- Rook::Response$new()
-        res$set_cookie(session_name, client)
+        Rook::Utils$set_cookie_header(res$headers, session_name, client, 
+              expires=as.POSIXct(Sys.time() + 3600*24*365))
+        #res$set_cookie(session_name, client)
         res$write(result)
         res$finish()
       }          
