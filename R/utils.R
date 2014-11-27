@@ -114,8 +114,8 @@ identify_seats <- function (method="IP", serve=TRUE) {
         for (c in 1:10) {
           num <- r * 10 + c
           res$write(sprintf("<td><button type='submit' name='seat' value='%s' 
-                style='background:blue; color:white; height:75px; width:75px; 
-                font-size: largest;'>", num))
+                style='background:blue; color:white; height:75px; width:50px; 
+                font-size: 200%%;'>", num))
           res$write(paste(num,"</button>"))
         }
         res$write("</tr>")
