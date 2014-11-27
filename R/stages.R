@@ -268,7 +268,10 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
           if (! is.null(err)) {names(err) <- fname; errs <- c(errs, err)}
         }
         if (length(errs) == 0) {
-          update_data_frame(id, period, params[names(fields)])
+          params <- lapply(params, type.convert, as.is=TRUE)
+          # for inserting multiple values into an AsIs column
+          toupdate <- intersect(names(fields), names(params))
+          update_data_frame(id, period, params[toupdate])
           return(NEXT)
         } else {
             res <- call_page(page, id, period, params, errors=errs)     
