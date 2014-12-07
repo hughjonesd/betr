@@ -190,7 +190,7 @@ write_data <- function(experiment, data_frame) {
     fn <- paste0("betr-data-", paste0(sample(LETTERS, 10), collapse=""))
   }
   message("Writing data frame to ", fn, ".csv")
-  write.csv(data_frame, file=paste0(fn, ".csv"))
+  write.csv(data_frame, file=paste0(fn, ".csv"), row.names=FALSE)
 }
 
 
