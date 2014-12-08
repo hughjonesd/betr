@@ -2,18 +2,20 @@ BUGS
 ----
 
 - [] RookServer not respecting port under RStudio (workaround; needs actual fix)
-- [] Server doesn't stop after rm(expt). Still there?
-- [] RookServer creates sink() a lot
-- [] FormStage doesn't like not getting params...?
+- [x] Server doesn't stop after rm(expt). Still there?
+- [x] RookServer creates sink() a lot
 - [] how to move on manually from TextStages? autorefresh?
-- [] ReplayServer gets put in .oldserver
-- [] documentation doesn't show default values e.g. in experiment(...)
+- [x] ReplayServer gets put in .oldserver
+- [] help pages don't show default values e.g. in experiment(...)
 - [] ?? ready isn't reinitialized in Programs on replay?
 - [] empty strings in params become NULL on replay (e.g. for namecheck in expt1)
+- [] issues when parameters don't exist; we should be relaxed about this
 - [] next_stage() through a Period does not increment period
   - this is really an architectural bug. We don't differentiate between
   "doing calculations" and "getting input from the user". If we advance a stage
   we want to do calculations, but not bother showing input to the user. 
+  More deeply, we don't have "push". So when the admin pushes users forward
+  a stage, nothing happens till they hit refresh...
 
 TODO
 ----
@@ -69,6 +71,7 @@ reasons) without a defined endpoint?
   - NB stage objects currently handle both "page display" (e.g. TextStage
     versus FormStage) and control flow (e.g. Period, Checkpoint)... perhaps
     should be separated out somehow.
+- separate Session from Experiment.
 
 
 Next iteration
