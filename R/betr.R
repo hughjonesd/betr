@@ -77,7 +77,7 @@ Experiment <- setRefClass("Experiment",
       subjects <<- data.frame(client=character(0), IP=character(0), 
             id=numeric(0), seat=character(0), period=numeric(0), 
             status=factor(, levels=c("Running", "Waiting", "Finished")), 
-            stage=numeric(0), stringsAsFactors=FALSE)
+            stage=numeric(0), hits=numeric(0), stringsAsFactors=FALSE)
     },
     
     finalize = function(...) {
@@ -155,7 +155,7 @@ Experiment <- setRefClass("Experiment",
       }
       subjects <<- rbind(subjects, data.frame(client=client, IP=ip, id=id, 
             seat=seat, period=0, status=factor("Running", 
-            levels=c("Running", "Waiting", "Finished")), stage=0, 
+            levels=c("Running", "Waiting", "Finished")), stage=0, hits=0,
             stringsAsFactors=FALSE))
           
       if (status=="Started") next_period(subjects[subjects$client==client,])
@@ -172,6 +172,7 @@ Experiment <- setRefClass("Experiment",
       subjects$status[done] <<- "Finished"
       srows <- subjects$id %in% subj$id & subjects$stage < length(stages)
       subjects$stage[srows] <<- subjects$stage[srows] + 1
+      subjects$hits[srows]   <<- 0
       subjects$status[srows] <<- "Running" # do I need this?
     },
     
@@ -231,6 +232,8 @@ Experiment <- setRefClass("Experiment",
           if (subject$status=="Finished") return(special_page("Experiment finished"))
           stage <- stages[[subject$stage]]
           client <- client
+          subjects$hits[subjects$id==subject$id] <<- subjects$hits[
+                subjects$id==subject$id] + 1
           result <- stage$handle_request(subject$id, subject$period, params)
           if (is.next(result)) {
             next_stage(subject)
@@ -279,7 +282,7 @@ Experiment <- setRefClass("Experiment",
       tbl <- table(subjects$period)
       cat("Period progression:\n")
       for (i in as.character(0:max(subjects$period))) {
-        if (i %in% names(tbl)) cat(i,": ", rep(".", tbl[[i]]), " [", tbl[[i]], "]\n",
+        if (i %in% names(tbl)) cat(i,": ", rep("+", tbl[[i]]), " [", tbl[[i]], "]\n",
               sep="")
       }
     },
@@ -655,8 +658,8 @@ print_stages <- function(experiment) experiment$print_stages()
 #' @param data_frame a data frame containing a column 'id'
 #' 
 #' @return A new data frame produced by \code{\link{merge}} using the 'id' 
-#' column, resulting in new columns 'IP', 'client' and 'seat'. 'period', 'stage'
-#' and 'status' will not be merged.
+#' column, resulting in new columns 'IP', 'client' and 'seat'. 'period', 'stage',
+#' 'hits' and 'status' will not be merged.
 #' 
 #' @examples
 #' expt <- experiment(N=2, port=12345)
