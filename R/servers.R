@@ -220,8 +220,8 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
   n: Next command/request
   s: skip command/request
   c: continue to end
-  c xxx: continue until condition xxx is met
-  w xxx: watch (evaluate and print R expression xxx before each command/request)
+  c xxx: continue until condition xxx is met, see below
+  w xxx: \"watch\" - print R expression xxx before each command/request
   w: turn off watch
   d: show details of next command/request
   D: toggle show details on/off
@@ -234,6 +234,7 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
   P<number>: all subjects have reached or passed period <number>
   s<number>: at least one subject has reached stage <number>
   S<number>: all subjects have reached or passed stage <number>
+  T<number>: experiment time is at least <number>
   <number>:  just continue for <number> further requests
   anything else: R expression evaluates as TRUE
 "
@@ -261,6 +262,7 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
               ))
       }
       details <- FALSE
+      if (ask) print("Enter h for help")
       for (i in 1:nrow(comreq)) {
         # this unfortunately won't let you do anything on command line! or will it...
         if (! is.null(speed)) { 
@@ -291,10 +293,9 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
             )
           }
         }
+        fake_time <<- comreq$time[i]
         if (skip) next
         if (details > 0 && ask) print_details(comreq[i,], cr.data[[i]])
-
-        fake_time <<- comreq$time[i]
         if (nchar(cond) > 0) {
           ask <<- try(eval(parse(text=cond)))
           if (ask) cond <- ""
