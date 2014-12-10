@@ -402,7 +402,7 @@ Experiment <- setRefClass("Experiment",
       err <- try(seed <<- as.integer(readLines(fp, warn=FALSE)), silent=TRUE)
       if (inherits(err, "try-error")) stop("Couldn't read seed file in ", fp)
       # start a replayserver which runs the commands
-      server <<- ReplayServer$new(folder=folder, 
+      server <<- ReplayServer$new(folder=folder, experiment=.self,
         pass_request=.self$handle_request, pass_command=.self$handle_command,
         name=name, speed=speed, maxtime=maxtime, ask=ask, clients=clients)
       ready() # this will create a new session (good idea?)
