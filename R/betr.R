@@ -190,7 +190,7 @@ Experiment <- setRefClass("Experiment",
       command <- list(name=command, params=params)
       commands <<- append(commands, command)
       tm <- elapsed_time()
-      cat(as.yaml(command), file=file.path(session_name, "record", paste0("command-", 
+      cat(as.yaml(command), file=file.path("betr-data", session_name, "record", paste0("command-", 
             as.character(tm), "-", length(commands))))
     },
     
@@ -198,7 +198,7 @@ Experiment <- setRefClass("Experiment",
       request <- list(client=client, params=params, ip=ip, cookies=cookies)
       requests <<- append(requests, request)
       tm <- elapsed_time()
-      cat(as.yaml(request), file=file.path(session_name, "record", 
+      cat(as.yaml(request), file=file.path("betr-data", session_name, "record", 
             paste0("request-", as.character(tm), "-", length(requests))))
     },
     
@@ -309,9 +309,10 @@ Experiment <- setRefClass("Experiment",
         "%Y-%m-%d-%H%M%S"), sep="-")
       set.seed(seed)
       if (record) {
-        dir.create(fp <- file.path(session_name, "record"), recursive=TRUE)
+        dir.create(fp <- file.path("betr-data", session_name, "record"),
+              recursive=TRUE)
         if (file.access(fp, 2) != 0) stop("Could not write into ", fp)
-        cat(seed, file=file.path(session_name, "seed"))
+        cat(seed, file=file.path("betr-data", session_name, "seed"))
       }
       if (randomize_ids) random_ids <<- sample(1:N)
       if (! is.null(on_ready)) on_ready()
@@ -379,12 +380,12 @@ Experiment <- setRefClass("Experiment",
       # if folder is null, use session_name or guess the most recently modified
       if (is.null(folder)) {
         if (length(.self$session_name) == 0) {
-          dirs <- file.info(list.files(pattern=paste0("^",name, 
-            "-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{6}$"), include.dirs=TRUE))
+          dirs <- file.info(list.files("betr-data", pattern=paste0("^",name, 
+                "-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{6}$"), include.dirs=TRUE))
           dirs <- dirs[order(dirs$mtime, decreasing=TRUE),]
           dirs <- dirs[dirs$isdir,]
           folder <- rownames(dirs[1,])
-        } else folder <- .self$session_name 
+        } else folder <- file.path("betr-data", .self$session_name)
       }
       if (length(folder)==0) stop("Can't find a session to replay!")
       

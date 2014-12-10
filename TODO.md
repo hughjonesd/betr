@@ -43,6 +43,10 @@ TODO
 - [] vignette: using multiple parameters
 - [] option (or default) to put experiments in folder hierarchy (expt/date/time)?
 
+To document
+-----------
+- [] new betr-data file path
+
 Other thoughts
 --------------
 - HTML form checks could be expressions: `is_numeric(x) && x %in% 1:10`
