@@ -36,7 +36,7 @@ Experiment <- setRefClass("Experiment",
     seed="integer"
   ),
   methods=list(
-    initialize = function(..., auth=TRUE, port, autostart=FALSE, 
+    initialize = function(..., auth=TRUE, port=35538, autostart=FALSE, 
       allow_latecomers=FALSE, N=Inf, server="RookServer", name="betr", 
       client_refresh=5, clients_in_url=FALSE, seats_file="betr-SEATS.txt",
       on_ready=NULL, randomize_ids=TRUE, record=TRUE, seed=NULL) {
@@ -48,20 +48,17 @@ Experiment <- setRefClass("Experiment",
       # or an actual Server object
       if (! inherits(server, "Server")) {
         server_args <- list(pass_request=.self$handle_request, 
-              clients_in_url=clients_in_url, name=name)
+              clients_in_url=clients_in_url, name=name, port=port)
         sclass <- if (is.character(server)) get(server) else server
-        if (missing(port) && sclass$className %in% 
-              c("RookServer", "CommandLineServer"))
-          server_args$port <- 35538
         server <<- do.call(sclass$new, server_args)
       }
       requests <<- commands <<- list()
       .command_names <<- c("start", "pause", "restart", "next_stage")
       seats <<- data.frame(seat=numeric(0), IP=character(0), cookie=character(0))
       if (! is.null(seats_file) && nzchar(seats_file)) {
-        err <- try(seats <<- read.table(seats_file, header=TRUE, 
-              colClasses=c("integer", "character", "character")), silent=TRUE)    
-        if (class(err)=="try-error") warning("Problem reading seats file ", seats_file)
+        try(seats <<- read.table(seats_file, header=TRUE, 
+              colClasses=c("integer", "character", "character")), 
+              silent=TRUE)    
       }
       if (! is.null(seed)) seed <<- as.integer(seed) else {
         seed <<- sample(1:10000000, 1) # hopefully random
