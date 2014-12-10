@@ -4,7 +4,6 @@
 #' @import svSocket
 
 
-
 if (getRversion() < "2.15.0") paste0 <- function(...) paste(..., sep="")
 
 #' @export Server
@@ -182,12 +181,14 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
     pass_command="function",
     ask="ANY",
     fake_time="numeric",
-    clients="ANY"
+    clients="ANY", 
+    experiment="ANY" # collation order prevents 'Experiment' :-(
   ),
   methods=list(
     initialize = function(pass_request=NULL, folder=NULL, speed=NULL, maxtime=Inf, 
-      pass_command=NULL, ask=FALSE, clients=NULL, ...) {
+      pass_command=NULL, ask=FALSE, clients=NULL, experiment=NULL,...) {
       clients <<- clients
+      experiment <<- experiment
        callSuper(folder=folder, speed=speed, maxtime=maxtime, pass_request=pass_request,
          pass_command=pass_command, ask=ask, ...)
     },
@@ -215,6 +216,51 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
       reltimes <- diff(c(0, comreq$time))
       skip <- FALSE
       fake_time <<- 0
+      instrns <- "  COMMANDS:
+  n: Next command/request
+  s: skip command/request
+  c: continue to end
+  c xxx: continue until condition xxx is met
+  w xxx: watch (evaluate and print R expression xxx before each command/request)
+  w: turn off watch
+  d: show details of next command/request
+  D: toggle show details on/off
+  h or ?: show this help
+  anything else: evaluated as an R expression
+
+  CONDITIONS:
+  N<number>: at least <number> subjects are connected
+  p<number>: at least one subject has reached period <number>
+  P<number>: all subjects have reached or passed period <number>
+  s<number>: at least one subject has reached stage <number>
+  S<number>: all subjects have reached or passed stage <number>
+  <number>:  just continue for <number> further requests
+  anything else: R expression evaluates as TRUE
+"
+      print_details <- function(cr, crd) {
+        switch(cr$type, 
+          request=cat("Request from client:",  crd$client),
+          command=cat("Command:", crd$name))
+        cat("\nTime from start:", cr$time, "\n")
+        cat("Params:\n")
+        cat(str(crd$params), "\n")
+      }
+      parse_cond <- function(cond) {
+        if (!grepl("^[NpPsS]?\\s*\\d+\\s*$", cond)) return(cond)
+        num <- sub(".*(\\d+)\\s*$", "\\1", cond)
+        cmd <- sub("^([NpPsS]).*", "\\1", cond)
+        return(switch(cmd, 
+              N=paste("nrow(experiment$subjects) >= ", num),
+              p=paste("any(experiment$subjects$period >=", num, ")"),
+              P=paste("all(experiment$subjects$period >=", num, ")"),
+              s=paste("any(experiment$subjects$stage >=", num, ")"),
+              S=paste("all(experiment$subjects$stage >=", num, ")"),
+              T=paste("elapsed_time() >= ", num),
+              paste("{counter <- if (exists('counter')) counter + 1 else 0;
+                    counter >=", num, "}")
+              ))
+      }
+      details <- FALSE
       for (i in 1:nrow(comreq)) {
         # this unfortunately won't let you do anything on command line! or will it...
         if (! is.null(speed)) { 
@@ -223,30 +269,37 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
         }
         if (! is.null(clients) && ! cr.data[[i]]$client %in% clients) next
         if (isTRUE(ask) || is.numeric(ask) && fake_time > ask) {
-          r <- "xxx"
+          r <- "blah"
           skip <- FALSE
+          cond <- ""
           while (! r %in% c("n", "", "c", "q", "s")) {
-            r <- readline("replay > ")
-            switch(r, s={skip <- TRUE}, c={ask <<- FALSE}, 
+            rl <- readline("replay> ")
+            r <- sub("\\s+.*", "", rl)
+            rest <- sub(".\\s+(.*)", "\\1", rl)
+            switch(r, 
+              s={skip <- TRUE}, 
+              c={ask <<- FALSE; cond <- parse_cond(rest)}, 
               q={skip <- TRUE; ask <<- FALSE}, 
-              d={
-                if (comreq$type[i]=="request") cat("Request from client:", 
-                      cr.data[[i]]$client) else cat("Command:", 
-                      cr.data[[i]]$name)
-                cat("\nTime from start:", comreq$time[i], "\n")
-                cat("Params:\n")
-                cat(str(cr.data[[i]]$params), "\n")
-              },
+              w={watch <- rest}
+              d={print_details(comreq[i,], cr.data[[i]])}, 
+              D={details <- ! details},
               h=,
-              "?"=cat("[n]ext command/request, [s]kip command/request, [c]ontinue to end, [q]uit, [d]etails, [?h]elp, or enter R expression\n"),
+              "?"=cat(instrns),
               n=NULL,
-              if (nchar(r)>0) try(print(eval(parse(text=r), 
+              if (nchar(rl)>0) try(print(eval(parse(text=rl), 
                     envir = globalenv())))
             )
           }
         }
         if (skip) next
+        if (details > 0 && ask) print_details(comreq[i,], cr.data[[i]])
+
         fake_time <<- comreq$time[i]
+        if (nchar(cond) > 0) {
+          ask <<- try(eval(parse(text=cond)))
+          if (ask) cond <- ""
+        }
+        if (nchar(watch) > 0) try(print(eval(parse(text=watch))))
         switch(comreq$type[i], 
           command= pass_command(cr.data[[i]]$name, cr.data[[i]]$params),
           request= .pass_request(cr.data[[i]]$client, cr.data[[i]]$params, 
