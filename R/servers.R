@@ -182,13 +182,13 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
     ask="ANY",
     fake_time="numeric",
     clients="ANY", 
-    experiment="ANY" # collation order prevents 'Experiment' :-(
+    expt="ANY" # collation order prevents 'Experiment' :-(
   ),
   methods=list(
     initialize = function(pass_request=NULL, folder=NULL, speed=NULL, maxtime=Inf, 
       pass_command=NULL, ask=FALSE, clients=NULL, experiment=NULL,...) {
       clients <<- clients
-      experiment <<- experiment
+      expt <<- experiment
        callSuper(folder=folder, speed=speed, maxtime=maxtime, pass_request=pass_request,
          pass_command=pass_command, ask=ask, ...)
     },
@@ -215,6 +215,7 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
             
       reltimes <- diff(c(0, comreq$time))
       skip <- FALSE
+      cond <- ""
       fake_time <<- 0
       instrns <- "  COMMANDS:
   n: Next command/request
@@ -229,12 +230,12 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
   anything else: evaluated as an R expression
 
   CONDITIONS:
-  N<number>: at least <number> subjects are connected
+  n<number>: at least <number> subjects are connected
   p<number>: at least one subject has reached period <number>
   P<number>: all subjects have reached or passed period <number>
   s<number>: at least one subject has reached stage <number>
   S<number>: all subjects have reached or passed stage <number>
-  T<number>: experiment time is at least <number>
+  t<number>: experiment time is at least <number>
   <number>:  just continue for <number> further requests
   anything else: R expression evaluates as TRUE
 "
@@ -247,22 +248,23 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
         cat(str(crd$params), "\n")
       }
       parse_cond <- function(cond) {
-        if (!grepl("^[NpPsS]?\\s*\\d+\\s*$", cond)) return(cond)
-        num <- sub(".*(\\d+)\\s*$", "\\1", cond)
-        cmd <- sub("^([NpPsS]).*", "\\1", cond)
+        if (!grepl("^[npPsSt]?\\s*\\d+\\s*$", cond)) return(cond)
+        num <- sub(".*?(\\d+)\\s*$", "\\1", cond)
+        cmd <- sub("^([npPsSt]).*", "\\1", cond)
         return(switch(cmd, 
-              N=paste("nrow(experiment$subjects) >= ", num),
-              p=paste("any(experiment$subjects$period >=", num, ")"),
-              P=paste("all(experiment$subjects$period >=", num, ")"),
-              s=paste("any(experiment$subjects$stage >=", num, ")"),
-              S=paste("all(experiment$subjects$stage >=", num, ")"),
-              T=paste("elapsed_time() >= ", num),
+              n=paste("nrow(expt$subjects) >= ", num),
+              p=paste("any(expt$subjects$period >=", num, ")"),
+              P=paste("all(expt$subjects$period >=", num, ")"),
+              s=paste("any(expt$subjects$stage >=", num, ")"),
+              S=paste("all(expt$subjects$stage >=", num, ")"),
+              t=paste("expt$elapsed_time() >= ", num),
               paste("{counter <- if (exists('counter')) counter + 1 else 0;
                     counter >=", num, "}")
               ))
       }
       details <- FALSE
-      if (ask) print("Enter h for help")
+      watch <- ""
+      if (ask) cat("Enter h for help\n")
       for (i in 1:nrow(comreq)) {
         # this unfortunately won't let you do anything on command line! or will it...
         if (! is.null(speed)) { 
@@ -273,16 +275,15 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
         if (isTRUE(ask) || is.numeric(ask) && fake_time > ask) {
           r <- "blah"
           skip <- FALSE
-          cond <- ""
           while (! r %in% c("n", "", "c", "q", "s")) {
             rl <- readline("replay> ")
             r <- sub("\\s+.*", "", rl)
-            rest <- sub(".\\s+(.*)", "\\1", rl)
+            rest <- sub("^\\S*\\s*", "", rl)
             switch(r, 
               s={skip <- TRUE}, 
               c={ask <<- FALSE; cond <- parse_cond(rest)}, 
               q={skip <- TRUE; ask <<- FALSE}, 
-              w={watch <- rest}
+              w={watch <- rest},
               d={print_details(comreq[i,], cr.data[[i]])}, 
               D={details <- ! details},
               h=,
@@ -297,8 +298,10 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
         if (skip) next
         if (details > 0 && ask) print_details(comreq[i,], cr.data[[i]])
         if (nchar(cond) > 0) {
-          ask <<- try(eval(parse(text=cond)))
-          if (ask) cond <- ""
+          try({
+            ask <<- eval(parse(text=cond))
+            if (ask) cond <- ""
+          })
         }
         if (nchar(watch) > 0) try(print(eval(parse(text=watch))))
         switch(comreq$type[i], 
