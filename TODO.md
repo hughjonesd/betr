@@ -31,9 +31,8 @@ TODO
   - needs to be on a per-person basis. Maybe just within the data frame?
 - [] simple way to make multiple, slightly different stages (e.g. copy +
   interface to various object fields)?
-- [] way to go to a particular period in `replay`, and to start live from
+- [x] way to go to a particular period in `replay`, and to start live from
   there
-  - maybe dynamic commands e.g. 'n id:x' 'n period:3' 'n param:x:y' etc.
 - [] is_email, is_date
 - [] HTML form elements in separate package
   - checker functions
@@ -41,16 +40,23 @@ TODO
   - using Twitter Bootstrap?
 - [] vignette: tips/tricks/bugs
 - [] vignette: using multiple parameters
-- [] option (or default) to put experiments in folder hierarchy (expt/date/time)?
+- [] wiki
 
 To document
 -----------
 - [] new betr-data file path
 
+Plan for stages separating actions from response to users
+---------------------------------------------------------
+
+- Unnecessary, if we get server push. Because then,
+  a new stage is always run when next_stage is called.
+
 Other thoughts
 --------------
 - HTML form checks could be expressions: `is_numeric(x) && x %in% 1:10`
   - with error messages in separate list, using gettextf?
+  - and so could stages, with default values for e.g. id, period...
 - maybe replace `print_stages` with `stages` which returns a list with
   a `print` method?
 - make matching and within-group calculations simple, e.g. 
