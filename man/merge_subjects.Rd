@@ -12,8 +12,8 @@ merge_subjects(experiment, data_frame)
 }
 \value{
 A new data frame produced by \code{\link{merge}} using the 'id'
-column, resulting in new columns 'IP', 'client' and 'seat'. 'period', 'stage'
-and 'status' will not be merged.
+column, resulting in new columns 'IP', 'client' and 'seat'. 'period', 'stage',
+'hits' and 'status' will not be merged.
 }
 \description{
 Merge a data frame with information about experiment subjects

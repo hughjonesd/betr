@@ -79,9 +79,11 @@ within a session, use \code{replay(expt, folder="xxx")} where xxx is the specifi
 session of interest.
 }
 \examples{
+\dontrun{
 start(expt)
 # something goes wrong after 2 minutes
 replay(expt, maxTime=120)
+}
 }
 \seealso{
 Other command line functions: \code{\link{get_url}},

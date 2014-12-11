@@ -126,7 +126,7 @@ RookServer <- setRefClass("RookServer", contains="Server",
       cookies <- req$cookies()
       # purpose of 'client' is to set a per-session ID in the browser.
       if (session_name %in% names(cookies))
-        client <- cookies[[session_name]] else 
+        client <- cookies[[session_name]][1] else 
         client <- paste0(ip, "-", paste(sample(LETTERS, 10), collapse=''))
       if (clients_in_url) {
         # always overrides cookie

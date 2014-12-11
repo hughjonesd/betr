@@ -5,6 +5,7 @@
 \alias{is_at_least}
 \alias{is_at_most}
 \alias{is_between}
+\alias{is_one_of}
 \alias{is_whole_number}
 \alias{length_at_least}
 \alias{length_between}
@@ -13,6 +14,8 @@
 all_of(...)
 
 is_at_least(min)
+
+is_one_of(...)
 
 has_value()
 
