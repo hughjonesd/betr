@@ -768,9 +768,5 @@ trace_stage <- function(experiment, num, ...) for (n in num)
 
 #' @rdname trace_stage
 #' @export
-<<<<<<< HEAD
-untrace_stage <- function(experiment, num) for (n in num) experiment$stages[[n]]$untrace()
-=======
 untrace_stage <- function(experiment, num) for (n in num) 
       experiment$stages[[n]]$untrace("handle_request")
->>>>>>> ea8f467... workaround Rook 1.1.1 bug in params()
