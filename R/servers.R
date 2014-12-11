@@ -125,9 +125,8 @@ RookServer <- setRefClass("RookServer", contains="Server",
       }
       cookies <- req$cookies()
       # purpose of 'client' is to set a per-session ID in the browser.
-      if (session_name %in% names(cookies))
-        client <- cookies[[session_name]] else 
-        client <- paste0(ip, "-", paste(sample(LETTERS, 10), collapse=''))
+      if ("betr" %in% names(cookies)) client <- cookies$betr else 
+            client <- paste0(ip, "-", paste(sample(LETTERS, 10), collapse=''))
       if (clients_in_url) {
         # always overrides cookie
         poss_client <- sub(paste0(".*", name, "/(.*)"), "\\1", req$path())
@@ -139,18 +138,15 @@ RookServer <- setRefClass("RookServer", contains="Server",
             sub("=$", "", names(params)[params==""])
       result <- .pass_request(client, params, ip, cookies)
          
-      if (inherits(result, "Response")) {
-        result$set_cookie(session_name, client)
-        result$finish()
-      }
-      else {
+      if (! inherits(result, "Response")) {
         res <- Rook::Response$new()
-        Rook::Utils$set_cookie_header(res$headers, session_name, client, 
+      } else {
+        res <- result
+      }
+      Rook::Utils$set_cookie_header(res$headers, "betr", client, 
               expires=as.POSIXct(Sys.time() + 3600*24*365))
-        #res$set_cookie(session_name, client)
-        res$write(result)
-        res$finish()
-      }          
+      if (! inherits(result, "Response")) res$write(result) 
+      res$finish()
     },
     
     start = function (session_name=paste0(name, Sys.time())) {
