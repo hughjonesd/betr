@@ -2,14 +2,13 @@ BUGS
 ----
 
 - [] RookServer not respecting port under RStudio (workaround; needs actual fix)
-- [x] Server doesn't stop after rm(expt). Still there?
-- [x] RookServer creates sink() a lot
+- [] Rook doesn't return cookies after the first twenty or so :-(
+  - wait for bugfix?
+  - set a cookie called `betr` not by `session_name`?
 - [] how to move on manually from TextStages? autorefresh?
-- [x] ReplayServer gets put in .oldserver
 - [] help pages don't show default values e.g. in experiment(...)
-- [] ?? ready isn't reinitialized in Programs on replay?
-- [] empty strings in params become NULL on replay (e.g. for namecheck in expt1)
-- [] issues when parameters don't exist; we should be relaxed about this
+- [] ready isn't reinitialized in Programs on replay; ditto checkpoint ids etc
+  - need a clean() method called on add_stage and on ready.
 - [] next_stage() through a Period does not increment period
   - this is really an architectural bug. We don't differentiate between
   "doing calculations" and "getting input from the user". If we advance a stage
