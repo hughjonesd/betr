@@ -3,7 +3,7 @@ library(betr)
 
 init <- function() {
   mydf <<- experiment_data_frame(expt, guess=NA, correct=NA)
-})
+}
 
 expt <- experiment(N=1, autostart=TRUE, clients_in_url=TRUE, on_ready=init)
 s1 <- function(id, period, params) {

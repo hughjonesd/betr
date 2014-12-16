@@ -4,7 +4,8 @@
 \title{Print out a form and store the subject's inputs in a data frame, after
 checking for errors}
 \usage{
-form_stage(page, fields, titles = NULL, data_frame, name = "No name")
+form_stage(page, fields, titles = NULL, data_frame, name = "No name",
+  multi_params = "AsIs")
 }
 \arguments{
 \item{page}{A character vector containing HTML, or a function to be called
@@ -19,6 +20,10 @@ with parameters \code{id, period, params, errors}.}
 This should exist in the global environment.}
 
 \item{name}{optional name of the stage.}
+
+\item{multi_params}{How to deal with multi-valued parameters. "AsIs"
+       enters them as a list in a single column (which should be of type
+       AsIs); "paste" pastes them, separated by commas, in a single column.}
 }
 \value{
 An object of class FormStage
@@ -55,6 +60,17 @@ named by \code{fields} get the values passed in by the user.
 
 \code{\link{is_whole_number}} and similar functions return functions suitable
 for use in the fields list.
+
+Multiple parameters can be created by writing e.g.
+
+\code{<input type='checkbox' name='fruit[]' value='banana'>
+<input type='checkbox' name='fruit[]' value='peach'>
+...}
+
+in the HTML page. Note that if \code{multi_params="paste"},
+parameters are comma-separated without being quoted. This will cause problems
+if you e.g. allow free text entry and subjects use commas. In these cases
+it is better to use one of the other alternatives.
 }
 \examples{
 mydf <- data.frame(id=rep(1:5, each=5), period=rep(1:5, times=5),

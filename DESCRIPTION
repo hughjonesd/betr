@@ -1,7 +1,7 @@
 Package: betr
 Type: Package
 Title: betr: Behavioral Experiments Toolkit in R
-Version: 0.2
+Version: 0.2.1
 Date: 2013-11-05
 Author: David Hugh-Jones
 Maintainer: David Hugh-Jones <davidhughjones@gmail.com>
@@ -15,13 +15,15 @@ Imports:
     Rook,
     testthat,
     brew,
-    tools
-Suggests:
-    knitr
+    tools,
+    knitr,
+    yaml
 Collate:
     'stages.R'
     'servers.R'
     'betr.R'
     'dataframe.R'
+    'interface.R'
+    'checks.R'
     'pages.R'
     'utils.R'

@@ -23,7 +23,7 @@ the \code{\link{experiment}} object and the function will guess for you.
 }
 \examples{
 expt <- experiment(N=5)
-s1 <- text_stage(text="<html><body>got here</body></html>")
+s1 <- text_stage(page="<html><body>got here</body></html>")
 add_stage(expt, s1, period(), times=5)
 mydf <- experiment_data_frame(expt)
 }

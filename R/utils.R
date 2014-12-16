@@ -11,13 +11,16 @@ NULL
 #'        client identifier. This only works if \code{experiment} has
 #'        \code{clients_in_url} set to \code{TRUE}
 #' @param ids character vector of ids to supply in the URLs opened
+#' @param browser name of the browser executable. See \code{\link{browseURL}}.
 #' @family development tools
 #' @export
 web_test <- function (experiment, N=ifelse(is.finite(experiment$N), 
-      experiment$N, 1), clients_in_url=TRUE, ids=paste("client", 1:N, sep="-")) {
+      experiment$N, 1), clients_in_url=TRUE, ids=paste("client", 1:N, sep="-"),
+      browser=getOption('browser')) {
   if (experiment$status=="Stopped") warning("Experiment status is Stopped. Try calling ready() first")
   for (i in 1:N) {
-    browseURL(paste0(get_url(experiment), if(clients_in_url) paste0("/", ids[[i]])))
+    browseURL(paste0(get_url(experiment), if(clients_in_url) paste0("/", ids[[i]])),
+        browser=browser)
   }
 }
 
@@ -104,7 +107,20 @@ identify_seats <- function (method="IP", serve=TRUE) {
       res$write("<h1>Enter seat number</h1>
             <form action='' method=POST>Enter this computer's seat number:
             <br><input type='text' name='seat' width='4'>
-            <input type='submit'></form></body></html>")
+            <input type='submit'>")
+      res$write("<table>")
+      for (r in 0:3) {
+        res$write("<tr>")
+        for (c in 1:10) {
+          num <- r * 10 + c
+          res$write(sprintf("<td><button type='submit' name='seat' value='%s' 
+                style='background:blue; color:white; height:75px; width:50px; 
+                font-size: 200%%;'>", num))
+          res$write(paste(num,"</button>"))
+        }
+        res$write("</tr>")
+      }
+      res$write("</table></form></body></html>")
     }
     res$finish()
   }
@@ -113,7 +129,7 @@ identify_seats <- function (method="IP", serve=TRUE) {
     rhapp <- RhttpdApp$new(name="seats", app=app)
     svr$add(rhapp)
     require(tools)
-    svr$start()
+    svr$start(port=35538)
     cat("Serving on", svr$full_url(1))
   } else {
     return(app)
@@ -139,7 +155,7 @@ identify_seats <- function (method="IP", serve=TRUE) {
 #' @examples
 #' 
 #' expt <- experiment(N=5)
-#' s1 <- text_stage(text="<html><body>got here</body></html>")
+#' s1 <- text_stage(page="<html><body>got here</body></html>")
 #' add_stage(expt, s1, period(), times=5)
 #' mydf <- experiment_data_frame(expt)
 #' 
@@ -174,7 +190,7 @@ write_data <- function(experiment, data_frame) {
     fn <- paste0("betr-data-", paste0(sample(LETTERS, 10), collapse=""))
   }
   message("Writing data frame to ", fn, ".csv")
-  write.csv(data_frame, file=paste0(fn, ".csv"))
+  write.csv(data_frame, file=paste0(fn, ".csv"), row.names=FALSE)
 }
 
 
@@ -182,13 +198,14 @@ write_data <- function(experiment, data_frame) {
 #' 
 #' After \code{load_commands(expt)} is called, entering \code{READY}, 
 #' \code{START}, \code{HALT}, \code{PAUSE}, \code{RESTART}, \code{INFO},
-#' \code{MAP} or \code{WEB_TEST} will call the corresponding command on the 
-#' experiment, with no arguments.
+#' \code{MAP}, \code{NEXT_STAGE} or \code{WEB_TEST} will call the corresponding 
+#' command on the experiment, with no arguments.
 #' 
+#' @param expt An object of class \code{Experiment}
 #' @details
 #' \code{load_commands} is implemented using \code{\link{makeActiveBinding}}.
-#' For obvious reasons, don't assign to the values \code{READY} etc. either before
-#' or after this is called! 
+#' For obvious reasons, don't assign to the values \code{READY} etc. either
+#'  before or after this is called! 
 #' 
 #' \code{unload_commands} simply removes the command names from the global 
 #' environment.
@@ -201,19 +218,21 @@ write_data <- function(experiment, data_frame) {
 #' INFO
 #' @export
 load_commands <- function(expt) {
-  makeActiveBinding("READY", function(x) ready(expt), env=globalenv())
-  makeActiveBinding("START", function(x) start(expt), env=globalenv())
-  makeActiveBinding("HALT", function(x) halt(expt), env=globalenv())
-  makeActiveBinding("PAUSE", function(x) pause(expt), env=globalenv())
-  makeActiveBinding("RESTART", function(x) restart(expt), env=globalenv())
-  makeActiveBinding("INFO", function(x) info(expt), env=globalenv())
-  makeActiveBinding("MAP", function(x) map(expt), env=globalenv())
-  makeActiveBinding("WEB_TEST", function(x) web_test(expt), env=globalenv())
-  
+  en <- parent.frame()
+  makeActiveBinding("READY", function(x) ready(expt), env=en)
+  makeActiveBinding("START", function(x) start(expt), env=en)
+  makeActiveBinding("HALT", function(x) halt(expt), env=en)
+  makeActiveBinding("PAUSE", function(x) pause(expt), env=en)
+  makeActiveBinding("RESTART", function(x) restart(expt), env=en)
+  makeActiveBinding("INFO", function(x) info(expt), env=en)
+  makeActiveBinding("MAP", function(x) map(expt), env=en)
+  makeActiveBinding("WEB_TEST", function(x) web_test(expt), env=en)
+  makeActiveBinding("NEXT_STAGE", function(x) next_stage(expt), env=en)
 }
 
 unload_commands <- function() {
-  rm(READY, START, HALT, PAUSE, RESTART, INFO, MAP, WEB_TEST, envir=globalenv())
+  rm(READY, START, HALT, PAUSE, RESTART, INFO, MAP, WEB_TEST, NEXT_STAGE,
+        envir=parent.frame())
 }
 
 #' Simple HTML header and footer
@@ -258,4 +277,4 @@ footer <- function() {
 #' @rdname header
 #' @export
 next_form <- function(text='Next') sprintf("<form action='' method='POST'>
-      <input type='submit' value='%s' /></form", text)
+      <input type='submit' value='%s' /></form>", text)

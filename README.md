@@ -1,6 +1,9 @@
 betr
 ====
 
+[![Build Status Develop](https://travis-ci.org/hughjonesd/betr.svg?branch=develop)](https://travis-ci.org/hughjonesd/betr)
+[![Build Status Master](https://travis-ci.org/hughjonesd/betr.svg?branch=master)](https://travis-ci.org/hughjonesd/betr)
+
 Behavioral Experiments Toolkit in R
 -----------------------------------
 

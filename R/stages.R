@@ -41,7 +41,7 @@ Stage <- setRefClass("Stage", contains="AbstractStage",
 #' result in one or more HTML pages shown to participants.
 #' @param name optional name of the stage.
 #' @param handler A function which returns either a character string 
-#'        containing HTML, a \code{\link{Rook::Response}} object, the constant 
+#'        containing HTML, a \code{\link[Rook]{Response}} object, the constant 
 #'        \code{WAIT}, or the constant \code{NEXT}.
 #' @return a Stage object suitable for adding to an experiment.
 #' @details If \code{WAIT} is returned, the participant will be shown
@@ -95,7 +95,7 @@ TextStage <- setRefClass("TextStage", contains="AbstractStage",
 #' @param page A character vector containing HTML, or a function to be called 
 #'        with parameters \code{id, period, params}.
 #' @param wait Wait to move on?
-#'         
+#' 
 #' @return An object of class TextStage. When called the first time, this will
 #'         display the HTML in \code{file} or \code{text} to the participant. 
 #'         If \code{wait} is \code{FALSE} (the default), subsequent calls
@@ -120,111 +120,6 @@ rookify <- function (thing) {
 }
 
 
-#' Functions which return functions that can check a form input for errors.
-#' 
-#' These functions return functions which can be passed to the \code{fields}
-#' list of a \code{\link[form_stage]{FormStage}} object. The created functions 
-#' check their inputs and return \code{NULL} or an error message.
-#' 
-#' \code{all_of} checks each of the functions it is passed.
-#' 
-#' @examples
-#' f1 <- is_whole_number()
-#' f1("pi", 3.141)
-#'
-#' 
-#' 
-#' @return A function for checking a form input
-#' @family checks
-#' @export
-all_of <- function(...) {
-  subchecks <- list(...)
-  function(ftitle, val, ...) {
-    results <- lapply(subchecks, function(sc) sc(ftitle, val, ...))
-    nulls <- sapply(results, is.null)
-    if (all(nulls)) return(NULL) 
-    results <- results[!nulls]
-    if (length(results)==1) return(results[[1]])
-    return(c(paste0(ftitle, " has multiple errors:"), unlist(results)))
-  }
-}
-
-#' @rdname all_of
-#' @export
-is_at_least <- function(min) {
-  function(ftitle, val, ...) {
-    if (! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
-    val <- as.numeric(val)
-    if (! val >= min) paste0(ftitle, 
-      " must be at least ", min) else NULL
-  }
-}
-
-#' @rdname all_of
-#' @export
-has_value <- function() {
-  function(ftitle, val, ...) {
-    if (is.null(val) || is.na(val) || nchar(val)==0 ) paste0("Please submit a
-          value for ", ftitle) else NULL
-  }
-}
-
-#' @rdname all_of
-#' @export
-is_at_most <- function(max) {
-  function(ftitle, val, ...) {
-    if (! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
-    val <- as.numeric(val)
-    if (is.null(val) || is.na(val) || ! val <= max) paste0(ftitle, 
-      " must be no more than ", max) else NULL
-  }
-}
-
-#' @rdname all_of
-#' @export
-is_whole_number <- function() {
-  function(ftitle, val, ...) {
-    if (! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
-    val <- as.numeric(val)
-    tol = .Machine$double.eps^0.5  
-    if (is.null(val) || is.na(val) || abs(val - round(val)) >= tol) paste0(ftitle, 
-          " must be a whole number") else NULL
-  }
-}
-
-#' @rdname all_of
-#' @export
-is_between <- function(min, max) {
-  function(ftitle, val, ...) {
-    if (! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
-    val <- as.numeric(val)
-    if (is.null(val) || is.na(val) || ! (val >= min && val <= max)) paste0(ftitle, 
-        " must be between ", min, " and ", max) else NULL
-  }
-}
-
-#' @rdname all_of
-#' @export
-length_between <- function(min, max) {
-  function(ftitle, val, ...) {
-    if (min > 0 && ! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
-    nc <- nchar(val)
-    if (! (nc >= min && nc <= max)) paste0(ftitle, 
-      " must be between ", min, " and ", max, " characters long") else NULL
-  }
-}
-
-
-#' @rdname all_of
-#' @export
-length_at_least <- function(min) {
-  function(ftitle, val, ...) {
-    nc <- nchar(val)
-    if (min > 0 && ! is.null(hv <- has_value()(ftitle, val, ...))) return(hv)
-    if (! nc >= min) paste0(ftitle, " must be at least ", min, 
-          " characters long") else NULL
-  }
-}
 
 #' @export FormStage
 #' @exportClass FormStage
@@ -234,11 +129,12 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
     page    = "ANY",
     titles       = "ANY",
     data_frame   = "character",
-    seenonce     = "numeric"
+    seenonce     = "numeric",
+    multi_params = "character"
   ),
   methods = list(
     initialize = function(page=NULL, fields=list(), titles=NULL, 
-          data_frame="", ...) {
+          data_frame="", multi_params="AsIs", ...) {
       page <<- page
       if (! is.list(fields)) {
         fnames <- fields
@@ -248,6 +144,7 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
       }
       fields <<- fields
       titles <<- titles
+      multi_params <<- multi_params
       if (! is.null(titles) && length(mf <- setdiff(names(fields), 
             names(titles)))) {
         stop("Missing fields from titles: ", paste(mf, sep=", "))
@@ -260,7 +157,7 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
     handle_request = function(id, period, params) {
       if (id %in% seenonce) {
         errs <- character(0)
-        for (f in 1:length(fields)) {
+        for (f in seq_along(fields)) {
           fname <- names(fields[f])
           f <- fields[[f]]
           ftitle <- if(is.null(titles)) fname else titles[[fname]]
@@ -268,7 +165,13 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
           if (! is.null(err)) {names(err) <- fname; errs <- c(errs, err)}
         }
         if (length(errs) == 0) {
-          update_data_frame(id, period, params[names(fields)])
+          params <- lapply(params, type.convert, as.is=TRUE)
+          # for inserting multiple values into an AsIs column
+          f <- switch(multi_params, AsIs=list, paste=function(x) paste(x, 
+                collapse=","))
+          params <- lapply(params, function(x) if (length(x)>1) f(x) else x )
+          toupdate <- intersect(names(fields), names(params))
+          update_data_frame(id, period, params[toupdate])
           return(NEXT)
         } else {
             res <- call_page(page, id, period, params, errors=errs)     
@@ -284,6 +187,7 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
     update_data_frame = function(id, period, params) {
       if (! is.data.frame(.GlobalEnv[[data_frame]])) stop("'", data_frame, 
             "' is not a data frame in the global environment")
+      if (period < 1) warning("Period is not 1 yet, did you forget to include a period()?")
       selrow <- .GlobalEnv[[data_frame]]$id==id & 
             .GlobalEnv[[data_frame]]$period==period
       .GlobalEnv[[data_frame]][selrow, names(params)] <- params
@@ -303,6 +207,10 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' @param data_frame The quoted string name of the data frame to be updated.
 #'        This should exist in the global environment.
 #' @param name optional name of the stage.
+#' @param multi_params How to deal with multi-valued parameters. "AsIs"
+#'        enters them as a list in a single column (which should be of type 
+#'        AsIs); "paste" pastes them, separated by commas, in a single column.
+#'         
 #' 
 #' @details 
 #' 
@@ -334,6 +242,18 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' \code{\link{is_whole_number}} and similar functions return functions suitable
 #' for use in the fields list.
 #' 
+#' Multiple parameters can be created by writing e.g.
+#' 
+#' \code{<input type='checkbox' name='fruit[]' value='banana'>
+#' <input type='checkbox' name='fruit[]' value='peach'>
+#' ...}
+#' 
+#' in the HTML page. Note that if \code{multi_params="paste"},
+#' parameters are comma-separated without being quoted. This will cause problems
+#' if you e.g. allow free text entry and subjects use commas. In these cases
+#' it is better to use one of the other alternatives.
+#' 
+#' 
 #' @examples
 #' 
 #' mydf <- data.frame(id=rep(1:5, each=5), period=rep(1:5, times=5), 
@@ -354,13 +274,14 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
 #' @return An object of class FormStage
 #' @family stages
 #' @export
-form_stage <- function (page, fields, titles=NULL, data_frame, name="No name") {
+form_stage <- function (page, fields, titles=NULL, data_frame, name="No name",
+      multi_params="AsIs") {
   if (missing(page) || is.null(page)) stop("page must be specified")
   if (missing(data_frame) || ! is.character(data_frame)) 
         stop("data_frame must be a string")
   if (missing(fields)) stop("Please specify a list of fields")
   FormStage$new(page=page, fields=fields, titles=titles, 
-        data_frame=data_frame, name=name)
+        data_frame=data_frame, name=name, multi_params=multi_params)
 }
 
 
@@ -445,8 +366,19 @@ Period <- setRefClass("Period", contains="CheckPoint",
 
 #' Begin a new period, optionally waiting for other subjects
 #' 
+#' This creates a period object which can be passed to \code{\link{add_stage}}.
+#' Periods do nothing but add one to the period counter, and optionally
+#' wait for all subjects to reach the same position.
+#' 
+#' @param wait_for "all", "none", "ever" or a length-N vector. 
+#'   See \code{\link{checkpoint}}
+#' @param name Optional name of the stage 
+#' 
+#' @details 
+#' 
 #' A period may contain one or more stages. When the experiment is started,
-#' all subjects are in period 1. Typically, you will want a new period for each
+#' all subjects are in period 0, which can be used for e.g. instructions.
+#' Typically, you will want to put a new period before each
 #' "repetition" of an experiment. You can then store the data in a data frame
 #' which looks like:
 #' 
@@ -458,14 +390,6 @@ Period <- setRefClass("Period", contains="CheckPoint",
 #' 2 \tab 1 \tab ... \cr
 #' ... \tab ... \tab ... \cr
 #' }
-#' 
-#' @usage period(wait_for="none")
-#' @param wait_for 
-#' @param name Optional name of the stage 
-#' 
-#' @details 
-#' 
-#' I\code{wait_for} is interpreted just as in \code{\link{checkpoint}}.
 #' 
 #' If all relevant subjects are ready, the subject's period counter is
 #' incremented and the subject moves on.
@@ -507,8 +431,8 @@ Program <- setRefClass("Program", contains="AbstractStage",
     
     handle_request = function(id, period, params) {
       if (! id %in% ready) ready <<- c(ready, id)
-      if (length(ready) == 1 && run == "first" || run == "all" || 
-            length(ready) == expt$N && run == "last") fn(id, period)    
+      if ((length(ready) == 1 && run == "first") || run == "all" || 
+            (length(ready) == expt$N && run == "last")) fn(id, period)    
       return(NEXT)
     }
   )
@@ -552,18 +476,17 @@ Program <- setRefClass("Program", contains="AbstractStage",
 #' }
 #' 
 #' s2 <- program("last", function(id, period) {
-#'  mydf$profit <<- with(mydf[mydf$period==period,] 
+#'  mydf$profit <<- with(mydf[mydf$period==period,],
 #'        ave(contrib, group, FUN=function(x) 50 - x + mpcr * mean(x)))
 #' })
 #' 
-#' add_stage(expt, period(), s1, checkpoint(mydf$group), s2, s3, times=10)
+#' add_stage(expt, period(), s1, checkpoint("all"), s2, times=10)
 #'      
 #' @return A Stage object of class Program
 #' @family stages
 #' @export
-#                                       list() to catch errors
 program <- function (run, fn, name="No name") {
-  list(run,fn);
+  list(run,fn); # to catch errors
   Program$new(run=run, fn=fn, name=name)
 } 
 
@@ -634,7 +557,7 @@ Timed <- setRefClass("Timed", contains="AbstractStage",
 #'      fields=list(foo=has_value()), data_frame="mydf")
 #' # set a default value:
 #' s1_timed <- timed(s1, 60, on_timeout=function(id, period) 
-#'      mydf$foo[mydf$id==id & mydf$period==period] <<- "Default value"))
+#'      mydf$foo[mydf$id==id & mydf$period==period] <<- "Default value")
 #' 
 #' @return A Stage object of class Timed
 #' @family stages

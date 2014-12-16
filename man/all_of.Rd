@@ -5,6 +5,7 @@
 \alias{is_at_least}
 \alias{is_at_most}
 \alias{is_between}
+\alias{is_one_of}
 \alias{is_whole_number}
 \alias{length_at_least}
 \alias{length_between}
@@ -13,6 +14,8 @@
 all_of(...)
 
 is_at_least(min)
+
+is_one_of(...)
 
 has_value()
 
@@ -26,19 +29,33 @@ length_between(min, max)
 
 length_at_least(min)
 }
+\arguments{
+\item{...}{\code{all_of}: other functions to be checked individually;
+\code{is_one_of}: or values to check against}
+
+\item{min,max}{minimum and maximum values/lengths
+\code{all_of} checks each of the functions it is passed.}
+}
 \value{
 A function for checking a form input
 }
 \description{
 These functions return functions which can be passed to the \code{fields}
-list of a \code{\link[form_stage]{FormStage}} object. The created functions
+list of a \code{\link[=form_stage]{FormStage}} object. The created functions
 check their inputs and return \code{NULL} or an error message.
-}
-\details{
-\code{all_of} checks each of the functions it is passed.
 }
 \examples{
 f1 <- is_whole_number()
 f1("pi", 3.141)
+is_one_of(1:3)("The variable", 3)
+is_one_of(1:3)("The variable", 4)
+is_one_of("a", "b", 2:7)("The variable", 1)
+length_between(3,5)("The string", "abcdef")
+length_at_least(5)("The string", "abcd")
+f1 <- all_of(is_whole_number(), is_between(3,5))
+f1("The variable", 2)
+f1("The variable", 2.5)
+f1("The variable", 3.5)
+f1("The variable", 4)
 }
 

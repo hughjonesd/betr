@@ -67,7 +67,7 @@ page which refreshes regularly. To see your experiment's status, call
 command line. When you want the experiment to start, call
 \code{\link[=start]{start(experiment)}}.
 
-To keep your experiments replay-safe, use \code{\link{on_ready}} to
+To keep your experiments replay-safe, use \code{on_ready} to
 initialize your data.
 
 The parameter \code{auth} determines how you authorize clients. \code{TRUE}

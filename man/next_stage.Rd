@@ -3,7 +3,7 @@
 \alias{next_stage}
 \title{Move some clients forward one stage}
 \usage{
-next_stage(experiment, subjid)
+next_stage(experiment, subjid = 1:experiment$N)
 }
 \arguments{
 \item{experiment}{Object of class Experiment}
@@ -27,8 +27,9 @@ Other command line functions: \code{\link{get_url}},
   \code{\link{print_stages}}, \code{\link{session_name}};
   \code{\link{halt}}; \code{\link{load_commands}};
   \code{\link{merge_subjects}}; \code{\link{pause}};
-  \code{\link{ready}}; \code{\link{replay}};
-  \code{\link{restart}}; \code{\link{start.Experiment}};
+  \code{\link{ready}}; \code{\link{replay}},
+  \code{\link{rewind}}; \code{\link{restart}};
+  \code{\link{start.Experiment}};
   \code{\link{trace_stage}}, \code{\link{untrace_stage}}
 }
 

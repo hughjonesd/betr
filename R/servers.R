@@ -4,7 +4,6 @@
 #' @import svSocket
 
 
-
 if (getRversion() < "2.15.0") paste0 <- function(...) paste(..., sep="")
 
 #' @export Server
@@ -119,8 +118,8 @@ RookServer <- setRefClass("RookServer", contains="Server",
         # work around Rook bug
         ip <- "127.0.0.1" 
         if (exists("HTTP_X_FORWARDED_FOR", env)) {
-          ip <- sub("^([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}).*", "\\1",
-                env$HTTP_X_FORWARDED_FOR)
+          ip <- sub("^([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}).*",
+                "\\1", env$HTTP_X_FORWARDED_FOR)
         }
       }
       cookies <- req$cookies()
@@ -134,7 +133,9 @@ RookServer <- setRefClass("RookServer", contains="Server",
         if (nchar(poss_client)>0) client <- poss_client
       }    
       params <- req$params()
-
+      # workaround Rook bug:
+      if (packageVersion("Rook") <= "1.1.1") names(params)[params==""] <- 
+            sub("=$", "", names(params)[params==""])
       result <- .pass_request(client, params, ip, cookies)
          
       if (inherits(result, "Response")) {
@@ -143,7 +144,9 @@ RookServer <- setRefClass("RookServer", contains="Server",
       }
       else {
         res <- Rook::Response$new()
-        res$set_cookie(session_name, client)
+        Rook::Utils$set_cookie_header(res$headers, session_name, client, 
+              expires=as.POSIXct(Sys.time() + 3600*24*365))
+        #res$set_cookie(session_name, client)
         res$write(result)
         res$finish()
       }          
@@ -176,25 +179,31 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
     speed="ANY",
     maxtime="numeric",
     pass_command="function",
-    ask="logical",
+    ask="ANY",
     fake_time="numeric",
-    clients="ANY"
+    clients="ANY", 
+    expt="ANY" # collation order prevents 'Experiment' :-(
   ),
   methods=list(
     initialize = function(pass_request=NULL, folder=NULL, speed=NULL, maxtime=Inf, 
-      pass_command=NULL, ask=FALSE, clients=NULL, ...) {
+      pass_command=NULL, ask=FALSE, clients=NULL, experiment=NULL,...) {
       clients <<- clients
+      expt <<- experiment
        callSuper(folder=folder, speed=speed, maxtime=maxtime, pass_request=pass_request,
          pass_command=pass_command, ask=ask, ...)
     },
     
     start = function(session_name=NULL) {
       comreq <- list.files(file.path(folder, "record"), 
-        pattern="(command|request)-[0-9\\.]+")
-      if (length(comreq) == 0) stop("Found no commands or requests in ", file.path(folder, "record"))
-      comreq <- data.frame(name=comreq, type=sub("(command|request).*", "\\1", comreq),
-        time=sub("(command|request)-([0-9\\.]+).*", "\\2", comreq), 
-        order=sub(".*-([0-9])", "\\1", comreq), stringsAsFactors=FALSE)
+            pattern="(command|request)-[0-9\\.]+")
+      if (length(comreq) == 0) stop("Found no commands or requests in ", 
+            file.path(folder, "record"))
+      comreq <- data.frame(
+            name=comreq, 
+            type=sub("(command|request).*", "\\1",comreq),
+            time=sub("(command|request)-([0-9\\.]+).*", "\\2", comreq), 
+            order=sub(".*-([0-9])", "\\1", comreq), 
+            stringsAsFactors=FALSE)
       comreq$time <- as.numeric(comreq$time)
       comreq <- comreq[order(comreq$time),]
       comreq <- comreq[comreq$time <= maxtime,]
@@ -206,6 +215,56 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
             
       reltimes <- diff(c(0, comreq$time))
       skip <- FALSE
+      cond <- ""
+      fake_time <<- 0
+      instrns <- "  COMMANDS:
+  n: Next command/request
+  s: skip command/request
+  c: continue to end
+  c xxx: continue until condition xxx is met, see below
+  w xxx: \"watch\" - print R expression xxx before each command/request
+  w: turn off watch
+  d: show details of next command/request
+  D: toggle show details on/off
+  h or ?: show this help
+  anything else: evaluated as an R expression
+
+  CONDITIONS:
+  n<number>: at least <number> subjects are connected
+  p<number>: at least one subject has reached period <number>
+  P<number>: all subjects have reached or passed period <number>
+  s<number>: at least one subject has reached stage <number>
+  S<number>: all subjects have reached or passed stage <number>
+  t<number>: experiment time is at least <number>
+  <number>:  just continue for <number> further requests
+  anything else: R expression evaluates as TRUE
+"
+      print_details <- function(cr, crd) {
+        switch(cr$type, 
+          request=cat("Request from client:",  crd$client),
+          command=cat("Command:", crd$name))
+        cat("\nTime from start:", cr$time, "\n")
+        cat("Params:\n")
+        cat(str(crd$params), "\n")
+      }
+      parse_cond <- function(cond) {
+        if (!grepl("^[npPsSt]?\\s*\\d+\\s*$", cond)) return(cond)
+        num <- sub(".*?(\\d+)\\s*$", "\\1", cond)
+        cmd <- sub("^([npPsSt]).*", "\\1", cond)
+        return(switch(cmd, 
+              n=paste("nrow(expt$subjects) >= ", num),
+              p=paste("any(expt$subjects$period >=", num, ")"),
+              P=paste("all(expt$subjects$period >=", num, ")"),
+              s=paste("any(expt$subjects$stage >=", num, ")"),
+              S=paste("all(expt$subjects$stage >=", num, ")"),
+              t=paste("expt$elapsed_time() >= ", num),
+              paste("{counter <- if (exists('counter')) counter + 1 else 0;
+                    counter >=", num, "}")
+              ))
+      }
+      details <- FALSE
+      watch <- ""
+      if (ask) cat("Enter h for help\n")
       for (i in 1:nrow(comreq)) {
         # this unfortunately won't let you do anything on command line! or will it...
         if (! is.null(speed)) { 
@@ -213,30 +272,42 @@ ReplayServer <- setRefClass("ReplayServer", contains="Server",
           if (is.numeric(speed)) Sys.sleep(speed)
         }
         if (! is.null(clients) && ! cr.data[[i]]$client %in% clients) next
-        if (ask) {
-          r <- "xxx"
+        if (isTRUE(ask) || is.numeric(ask) && fake_time > ask) {
+          r <- "blah"
           skip <- FALSE
           while (! r %in% c("n", "", "c", "q", "s")) {
-            r <- readline("replay > ")
-            switch(r, s={skip <- TRUE}, c={ask <<- FALSE}, q={skip <- TRUE; ask <<- FALSE}, d={
-                if (comreq$type[i]=="request") cat("Request from client:", cr.data[[i]]$client) else
-                  cat("Command:", cr.data[[i]]$name)
-                cat("\nTime from start:", comreq$time[i], "\n")
-                cat("Params:\n")
-                cat(str(cr.data[[i]]$params), "\n")
-              },
+            rl <- readline("replay> ")
+            r <- sub("\\s+.*", "", rl)
+            rest <- sub("^\\S*\\s*", "", rl)
+            switch(r, 
+              s={skip <- TRUE}, 
+              c={ask <<- FALSE; cond <- parse_cond(rest)}, 
+              q={skip <- TRUE; ask <<- FALSE}, 
+              w={watch <- rest},
+              d={print_details(comreq[i,], cr.data[[i]])}, 
+              D={details <- ! details},
               h=,
-              "?"=cat("[n]ext command/request, [s]kip command/request, [c]ontinue to end, [q]uit, [d]etails, [?h]elp, or enter R expression\n"),
+              "?"=cat(instrns),
               n=NULL,
-              if (nchar(r)>0) try(print(eval(parse(text=r), envir = globalenv())))
+              if (nchar(rl)>0) try(print(eval(parse(text=rl), 
+                    envir = globalenv())))
             )
           }
         }
-        if (skip) next
         fake_time <<- comreq$time[i]
+        if (skip) next
+        if (details > 0 && ask) print_details(comreq[i,], cr.data[[i]])
+        if (nchar(cond) > 0) {
+          try({
+            ask <<- eval(parse(text=cond))
+            if (ask) cond <- ""
+          })
+        }
+        if (nchar(watch) > 0) try(print(eval(parse(text=watch))))
         switch(comreq$type[i], 
           command= pass_command(cr.data[[i]]$name, cr.data[[i]]$params),
-          request= .pass_request(cr.data[[i]]$client, cr.data[[i]]$params, cr.data[[i]]$ip, cr.data[[i]]$cookies)
+          request= .pass_request(cr.data[[i]]$client, cr.data[[i]]$params, 
+                cr.data[[i]]$ip, cr.data[[i]]$cookies)
         ) 
       }
     },

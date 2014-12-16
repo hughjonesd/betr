@@ -5,16 +5,19 @@
 \usage{
 load_commands(expt)
 }
+\arguments{
+\item{expt}{An object of class \code{Experiment}}
+}
 \description{
 After \code{load_commands(expt)} is called, entering \code{READY},
 \code{START}, \code{HALT}, \code{PAUSE}, \code{RESTART}, \code{INFO},
-\code{MAP} or \code{WEB_TEST} will call the corresponding command on the
-experiment, with no arguments.
+\code{MAP}, \code{NEXT_STAGE} or \code{WEB_TEST} will call the corresponding
+command on the experiment, with no arguments.
 }
 \details{
 \code{load_commands} is implemented using \code{\link{makeActiveBinding}}.
-For obvious reasons, don't assign to the values \code{READY} etc. either before
-or after this is called!
+For obvious reasons, don't assign to the values \code{READY} etc. either
+ before or after this is called!
 
 \code{unload_commands} simply removes the command names from the global
 environment.
@@ -34,8 +37,9 @@ Other command line functions: \code{\link{get_url}},
   \code{\link{print_stages}}, \code{\link{session_name}};
   \code{\link{halt}}; \code{\link{merge_subjects}};
   \code{\link{next_stage}}; \code{\link{pause}};
-  \code{\link{ready}}; \code{\link{replay}};
-  \code{\link{restart}}; \code{\link{start.Experiment}};
+  \code{\link{ready}}; \code{\link{replay}},
+  \code{\link{rewind}}; \code{\link{restart}};
+  \code{\link{start.Experiment}};
   \code{\link{trace_stage}}, \code{\link{untrace_stage}}
 }
 

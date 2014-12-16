@@ -48,11 +48,11 @@ s1 <- function(id, period, params) {
 }
 
 s2 <- program("last", function(id, period) {
- mydf$profit <<- with(mydf[mydf$period==period,]
+ mydf$profit <<- with(mydf[mydf$period==period,],
        ave(contrib, group, FUN=function(x) 50 - x + mpcr * mean(x)))
 })
 
-add_stage(expt, period(), s1, checkpoint(mydf$group), s2, s3, times=10)
+add_stage(expt, period(), s1, checkpoint("all"), s2, times=10)
 }
 \seealso{
 Other stages: \code{\link{NEXT}}, \code{\link{WAIT}},
