@@ -107,7 +107,20 @@ identify_seats <- function (method="IP", serve=TRUE) {
       res$write("<h1>Enter seat number</h1>
             <form action='' method=POST>Enter this computer's seat number:
             <br><input type='text' name='seat' width='4'>
-            <input type='submit'></form></body></html>")
+            <input type='submit'>")
+      res$write("<table>")
+      for (r in 0:3) {
+        res$write("<tr>")
+        for (c in 1:10) {
+          num <- r * 10 + c
+          res$write(sprintf("<td><button type='submit' name='seat' value='%s' 
+                style='background:blue; color:white; height:75px; width:50px; 
+                font-size: 200%%;'>", num))
+          res$write(paste(num,"</button>"))
+        }
+        res$write("</tr>")
+      }
+      res$write("</table></form></body></html>")
     }
     res$finish()
   }
@@ -177,7 +190,7 @@ write_data <- function(experiment, data_frame) {
     fn <- paste0("betr-data-", paste0(sample(LETTERS, 10), collapse=""))
   }
   message("Writing data frame to ", fn, ".csv")
-  write.csv(data_frame, file=paste0(fn, ".csv"))
+  write.csv(data_frame, file=paste0(fn, ".csv"), row.names=FALSE)
 }
 
 

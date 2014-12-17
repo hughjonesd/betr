@@ -2,13 +2,19 @@ BUGS
 ----
 
 - [] RookServer not respecting port under RStudio (workaround; needs actual fix)
-- [] Server doesn't stop after rm(expt). Still there?
-- [] RookServer creates sink() a lot
-- [] FormStage doesn't like not getting params...?
+- [] Rook doesn't return cookies after the first twenty or so :-(
+  - wait for bugfix?
+  - set a cookie called `betr` not by `session_name`?
 - [] how to move on manually from TextStages? autorefresh?
-- [] ReplayServer gets put in .oldserver
-- [] documentation doesn't show default values e.g. in experiment(...)
-- [] ?? ready isn't reinitialized in Programs on replay?
+- [] help pages don't show default values e.g. in experiment(...)
+- [] ready isn't reinitialized in Programs on replay; ditto checkpoint ids etc
+  - need a clean() method called on add_stage and on ready.
+- [] next_stage() through a Period does not increment period
+  - this is really an architectural bug. We don't differentiate between
+  "doing calculations" and "getting input from the user". If we advance a stage
+  we want to do calculations, but not bother showing input to the user. 
+  More deeply, we don't have "push". So when the admin pushes users forward
+  a stage, nothing happens till they hit refresh...
 
 TODO
 ----
@@ -24,9 +30,8 @@ TODO
   - needs to be on a per-person basis. Maybe just within the data frame?
 - [] simple way to make multiple, slightly different stages (e.g. copy +
   interface to various object fields)?
-- [] way to go to a particular period in `replay`, and to start live from
+- [x] way to go to a particular period in `replay`, and to start live from
   there
-  - maybe dynamic commands e.g. 'n id:x' 'n period:3' 'n param:x:y' etc.
 - [] is_email, is_date
 - [] HTML form elements in separate package
   - checker functions
@@ -34,12 +39,23 @@ TODO
   - using Twitter Bootstrap?
 - [] vignette: tips/tricks/bugs
 - [] vignette: using multiple parameters
-- [] option (or default) to put experiments in folder hierarchy (expt/date/time)?
+- [] wiki
+
+To document
+-----------
+- [] new betr-data file path
+
+Plan for stages separating actions from response to users
+---------------------------------------------------------
+
+- Unnecessary, if we get server push. Because then,
+  a new stage is always run when next_stage is called.
 
 Other thoughts
 --------------
 - HTML form checks could be expressions: `is_numeric(x) && x %in% 1:10`
   - with error messages in separate list, using gettextf?
+  - and so could stages, with default values for e.g. id, period...
 - maybe replace `print_stages` with `stages` which returns a list with
   a `print` method?
 - make matching and within-group calculations simple, e.g. 
@@ -64,6 +80,7 @@ reasons) without a defined endpoint?
   - NB stage objects currently handle both "page display" (e.g. TextStage
     versus FormStage) and control flow (e.g. Period, Checkpoint)... perhaps
     should be separated out somehow.
+- separate Session from Experiment.
 
 
 Next iteration

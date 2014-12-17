@@ -23,6 +23,7 @@ Collate:
     'stages.R'
     'servers.R'
     'betr.R'
+    'interface.R'
     'checks.R'
     'pages.R'
     'utils.R'

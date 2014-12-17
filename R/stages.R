@@ -170,7 +170,8 @@ FormStage <- setRefClass("FormStage", contains="AbstractStage",
           f <- switch(multi_params, AsIs=list, paste=function(x) paste(x, 
                 collapse=","))
           params <- lapply(params, function(x) if (length(x)>1) f(x) else x )
-          update_data_frame(id, period, params[names(fields)])
+          toupdate <- intersect(names(fields), names(params))
+          update_data_frame(id, period, params[toupdate])
           return(NEXT)
         } else {
             res <- call_page(page, id, period, params, errors=errs)     
