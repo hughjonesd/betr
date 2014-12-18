@@ -1,49 +1,50 @@
-BUGS
+
+
+Plan
 ----
 
-- [] RookServer not respecting port under RStudio (workaround; needs actual fix)
-- [] Rook doesn't return cookies after the first twenty or so :-(
-  - wait for bugfix?
-  - set a cookie called `betr` not by `session_name`?
-- [] how to move on manually from TextStages? autorefresh?
-- [] help pages don't show default values e.g. in experiment(...)
-- [] ready isn't reinitialized in Programs on replay; ditto checkpoint ids etc
-  - need a clean() method called on add_stage and on ready.
-- [] next_stage() through a Period does not increment period
-  - this is really an architectural bug. We don't differentiate between
-  "doing calculations" and "getting input from the user". If we advance a stage
-  we want to do calculations, but not bother showing input to the user. 
-  More deeply, we don't have "push". So when the admin pushes users forward
-  a stage, nothing happens till they hit refresh...
 
-TODO
-----
-- [x] timeout stage to wrap other stages
-  - would be nice to do this for "wait" also but hard to "redisplay the page"
-- [] use makeActiveBinding to "watch" data frames etc.... or define
-  an on_request hook?
-- [] easy equivalent to zTree Participate=0, i.e. make some subjects skip a stage
-- [x] general framework for HTML pages
-  - [] how to deal with 'errors'?
-- [] check function errors should be translatable
-- [] ways to have arbitrary variables in (different) stages, e.g. for 'brew'
-  - needs to be on a per-person basis. Maybe just within the data frame?
-- [] simple way to make multiple, slightly different stages (e.g. copy +
-  interface to various object fields)?
-- [x] way to go to a particular period in `replay`, and to start live from
-  there
-- [] is_email, is_date
-- [] HTML form elements in separate package
-  - checker functions
-  - javascript attribute?
-  - using Twitter Bootstrap?
-- [] vignette: tips/tricks/bugs
-- [] vignette: using multiple parameters
-- [] wiki
+1. Basic framework using shiny.
 
-To document
------------
-- [] new betr-data file path
+### requirements
+- easy for experimenters to define forms, take actions, define complex
+  flow through stages (including on the fly)
+- easy to create a "shiny page" which uses whatever shiny offers
+- must be implementable using Shiny server (free version)
+- and preferably also from shinyapps.io
+- must not require experimenters to immerse themselves in Shiny
+- must allow server-push for stages, timeouts etc.
+
+### plan
+- do a simple PG game in Shiny
+- use the knowledge to design new framework
+
+### issues:
+Typically, HTTP headers sent to Shiny Server will not be forwarded to the 
+underlying Shiny application. (from the administrator's guide). So, how
+get IP address for auth?
+
+### ideas:
+- separate experiment definition from session running
+- separate "policy" and "mechanism" layers
+- functions for matching groups
+- event-driven approach, e.g. events for
+  - subject reached new stage
+  - subject submitted form
+  - subject timed out
+  - new period
+  - maybe these are listened to via reactive() framework?
+  - stage$onFirstEntry, $onSubjectEntry, $onTimeout, ...
+- shiny has validate() and need() for input
+- use d3 etc for charts, rather than doing it on the server side
+- "as much as possible, program the logic for the whole group together"
+  - lots of dplyr subjects %>% group_by(group) ...
+  - another useful trick, with pryr: dynset %<a-% rs %>% group_by(...) %>% ...
+  - if we decouple code from "this user got here", then it's more natural
+  not to rely on a particular user id...
+  - effectively so far our events have been "this user got to this stage",
+    and "this user submitted this input". We can be broader than this
+  
 
 Plan for stages separating actions from response to users
 ---------------------------------------------------------
@@ -51,8 +52,30 @@ Plan for stages separating actions from response to users
 - Unnecessary, if we get server push. Because then,
   a new stage is always run when next_stage is called.
 
-Other thoughts
---------------
+Random thoughts and TODOs
+--------------- 
+
+- [] next_stage() through a Period does not increment period
+  - this is really an architectural bug. We don't differentiate between
+  "doing calculations" and "getting input from the user". If we advance a stage
+  we want to do calculations, but not bother showing input to the user. 
+  More deeply, we don't have "push". So when the admin pushes users forward
+  a stage, nothing happens till they hit refresh...
+- [] use makeActiveBinding to "watch" data frames etc.... or define
+  an on_request hook?
+- [] easy equivalent to zTree Participate=0, i.e. make some subjects skip a stage
+- [] check function errors should be translatable
+- [] ways to have arbitrary variables in (different) stages, e.g. for 'brew'
+  - needs to be on a per-person basis. Maybe just within the data frame?
+- [] simple way to make multiple, slightly different stages (e.g. copy +
+  interface to various object fields)?
+
+- [] HTML form elements in separate package
+  - checker functions
+  - javascript attribute?
+  - using Twitter Bootstrap?
+- [] wiki
+
 - HTML form checks could be expressions: `is_numeric(x) && x %in% 1:10`
   - with error messages in separate list, using gettextf?
   - and so could stages, with default values for e.g. id, period...
