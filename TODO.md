@@ -4,7 +4,7 @@ Plan
 ----
 
 
-1. Basic framework using shiny.
+## 1. Basic framework using shiny.
 
 ### requirements
 - easy for experimenters to define forms, take actions, define complex
@@ -20,32 +20,58 @@ Plan
 - use the knowledge to design new framework
 
 ### issues:
-Typically, HTTP headers sent to Shiny Server will not be forwarded to the 
+- Typically, HTTP headers sent to Shiny Server will not be forwarded to the 
 underlying Shiny application. (from the administrator's guide). So, how
 get IP address for auth?
+- Doesn't seem possible to connect to the R session in Shiny Server; or to run 
+shiny apps daemonized from the command line. (But maybe can hack it to use 
+httpuv's startServerDaemonized?)
+      - Does it matter ie should we anyway have a "management console"?
+      - https://github.com/trestletech/shinyAce is an integrated editor in shiny
+          - has an "eval" example where code is evaluated
+      - for an example of a complex ui, with drag n drop etc.,
+  see https://github.com/iheartradio/ShinyBuilder 
+
 
 ### ideas:
 - separate experiment definition from session running
 - separate "policy" and "mechanism" layers
 - functions for matching groups
 - event-driven approach, e.g. events for
-  - subject reached new stage
-  - subject submitted form
-  - subject timed out
-  - new period
-  - maybe these are listened to via reactive() framework?
-  - stage$onFirstEntry, $onSubjectEntry, $onTimeout, ...
+    - subject reached new stage
+    - subject submitted form
+    - subject timed out
+    - new period
+    - maybe these are listened to via reactive() framework?
+    - stage$onFirstEntry, $onSubjectEntry, $onTimeout, ...
 - shiny has validate() and need() for input
 - use d3 etc for charts, rather than doing it on the server side
 - "as much as possible, program the logic for the whole group together"
-  - lots of dplyr subjects %>% group_by(group) ...
-  - another useful trick, with pryr: dynset %<a-% rs %>% group_by(...) %>% ...
-  - if we decouple code from "this user got here", then it's more natural
-  not to rely on a particular user id...
-  - effectively so far our events have been "this user got to this stage",
+    - lots of dplyr subjects %>% group_by(group) ...
+    - another useful trick, with pryr: dynset %<a-% rs %>% group_by(...) %>% ...
+    - if we decouple code from "this user got here", then it's more natural
+    not to rely on a particular user id...
+    - effectively so far our events have been "this user got to this stage",
     and "this user submitted this input". We can be broader than this
-  
+- define some easy-to-use pages as shiny UI elements:
+    - textPage
+    - formPage (with autofill to/from database and with form checking)
+    - questionnaire (a kind of formPage)
+- this seems relevant: https://github.com/jcheng5/shiny-partials
 
+
+## 2. Robots
+
+### requirements
+- subjects can be real or robots
+- robots can be created automagically from a past session (matches params to
+stages)
+- and should be a nice way to edit them (e.g. DSL?)
+- able to react to specific html?
+- code chain looks like: page passed to "user" which _either_ 
+    - is a proxy that passes it back to the web server (or shiny...) for rendering,
+    - _or_ is a robot which decides what to do based on the page
+  
 Plan for stages separating actions from response to users
 ---------------------------------------------------------
 

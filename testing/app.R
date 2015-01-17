@@ -36,6 +36,7 @@ etc.
   pages[[3]] <- {
     
   }
+  browser() # but how to have commandline interaction normally?
   output$page <- renderUI(pages[[currentPage()]])
 }
 
